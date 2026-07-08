@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EVP Dashboard - Ru Gunawardane</title>
+  <style>
+    :root {
+      --bg: #FFFFFF;
+      --surface: #FFFFFF;
+      --surface-2: #F5F5F4;
+      --border: #E5E2DC;
+      --accent: #6464FF;
+      --accent-light: #EDEDFF;
+      --accent-mid: #8585FF;
+      --amber: #FF6E00;
+      --amber-light: #FFF3ED;
+      --rose: #CD0F55;
+      --rose-light: #FCE8F0;
+      --sky: #6464FF;
+      --sky-light: #EDEDFF;
+      --link-accent: #FF00FF;
+      --text-primary: #000000;
+      --text-secondary: #737373;
+      --text-muted: #AAA39F;
+      --shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.03);
+      --shadow-hover: 0 2px 8px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.05);
+      --radius: 14px;
+      --radius-sm: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Login Gate ───────────────────────────── */
+    .login-gate {
+      position: fixed;
+      inset: 0;
+      background: #FAFAF8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 24px;
+    }
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-hover);
+      padding: 40px 36px;
+      max-width: 380px;
+      width: 100%;
+      text-align: center;
+    }
+    .login-title {
+      font-family: Arial, sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 24px;
+      line-height: 1.4;
+    }
+    .login-input {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 0.92rem;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--text-primary);
+      font-family: Arial, sans-serif;
+      margin-bottom: 12px;
+      transition: all 0.15s ease;
+    }
+    .login-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .login-btn {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #FFFFFF;
+      cursor: pointer;
+      font-family: Arial, sans-serif;
+      margin-top: 6px;
+      transition: all 0.15s ease;
+    }
+    .login-btn:hover {
+      background: var(--accent-mid);
+    }
+    .login-error {
+      color: var(--rose);
+      font-size: 0.82rem;
+      margin-top: 12px;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 24px;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ──────────────────────────────── */
+    .header {
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .title-main {
+      font-family: Arial, sans-serif;
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+    .btn-external {
+      font-family: Arial, sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 10px 18px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: background 0.2s, box-shadow 0.2s;
+      white-space: nowrap;
+      box-shadow: var(--shadow);
+    }
+    .btn-external:hover {
+      background: var(--accent-mid);
+      box-shadow: var(--shadow-hover);
+    }
+
+    /* ── Tabs ────────────────────────────────── */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 8px;
+    }
+    .tab-btn {
+      font-family: Arial, sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      padding: 12px 24px;
+      border: none;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover {
+      background: var(--accent-light);
+      color: var(--accent);
+    }
+    .tab-btn.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    /* ── Tab Content ──────────────────────────── */
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ── Cards ────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      box-shadow: var(--shadow);
+      transition: box-shadow 0.2s ease;
+      margin-bottom: 20px;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: Arial, sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .card-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1em;
+      flex-shrink: 0;
+    }
+    .icon-green { background: var(--accent-light); color: var(--accent); }
+    .icon-rose { background: var(--rose-light); color: var(--rose); }
+    .icon-amber { background: var(--amber-light); color: var(--amber); }
+    .icon-sky { background: var(--sky-light); color: var(--sky); }
+
+    /* ── Collapsible Sections ──────────────────── */
+    .section-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .section-header {
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 22px;
+      transition: background 0.15s;
+    }
+    .section-header.open {
+      border-bottom: 1px solid var(--border);
+    }
+    .section-header:hover {
+      background: #FAFAFA;
+    }
+    .section-title {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .collapsible-toggle {
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      font-weight: 400;
+      color: var(--text-secondary);
+      border-radius: 50%;
+      transition: all 0.2s;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .section-header:hover .collapsible-toggle {
+      background: var(--accent-light);
+      color: var(--accent);
+    }
+    .collapsible-toggle.open {
+      transform: rotate(45deg);
+    }
+    .collapsible-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+    }
+    .collapsible-content.open {
+      max-height: 3000px;
+      transition: max-height 0.6s ease-in;
+    }
+    .section-body {
+      padding: 4px 24px 24px;
+    }
+
+    /* ── Buttons ──────────────────────────────── */
+    .btn-add {
+      padding: 10px 18px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--accent);
+      color: white;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: Arial, sans-serif;
+      white-space: nowrap;
+    }
+    .btn-add:hover { 
+      background: var(--accent-mid); 
+      transform: translateY(-1px); 
+    }
+    .btn-del {
+      background: none;
+      border: none;
+      color: var(--rose);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 4px 8px;
+      opacity: 0.6;
+      transition: opacity 0.15s ease;
+    }
+    .btn-del:hover { opacity: 1; }
+
+    /* ── Inputs & Forms ────────────────────────── */
+    .add-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .add-input, .add-select {
+      flex: 1;
+      min-width: 140px;
+      padding: 10px 12px;
+      font-size: 0.88rem;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--text-primary);
+      font-family: Arial, sans-serif;
+      transition: all 0.15s ease;
+    }
+    .add-input:focus, .add-select:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: white;
+    }
+
+    /* ── List Items ────────────────────────────── */
+    .scroll-list {
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+    .list-item {
+      background: var(--surface-2);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.15s;
+    }
+    .list-item:hover {
+      box-shadow: var(--shadow-hover);
+    }
+    .item-content {
+      flex: 1;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .item-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+      font-size: 0.78rem;
+    }
+    .tag {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+    .tag-category { background: #e3f2fd; color: #1565c0; }
+    .tag-owner { background: #f3e8ff; color: #6b21a8; }
+    .tag-due { background: #fff3e0; color: #ef6c00; }
+    .priority-high { color: #c62828; }
+    .priority-medium { color: #ef6c00; }
+    .priority-low { color: #2e7d32; }
+
+    /* ── Quick Links ──────────────────────────── */
+    .quick-links-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .quick-link-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 20px;
+      background: var(--accent);
+      border: none;
+      border-radius: 999px;
+      text-decoration: none;
+      color: #FFFFFF;
+      font-family: Arial, sans-serif;
+      font-size: 0.82rem;
+      font-weight: 400;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .quick-link-btn:hover {
+      background: var(--accent-mid);
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-1px);
+    }
+
+    /* ── 2-Month Calendar ────────────────────────── */
+    .calendar-container {
+      display: flex;
+      gap: 28px;
+      flex-wrap: wrap;
+    }
+    .calendar-month {
+      flex: 1;
+      min-width: 280px;
+    }
+    .calendar-month-title {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+      text-align: center;
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .calendar-dow {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-align: center;
+      padding-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .calendar-day {
+      min-height: 62px;
+      border-radius: 8px;
+      background: var(--surface-2);
+      padding: 5px 4px;
+      font-size: 0.75rem;
+    }
+    .calendar-day.empty {
+      background: transparent;
+    }
+    .calendar-day.today {
+      box-shadow: inset 0 0 0 2px var(--accent);
+    }
+    .calendar-day-num {
+      font-weight: 700;
+      font-size: 0.74rem;
+      margin-bottom: 3px;
+      color: var(--text-primary);
+    }
+    .calendar-event {
+      display: block;
+      font-size: 0.6rem;
+      line-height: 1.3;
+      padding: 1px 4px;
+      border-radius: 4px;
+      margin-bottom: 2px;
+      color: #FFFFFF;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: Arial, sans-serif;
+    }
+    .calendar-legend {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+    .legend-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    .calendar-error {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      padding: 8px 0;
+    }
+
+    /* ── Travel Cards ────────────────────────────── */
+    .travel-preview-note {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      background: var(--surface-2);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      margin-bottom: 14px;
+    }
+    .travel-item {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px 18px;
+      margin-bottom: 12px;
+    }
+    .travel-item:last-child {
+      margin-bottom: 0;
+    }
+    .travel-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .travel-item-title {
+      font-weight: 700;
+      font-size: 0.98rem;
+      color: var(--text-primary);
+    }
+    .travel-item-dest {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+    .travel-item-dates {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    .travel-checks {
+      display: flex;
+      gap: 20px;
+      margin: 10px 0 4px;
+    }
+    .travel-check {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.85rem;
+      color: var(--text-primary);
+    }
+    .check-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .check-icon.done {
+      background: #1B8A5A;
+      color: #FFFFFF;
+    }
+    .check-icon.pending {
+      background: var(--surface-2);
+      border: 1.5px solid var(--border);
+      color: transparent;
+    }
+    .travel-item-notes {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+    .travel-item-notes a {
+      color: var(--link-accent);
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+<!-- Login Gate -->
+<div id="login-gate" class="login-gate">
+  <div class="login-card">
+    <div class="login-title">CellScapes EVP/EA Dashboard</div>
+    <form id="login-form" onsubmit="return handleLogin(event)">
+      <input type="text" id="login-username" class="login-input" placeholder="Username" autocomplete="username" required>
+      <input type="password" id="login-password" class="login-input" placeholder="Password" autocomplete="current-password" required>
+      <button type="submit" class="login-btn">Sign In</button>
+      <div id="login-error" class="login-error" style="display:none;">Incorrect username or password.</div>
+    </form>
+  </div>
+</div>
+
+<div id="dashboard-content" style="display:none;">
+
+<div class="header">
+  <h1 class="title-main">EVP Dashboard - Ru Gunawardane</h1>
+  <a href="https://karntso.github.io/cellscapes-leadership-dashboard/" target="_blank" class="btn-external">
+    &#8599; Leadership Team Dashboard
+  </a>
+</div>
+
+
+<!-- Tab Navigation -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('priorities')">Ru's Priorities</button>
+</div>
+
+<!-- Tab 1: Ru's Priorities -->
+<div id="tab-priorities" class="tab-content active">
+
+  <!-- Quick Links -->
+  <div class="section-card">
+    <div class="section-header" onclick="toggleCollapse('quicklinks')" id="quicklinks-header">
+      <h2 class="section-title">quick links</h2>
+      <span class="collapsible-toggle" id="quicklinks-toggle">+</span>
+    </div>
+    <div class="collapsible-content" id="quicklinks-content">
+      <div class="section-body">
+        <div class="quick-links-grid">
+          <a href="https://alleninstitute.sharepoint.com/:f:/s/AICSPrograms/IgB8sUQtpwd0SLiWBI67xBSUAbygBxLsKOjYXhS4yKyu8Ko?e=PTx1r1" target="_blank" class="quick-link-btn">SAC presentations</a>
+          <a href="https://alleninstitute.sharepoint.com/:f:/s/AICSPrograms/IgAARZCTXep1SaGLtZk-YMdhAXqYoWvA8Dp0oPcyystuZpU?e=gOjiAe" target="_blank" class="quick-link-btn">conference presentations</a>
+          <a href="https://github.com/orgs/AllenCell/projects/20/views/1" target="_blank" class="quick-link-btn">dissemination progress board</a>
+          <a href="https://alleninstitute-my.sharepoint.com/:x:/r/personal/kristine_arntson_alleninstitute_org/Documents/2026%20CellScapes/leadership%20team%20documents/2026%20Cell%20Science%20staff%20roster.xlsx?d=wad418cc01f1e4fc2a6cce9244e247fc5&csf=1&web=1&e=KfX9HV" target="_blank" class="quick-link-btn">staff roster</a>
+          <a href="https://alleninstitute-my.sharepoint.com/:p:/r/personal/kristine_arntson_alleninstitute_org/Documents/2026%20CellScapes/leadership%20team%20documents/2026%20Cell%20Science%20org%20chart.pptx?d=wbfa513195b19466f9a36af30016fb984&csf=1&web=1&e=4CBIkG" target="_blank" class="quick-link-btn">org chart</a>
+          <a href="REPLACE_WITH_EVP_GOALS_URL" target="_blank" class="quick-link-btn">EVP goals</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ru's Calendar (2-month view) -->
+  <div class="section-card">
+    <div class="section-header" onclick="toggleCollapse('rucalendar')" id="rucalendar-header">
+      <h2 class="section-title">Ru's calendar</h2>
+      <span class="collapsible-toggle" id="rucalendar-toggle">+</span>
+    </div>
+    <div class="collapsible-content" id="rucalendar-content">
+      <div class="section-body" id="rucalendar-body">
+        <div class="calendar-error">Loading calendar…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EVP Priorities (Deadlines & Action Items) -->
+  <div class="section-card">
+    <div class="section-header" onclick="toggleCollapse('priorities')" id="priorities-header">
+      <h2 class="section-title">EVP priorities</h2>
+      <span class="collapsible-toggle" id="priorities-toggle">+</span>
+    </div>
+    <div class="collapsible-content" id="priorities-content">
+      <div class="section-body">
+        <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vTooooITZvvuBDep9T7D4rV0N4CtetTUkhSObmeedzxv8nYO2Fk9s_zTUs5mtbISoR-UpoboWvmryz8/pubhtml?gid=0&single=true&widget=true&headers=false"
+                width="100%"
+                height="400"
+                frameborder="0"
+                style="border:1px solid var(--border);border-radius:var(--radius-sm);display:block;margin:0 auto;">
+        </iframe>
+        <div style="margin-top:8px;text-align:right;">
+          <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vTooooITZvvuBDep9T7D4rV0N4CtetTUkhSObmeedzxv8nYO2Fk9s_zTUs5mtbISoR-UpoboWvmryz8/pubhtml?gid=0&single=true&widget=true&headers=false" target="_blank" style="font-size:0.82rem;color:var(--link-accent);text-decoration:none;">
+            open in full screen →
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EVP Roadmapping -->
+  <div class="section-card">
+    <div class="section-header" onclick="toggleCollapse('roadmapping')" id="roadmapping-header">
+      <h2 class="section-title">EVP roadmapping</h2>
+      <span class="collapsible-toggle" id="roadmapping-toggle">+</span>
+    </div>
+    <div class="collapsible-content" id="roadmapping-content">
+      <div class="section-body">
+        <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQA569yj-4gFIpuu2ii4Z_KzanEp-V0szzKFQbH6EAc0tx5bzckPDx18ZIRazL5PDLzCLvZ7n5Gv-15/pubhtml?widget=true&headers=false"
+                width="100%"
+                height="600"
+                frameborder="0"
+                style="border:1px solid var(--border);border-radius:var(--radius-sm);display:block;margin:0 auto;">
+        </iframe>
+        <div style="margin-top:8px;text-align:right;">
+          <a href="https://docs.google.com/spreadsheets/d/1ejQPgWsEspYfYsAEewF9WNbH6mu1-VBY58L6x17gIAc/edit?usp=sharing" target="_blank" style="font-size:0.82rem;color:var(--link-accent);text-decoration:none;">
+            open in full screen →
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EVP Travel -->
+  <div class="section-card">
+    <div class="section-header" onclick="toggleCollapse('travel')" id="travel-header">
+      <h2 class="section-title">EVP travel</h2>
+      <span class="collapsible-toggle" id="travel-toggle">+</span>
+    </div>
+    <div class="collapsible-content" id="travel-content">
+      <div class="section-body" id="travel-body">
+        <div class="calendar-error">Loading travel details…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EVP External Engagement -->
+  <div class="section-card">
+    <div class="section-header" onclick="toggleCollapse('external')" id="external-header">
+      <h2 class="section-title">EVP external engagement</h2>
+      <span class="collapsible-toggle" id="external-toggle">+</span>
+    </div>
+    <div class="collapsible-content" id="external-content">
+      <div class="section-body">
+        <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSYOPui08lRzv4BV7GEX1YZx6uCbRk2CPIOg--nTuKQEPKxPH8tCr2lcIUdQlGnMdDycBqufrY4I1Rl/pubhtml?gid=647045535&single=true&widget=false&headers=false&chrome=false"
+                width="100%"
+                height="500"
+                frameborder="0"
+                style="border:1px solid var(--border);border-radius:var(--radius-sm);display:block;margin:0 auto;">
+        </iframe>
+        <div style="margin-top:8px;text-align:right;">
+          <a href="https://docs.google.com/spreadsheets/d/1f4bYWXYeNbRHXVEupyvxTAv5K9FcIr2Fbw5pwIH0pNk/edit?usp=sharing" target="_blank" style="font-size:0.82rem;color:var(--link-accent);text-decoration:none;">
+            open in full screen →
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leadership Calendar -->
+  <div class="section-card">
+    <div class="section-header" onclick="toggleCollapse('calendar')" id="calendar-header">
+      <h2 class="section-title">leadership calendar</h2>
+      <span class="collapsible-toggle" id="calendar-toggle">+</span>
+    </div>
+    <div class="collapsible-content" id="calendar-content">
+      <div class="section-body">
+        <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQdEwEE5IlPlF98-CIb3HXLE7X7VyUtu6zgIXmv7mceo1kHitXvKhORt-QDOJLAfUf2RM43MjLelSHc/pubhtml?gid=98282348&single=true&widget=false&headers=false&chrome=false"
+                width="100%"
+                height="500"
+                frameborder="0"
+                style="border:1px solid var(--border);border-radius:var(--radius-sm);display:block;margin:0 auto;">
+        </iframe>
+        <div style="margin-top:8px;text-align:right;">
+          <a href="https://docs.google.com/spreadsheets/d/1z2Wo_Y3wc9PO7mAzx08ZtbSqQaSNXas9H5noVG6-eEE/edit?usp=sharing" target="_blank" style="font-size:0.82rem;color:var(--link-accent);text-decoration:none;">
+            open in full screen →
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// TAB SWITCHING
+// ══════════════════════════════════════════════════════════════
+function switchTab(tabName) {
+  // Hide all tabs
+  document.querySelectorAll('.tab-content').forEach(tab => {
+    tab.classList.remove('active');
+  });
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  // Show selected tab
+  document.getElementById('tab-' + tabName).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ══════════════════════════════════════════════════════════════
+// COLLAPSIBLE SECTIONS
+// ══════════════════════════════════════════════════════════════
+function toggleCollapse(id) {
+  const content = document.getElementById(id + '-content');
+  const toggle = document.getElementById(id + '-toggle');
+  const header = document.getElementById(id + '-header');
+
+  content.classList.toggle('open');
+  toggle.classList.toggle('open');
+  if (header) header.classList.toggle('open');
+}
+
+// ══════════════════════════════════════════════════════════════
+// RU'S 2-MONTH CALENDAR
+// ══════════════════════════════════════════════════════════════
+const CALENDAR_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJPAJ4jIYcrJaJN8QQN5kQQtWIKuiyiPTFvq9QxkiSPgEDvajtSqrOvHH2L4w6Ug/pub?gid=1050607726&single=true&output=csv";
+
+const CALENDAR_CATEGORY_COLORS = {
+  "Workshop": "#6464FF",
+  "Conference": "#CD0F55",
+  "Travel": "#FF6E00",
+  "Board/BOD": "#1B8A5A",
+  "Other": "#737373"
+};
+
+// Parses "YYYY-MM-DD" (or most common date strings) as a LOCAL date,
+// avoiding the UTC-midnight shift that new Date("YYYY-MM-DD") introduces.
+function parseLocalDate(str) {
+  if (!str) return null;
+  const isoMatch = String(str).trim().match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (isoMatch) {
+    const [, y, mo, da] = isoMatch;
+    return new Date(parseInt(y), parseInt(mo) - 1, parseInt(da));
+  }
+  const slashMatch = String(str).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (slashMatch) {
+    const [, mo, da, y] = slashMatch;
+    return new Date(parseInt(y), parseInt(mo) - 1, parseInt(da));
+  }
+  const d = new Date(str);
+  return isNaN(d) ? null : d;
+}
+
+async function loadRuCalendar() {
+  const body = document.getElementById('rucalendar-body');
+  if (CALENDAR_CSV_URL.indexOf("REPLACE_WITH") === 0) {
+    body.innerHTML = '<div class="calendar-error">Calendar not connected yet — publish the Calendar Events Google Sheet as CSV and drop the link into CALENDAR_CSV_URL in the code.</div>';
+    return;
+  }
+  try {
+    const res = await fetch(CALENDAR_CSV_URL);
+    if (!res.ok) throw new Error('Fetch failed: ' + res.status);
+    const text = await res.text();
+    const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
+    renderTwoMonthCalendar(parsed.data);
+  } catch (err) {
+    console.error('Calendar load error:', err);
+    body.innerHTML = '<div class="calendar-error">Unable to load calendar events right now. Check that the sheet is published and the link is correct.</div>';
+  }
+}
+
+function renderTwoMonthCalendar(events) {
+  const body = document.getElementById('rucalendar-body');
+  body.innerHTML = '';
+
+  const eventsByDate = {};
+  events.forEach(e => {
+    if (!e.Date) return;
+    const d = parseLocalDate(e.Date);
+    if (!d) return;
+    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    if (!eventsByDate[key]) eventsByDate[key] = [];
+    eventsByDate[key].push(e);
+  });
+
+  const today = new Date();
+  const container = document.createElement('div');
+  container.className = 'calendar-container';
+
+  for (let m = 0; m < 2; m++) {
+    const monthDate = new Date(today.getFullYear(), today.getMonth() + m, 1);
+    container.appendChild(buildMonthGrid(monthDate, eventsByDate, today));
+  }
+  body.appendChild(container);
+
+  const legend = document.createElement('div');
+  legend.className = 'calendar-legend';
+  legend.innerHTML = Object.entries(CALENDAR_CATEGORY_COLORS)
+    .map(([cat, color]) => `<span><span class="legend-dot" style="background:${color}"></span>${cat}</span>`)
+    .join('');
+  body.appendChild(legend);
+}
+
+function buildMonthGrid(monthDate, eventsByDate, today) {
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const year = monthDate.getFullYear();
+  const month = monthDate.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const monthDiv = document.createElement('div');
+  monthDiv.className = 'calendar-month';
+
+  const title = document.createElement('div');
+  title.className = 'calendar-month-title';
+  title.textContent = monthNames[month] + ' ' + year;
+  monthDiv.appendChild(title);
+
+  const grid = document.createElement('div');
+  grid.className = 'calendar-grid';
+
+  ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(d => {
+    const dow = document.createElement('div');
+    dow.className = 'calendar-dow';
+    dow.textContent = d;
+    grid.appendChild(dow);
+  });
+
+  for (let i = 0; i < firstDay; i++) {
+    const empty = document.createElement('div');
+    empty.className = 'calendar-day empty';
+    grid.appendChild(empty);
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const key = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+    const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
+    const cell = document.createElement('div');
+    cell.className = 'calendar-day' + (isToday ? ' today' : '');
+
+    const num = document.createElement('div');
+    num.className = 'calendar-day-num';
+    num.textContent = day;
+    cell.appendChild(num);
+
+    (eventsByDate[key] || []).forEach(e => {
+      const ev = document.createElement('span');
+      ev.className = 'calendar-event';
+      ev.style.background = CALENDAR_CATEGORY_COLORS[e.Category] || CALENDAR_CATEGORY_COLORS['Other'];
+      ev.textContent = e.Event || '';
+      ev.title = (e.Event || '') + (e.Notes ? ' — ' + e.Notes : '');
+      cell.appendChild(ev);
+    });
+
+    grid.appendChild(cell);
+  }
+
+  monthDiv.appendChild(grid);
+  return monthDiv;
+}
+
+// ══════════════════════════════════════════════════════════════
+// EVP TRAVEL (custom card view)
+// ══════════════════════════════════════════════════════════════
+const TRAVEL_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJPAJ4jIYcrJaJN8QQN5kQQtWIKuiyiPTFvq9QxkiSPgEDvajtSqrOvHH2L4w6Ug/pub?gid=301433432&single=true&output=csv";
+
+const SAMPLE_TRAVEL_DATA = [
+  { "Trip": "Lake Conference", "Destination": "Lake Tahoe, CA", "Start Date": "2026-08-01", "End Date": "2026-08-04", "Flight Booked": "TRUE", "Hotel Booked": "TRUE", "Notes": "Keynote + CellScapes launch session" },
+  { "Trip": "Synthetic Multicellular Biology Workshop", "Destination": "Seattle, WA", "Start Date": "2026-09-10", "End Date": "2026-09-12", "Flight Booked": "FALSE", "Hotel Booked": "FALSE", "Notes": "Co-hosted with AICS/ISSCR/SBD — save the date sent" },
+  { "Trip": "Board of Directors Meeting", "Destination": "Boston, MA", "Start Date": "2026-10-05", "End Date": "2026-10-06", "Flight Booked": "TRUE", "Hotel Booked": "FALSE", "Notes": "Quarterly BOD report review with Vicki" }
+];
+
+function parseBool(val) {
+  if (!val) return false;
+  const v = String(val).trim().toLowerCase();
+  return v === 'true' || v === 'yes' || v === '1' || v === 'x' || v === '✓';
+}
+
+function formatDateRange(startStr, endStr) {
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const start = parseLocalDate(startStr);
+  const end = parseLocalDate(endStr);
+  if (!start) return '';
+  const startLabel = monthNames[start.getMonth()] + ' ' + start.getDate();
+  if (!end || end.getTime() === start.getTime()) return startLabel + ', ' + start.getFullYear();
+  const sameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
+  const endLabel = sameMonth ? end.getDate() : (monthNames[end.getMonth()] + ' ' + end.getDate());
+  return startLabel + ' – ' + endLabel + ', ' + end.getFullYear();
+}
+
+async function loadEvpTravel() {
+  const body = document.getElementById('travel-body');
+  if (TRAVEL_CSV_URL.indexOf("REPLACE_WITH") === 0) {
+    renderTravelCards(SAMPLE_TRAVEL_DATA, true);
+    return;
+  }
+  try {
+    const res = await fetch(TRAVEL_CSV_URL);
+    if (!res.ok) throw new Error('Fetch failed: ' + res.status);
+    const text = await res.text();
+    const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
+    renderTravelCards(parsed.data, false);
+  } catch (err) {
+    console.error('Travel load error:', err);
+    body.innerHTML = '<div class="calendar-error">Unable to load travel details right now. Check that the sheet is published and the link is correct.</div>';
+  }
+}
+
+function renderTravelCards(rows, isPreview) {
+  const body = document.getElementById('travel-body');
+  body.innerHTML = '';
+
+  if (isPreview) {
+    const note = document.createElement('div');
+    note.className = 'travel-preview-note';
+    note.textContent = 'Preview using sample data — connect your published sheet to make this live.';
+    body.appendChild(note);
+  }
+
+  const sorted = rows
+    .filter(r => r['Trip'] || r['Destination'])
+    .map(r => ({ ...r, _date: parseLocalDate(r['Start Date']) }))
+    .sort((a, b) => (a._date || 0) - (b._date || 0));
+
+  if (sorted.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'calendar-error';
+    empty.textContent = 'No upcoming travel logged yet.';
+    body.appendChild(empty);
+    return;
+  }
+
+  sorted.forEach(row => {
+    const item = document.createElement('div');
+    item.className = 'travel-item';
+
+    const flightDone = parseBool(row['Flight Booked']);
+    const hotelDone = parseBool(row['Hotel Booked']);
+
+    item.innerHTML = `
+      <div class="travel-item-top">
+        <div>
+          <div class="travel-item-title">${escapeHtml(row['Trip'] || '')}</div>
+          <div class="travel-item-dest">${escapeHtml(row['Destination'] || '')}</div>
+        </div>
+        <div class="travel-item-dates">${formatDateRange(row['Start Date'], row['End Date'])}</div>
+      </div>
+      <div class="travel-checks">
+        <div class="travel-check">
+          <span class="check-icon ${flightDone ? 'done' : 'pending'}">${flightDone ? '✓' : ''}</span>
+          Flight booked
+        </div>
+        <div class="travel-check">
+          <span class="check-icon ${hotelDone ? 'done' : 'pending'}">${hotelDone ? '✓' : ''}</span>
+          Hotel booked
+        </div>
+      </div>
+      ${row['Notes'] ? `<div class="travel-item-notes">${escapeHtml(row['Notes'])}</div>` : ''}
+    `;
+    body.appendChild(item);
+  });
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ══════════════════════════════════════════════════════════════
+// LOGIN GATE
+// ══════════════════════════════════════════════════════════════
+const VALID_USERNAME = "RuDashboard";
+const VALID_PASSWORD = "SCGE.2026";
+
+function handleLogin(e) {
+  e.preventDefault();
+  const u = document.getElementById('login-username').value.trim();
+  const p = document.getElementById('login-password').value;
+  const errorEl = document.getElementById('login-error');
+
+  if (u === VALID_USERNAME && p === VALID_PASSWORD) {
+    document.getElementById('login-gate').style.display = 'none';
+    document.getElementById('dashboard-content').style.display = 'block';
+    errorEl.style.display = 'none';
+  } else {
+    errorEl.style.display = 'block';
+  }
+  return false;
+}
+
+// ══════════════════════════════════════════════════════════════
+// INITIALIZE ON PAGE LOAD
+// ══════════════════════════════════════════════════════════════
+window.onload = function() {
+  loadRuCalendar();
+  loadEvpTravel();
+};
+</script>
+
+</body>
+</html>
