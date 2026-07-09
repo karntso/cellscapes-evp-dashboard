@@ -286,7 +286,7 @@
       transition: max-height 0.6s ease-in;
     }
     .section-body {
-      padding: 4px 24px 24px;
+      padding: 22px 24px 24px;
     }
 
     /* ── Buttons ──────────────────────────────── */
@@ -448,11 +448,12 @@
       letter-spacing: 0.03em;
     }
     .calendar-day {
-      min-height: 62px;
+      height: 82px;
       border-radius: 8px;
       background: var(--surface-2);
       padding: 5px 4px;
       font-size: 0.75rem;
+      overflow: hidden;
     }
     .calendar-day.empty {
       background: transparent;
@@ -467,17 +468,24 @@
       color: var(--text-primary);
     }
     .calendar-event {
-      display: block;
-      font-size: 0.6rem;
-      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      font-size: 0.58rem;
+      line-height: 1.25;
       padding: 1px 4px;
       border-radius: 4px;
       margin-bottom: 2px;
       color: #FFFFFF;
       overflow: hidden;
       text-overflow: ellipsis;
-      white-space: nowrap;
+      white-space: normal;
       font-family: Arial, sans-serif;
+    }
+    .calendar-event-more {
+      font-size: 0.56rem;
+      color: var(--text-secondary);
+      padding: 0 4px;
     }
     .calendar-legend {
       display: flex;
@@ -510,59 +518,61 @@
       padding: 8px 12px;
       margin-bottom: 14px;
     }
+    .travel-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 12px;
+    }
     .travel-item {
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
-      padding: 16px 18px;
-      margin-bottom: 12px;
-    }
-    .travel-item:last-child {
-      margin-bottom: 0;
+      padding: 12px 14px;
     }
     .travel-item-top {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      flex-wrap: wrap;
+      align-items: baseline;
       gap: 8px;
-      margin-bottom: 6px;
+      margin-bottom: 2px;
     }
     .travel-item-title {
       font-weight: 700;
-      font-size: 0.98rem;
+      font-size: 0.86rem;
       color: var(--text-primary);
     }
     .travel-item-dest {
-      font-size: 0.85rem;
+      font-size: 0.76rem;
       color: var(--text-secondary);
-      margin-top: 2px;
+      margin-bottom: 8px;
     }
     .travel-item-dates {
-      font-size: 0.85rem;
+      font-size: 0.74rem;
       font-weight: 600;
       color: var(--accent);
       white-space: nowrap;
+      flex-shrink: 0;
     }
     .travel-checks {
       display: flex;
-      gap: 20px;
-      margin: 10px 0 4px;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 4px;
     }
     .travel-check {
       display: flex;
       align-items: center;
-      gap: 7px;
-      font-size: 0.85rem;
+      gap: 6px;
+      font-size: 0.76rem;
       color: var(--text-primary);
     }
     .check-icon {
-      width: 18px;
-      height: 18px;
-      border-radius: 5px;
+      width: 15px;
+      height: 15px;
+      border-radius: 4px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.72rem;
+      font-size: 0.62rem;
       font-weight: 700;
       flex-shrink: 0;
     }
@@ -576,10 +586,10 @@
       color: transparent;
     }
     .travel-item-notes {
-      font-size: 0.85rem;
+      font-size: 0.76rem;
       color: var(--text-secondary);
-      margin-top: 8px;
-      line-height: 1.5;
+      margin-top: 6px;
+      line-height: 1.4;
     }
     .travel-item-notes a {
       color: var(--link-accent);
@@ -613,12 +623,6 @@
   </a>
 </div>
 
-
-<!-- Tab Navigation -->
-<div class="tabs">
-  <button class="tab-btn active" onclick="switchTab('priorities')">Ru's Priorities</button>
-</div>
-
 <!-- Tab 1: Ru's Priorities -->
 <div id="tab-priorities" class="tab-content active">
 
@@ -645,7 +649,7 @@
   <!-- Ru's Calendar (2-month view) -->
   <div class="section-card">
     <div class="section-header" onclick="toggleCollapse('rucalendar')" id="rucalendar-header">
-      <h2 class="section-title">Ru's calendar</h2>
+      <h2 class="section-title">EVP calendar</h2>
       <span class="collapsible-toggle" id="rucalendar-toggle">+</span>
     </div>
     <div class="collapsible-content" id="rucalendar-content">
@@ -801,11 +805,14 @@ function toggleCollapse(id) {
 const CALENDAR_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJPAJ4jIYcrJaJN8QQN5kQQtWIKuiyiPTFvq9QxkiSPgEDvajtSqrOvHH2L4w6Ug/pub?gid=1050607726&single=true&output=csv";
 
 const CALENDAR_CATEGORY_COLORS = {
-  "Workshop": "#6464FF",
-  "Conference": "#CD0F55",
-  "Travel": "#FF6E00",
-  "Board/BOD": "#1B8A5A",
-  "Other": "#737373"
+  "BOD": "#1B8A5A",
+  "conference": "#CD0F55",
+  "ELT": "#0EA5E9",
+  "personal": "#EC4899",
+  "SAC": "#FF6E00",
+  "seminar": "#14B8A6",
+  "workshop": "#6464FF",
+  "other": "#737373"
 };
 
 // Parses "YYYY-MM-DD" (or most common date strings) as a LOCAL date,
@@ -918,14 +925,23 @@ function buildMonthGrid(monthDate, eventsByDate, today) {
     num.textContent = day;
     cell.appendChild(num);
 
-    (eventsByDate[key] || []).forEach(e => {
+    const dayEvents = eventsByDate[key] || [];
+    const maxShown = 2;
+    dayEvents.slice(0, maxShown).forEach(e => {
       const ev = document.createElement('span');
       ev.className = 'calendar-event';
-      ev.style.background = CALENDAR_CATEGORY_COLORS[e.Category] || CALENDAR_CATEGORY_COLORS['Other'];
+      ev.style.background = CALENDAR_CATEGORY_COLORS[e.Category] || CALENDAR_CATEGORY_COLORS['other'];
       ev.textContent = e.Event || '';
       ev.title = (e.Event || '') + (e.Notes ? ' — ' + e.Notes : '');
       cell.appendChild(ev);
     });
+    if (dayEvents.length > maxShown) {
+      const more = document.createElement('div');
+      more.className = 'calendar-event-more';
+      more.textContent = '+' + (dayEvents.length - maxShown) + ' more';
+      more.title = dayEvents.slice(maxShown).map(e => e.Event).join(', ');
+      cell.appendChild(more);
+    }
 
     grid.appendChild(cell);
   }
@@ -1005,6 +1021,9 @@ function renderTravelCards(rows, isPreview) {
     return;
   }
 
+  const grid = document.createElement('div');
+  grid.className = 'travel-grid';
+
   sorted.forEach(row => {
     const item = document.createElement('div');
     item.className = 'travel-item';
@@ -1014,12 +1033,10 @@ function renderTravelCards(rows, isPreview) {
 
     item.innerHTML = `
       <div class="travel-item-top">
-        <div>
-          <div class="travel-item-title">${escapeHtml(row['Trip'] || '')}</div>
-          <div class="travel-item-dest">${escapeHtml(row['Destination'] || '')}</div>
-        </div>
+        <div class="travel-item-title">${escapeHtml(row['Trip'] || '')}</div>
         <div class="travel-item-dates">${formatDateRange(row['Start Date'], row['End Date'])}</div>
       </div>
+      <div class="travel-item-dest">${escapeHtml(row['Destination'] || '')}</div>
       <div class="travel-checks">
         <div class="travel-check">
           <span class="check-icon ${flightDone ? 'done' : 'pending'}">${flightDone ? '✓' : ''}</span>
@@ -1032,8 +1049,10 @@ function renderTravelCards(rows, isPreview) {
       </div>
       ${row['Notes'] ? `<div class="travel-item-notes">${escapeHtml(row['Notes'])}</div>` : ''}
     `;
-    body.appendChild(item);
+    grid.appendChild(item);
   });
+
+  body.appendChild(grid);
 }
 
 function escapeHtml(str) {
@@ -1047,6 +1066,12 @@ function escapeHtml(str) {
 // ══════════════════════════════════════════════════════════════
 const VALID_USERNAME = "RuDashboard";
 const VALID_PASSWORD = "SCGE.2026";
+const AUTH_STORAGE_KEY = "cellscapes_evp_dashboard_authed";
+
+function unlockDashboard() {
+  document.getElementById('login-gate').style.display = 'none';
+  document.getElementById('dashboard-content').style.display = 'block';
+}
 
 function handleLogin(e) {
   e.preventDefault();
@@ -1055,8 +1080,12 @@ function handleLogin(e) {
   const errorEl = document.getElementById('login-error');
 
   if (u === VALID_USERNAME && p === VALID_PASSWORD) {
-    document.getElementById('login-gate').style.display = 'none';
-    document.getElementById('dashboard-content').style.display = 'block';
+    try {
+      localStorage.setItem(AUTH_STORAGE_KEY, 'true');
+    } catch (err) {
+      console.warn('Could not persist login (localStorage unavailable):', err);
+    }
+    unlockDashboard();
     errorEl.style.display = 'none';
   } else {
     errorEl.style.display = 'block';
@@ -1068,6 +1097,15 @@ function handleLogin(e) {
 // INITIALIZE ON PAGE LOAD
 // ══════════════════════════════════════════════════════════════
 window.onload = function() {
+  let alreadyAuthed = false;
+  try {
+    alreadyAuthed = localStorage.getItem(AUTH_STORAGE_KEY) === 'true';
+  } catch (err) {
+    console.warn('localStorage unavailable:', err);
+  }
+  if (alreadyAuthed) {
+    unlockDashboard();
+  }
   loadRuCalendar();
   loadEvpTravel();
 };
