@@ -514,13 +514,20 @@
       text-overflow: ellipsis;
     }
     .day-ooo-icon { font-size: 0.66rem; flex-shrink: 0; }
-    .calendar-legend {
+    .legend-block {
+      margin-top: 14px;
+    }
+    .legend-row {
       display: flex;
+      align-items: center;
       gap: 16px;
       flex-wrap: wrap;
-      margin-top: 14px;
       font-size: 0.78rem;
       color: var(--text-secondary);
+      margin-top: 8px;
+    }
+    .legend-row:first-child {
+      margin-top: 0;
     }
     .legend-group-label {
       font-size: 0.7rem;
@@ -528,8 +535,6 @@
       color: var(--text-secondary);
       text-transform: uppercase;
       letter-spacing: 0.03em;
-      margin-top: 12px;
-      margin-bottom: 4px;
     }
     .legend-dot {
       display: inline-block;
@@ -827,11 +832,7 @@ const CALENDAR_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJPAJ
 const LEADERSHIP_CAL_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsb5OHT8jU_Ka17CUCkiL03smuHg0yXZwmEJR72UTFszwiuO6k5e4gBt_Kx6TIGA/pub?gid=1926429411&single=true&output=csv";
 
 const CALENDAR_CATEGORY_COLORS = {
-  "EVP deadline": "#FF00FF",
-  "conference/meeting": "#8246E1",
-  "ELT": "#0EA5E9",
-  "BOD/SAC": "#FF6E00",
-  "other": "#737373"
+  "EVP": "#0EA5E9"
 };
 
 const LEADERSHIP_EVENT_TYPE_COLORS = {
@@ -920,7 +921,7 @@ function buildMergedDayIndex(evpEvents, leadershipRows) {
     const entry = ensure(dateKeyRu(d));
     entry.evpBadges.push({
       title: e.Event || '',
-      color: CALENDAR_CATEGORY_COLORS[e.Category] || CALENDAR_CATEGORY_COLORS['other']
+      color: CALENDAR_CATEGORY_COLORS[e.Category] || CALENDAR_CATEGORY_COLORS['EVP']
     });
   });
 
@@ -982,15 +983,16 @@ function renderMergedCalendar(evpEvents, leadershipRows, evpFailed, leadershipFa
   body.appendChild(scrollOuter);
 
   const legend = document.createElement('div');
-  legend.className = 'calendar-legend';
-  let legendHtml = '<div class="legend-group-label">EVP calendar</div><div class="calendar-legend">' +
+  legend.className = 'legend-block';
+  legend.innerHTML =
+    '<div class="legend-row"><span class="legend-group-label">EVP calendar</span>' +
     Object.entries(CALENDAR_CATEGORY_COLORS).map(([cat, color]) =>
       `<span><span class="legend-dot" style="background:${color}"></span>${cat}</span>`).join('') +
-    '</div><div class="legend-group-label">Leadership team</div><div class="calendar-legend">' +
+    '</div>' +
+    '<div class="legend-row"><span class="legend-group-label">Leadership team</span>' +
     Object.entries(LEADERSHIP_EVENT_TYPE_COLORS).map(([cat, color]) =>
       `<span><span class="legend-dot" style="background:${color}"></span>${cat}</span>`).join('') +
     '</div>';
-  legend.innerHTML = legendHtml;
   body.appendChild(legend);
 
   const iconLegend = document.createElement('div');
