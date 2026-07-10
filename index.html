@@ -558,6 +558,76 @@
       padding: 8px 0;
     }
 
+    /* ── Roadmapping (custom, live from Google Sheet) ────────────── */
+    .rm-status-note {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+    .rm-scroll {
+      max-height: 520px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+    .rm-list { display: flex; flex-direction: column; }
+    .rm-month-header {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      background: var(--accent);
+      padding: 8px 16px;
+      position: sticky;
+      top: 0;
+    }
+    .rm-item {
+      padding: 14px 16px;
+      border-bottom: 1px solid #EFEBE3;
+    }
+    .rm-item:last-child { border-bottom: none; }
+    .rm-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .rm-goal-tag {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--accent-light);
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+    .rm-badges { display: flex; gap: 6px; flex-shrink: 0; }
+    .rm-badge {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      padding: 2px 9px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .rm-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+      line-height: 1.4;
+    }
+    .rm-bullets {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin: 0;
+      padding-left: 18px;
+    }
+    .rm-bullets li { margin-bottom: 2px; }
+
     /* ── Travel Cards ────────────────────────────── */
     .travel-preview-note {
       font-size: 0.78rem;
@@ -739,15 +809,13 @@
     </div>
     <div class="collapsible-content" id="roadmapping-content">
       <div class="section-body">
-        <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQA569yj-4gFIpuu2ii4Z_KzanEp-V0szzKFQbH6EAc0tx5bzckPDx18ZIRazL5PDLzCLvZ7n5Gv-15/pubhtml?widget=true&headers=false"
-                width="100%"
-                height="600"
-                frameborder="0"
-                style="border:1px solid var(--border);border-radius:var(--radius-sm);display:block;margin:0 auto;">
-        </iframe>
+        <div class="rm-status-note" id="rm-status">Loading roadmap…</div>
+        <div class="rm-scroll" id="rm-scroll">
+          <div class="rm-list" id="rm-list"></div>
+        </div>
         <div style="margin-top:8px;text-align:right;">
-          <a href="https://docs.google.com/spreadsheets/d/1ejQPgWsEspYfYsAEewF9WNbH6mu1-VBY58L6x17gIAc/edit?usp=sharing" target="_blank" style="font-size:0.82rem;color:var(--link-accent);text-decoration:none;">
-            open in full screen →
+          <a href="REPLACE_WITH_ROADMAPPING_SHEET_EDIT_URL" target="_blank" style="font-size:0.82rem;color:var(--link-accent);text-decoration:none;">
+            open sheet to edit →
           </a>
         </div>
       </div>
@@ -1243,6 +1311,114 @@ function escapeHtml(str) {
 }
 
 // ══════════════════════════════════════════════════════════════
+// EVP ROADMAPPING (custom, live from Google Sheet)
+// ══════════════════════════════════════════════════════════════
+const ROADMAP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJPAJ4jIYcrJaJN8QQN5kQQtWIKuiyiPTFvq9QxkiSPgEDvajtSqrOvHH2L4w6Ug/pub?gid=1561638989&single=true&output=csv";
+
+const RM_PRIORITY_COLORS = {
+  "High": "#CD0F55",
+  "Medium": "#FF6E00",
+  "Low": "#737373"
+};
+
+const RM_STATUS_COLORS = {
+  "In Progress": "#FF6E00",
+  "Complete": "#1B8A5A",
+  "Cancelled": "#AAA39F",
+  "Blocked / Hold": "#CD0F55"
+};
+
+const MONTH_NAMES_RM = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+function escapeHtmlRM(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function mapRoadmapCsvRow(row) {
+  return {
+    Month: (row['Month'] || '').trim(),
+    Goal: (row['Strategic Goal'] || '').trim(),
+    Priority: (row['Priority'] || '').trim(),
+    Status: (row['Status'] || '').trim(),
+    KeyActions: (row['Key Actions'] || '').trim()
+  };
+}
+
+async function loadRoadmap() {
+  const note = document.getElementById('rm-status');
+  if (ROADMAP_CSV_URL.indexOf("REPLACE_WITH") === 0) {
+    note.textContent = 'Roadmap not connected yet — publish the sheet as CSV and send the link over.';
+    return;
+  }
+  try {
+    const res = await fetch(ROADMAP_CSV_URL);
+    if (!res.ok) throw new Error('Fetch failed: ' + res.status);
+    const text = await res.text();
+    const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
+    const rows = parsed.data.map(mapRoadmapCsvRow).filter(r => r.Month && r.KeyActions);
+    renderRoadmap(rows);
+    note.textContent = '';
+  } catch (err) {
+    console.error('Roadmap load error:', err);
+    note.textContent = 'Unable to load the roadmap right now. Check that the sheet is published and the link is correct.';
+  }
+}
+
+function renderRoadmap(rows) {
+  const list = document.getElementById('rm-list');
+  list.innerHTML = '';
+
+  const today = new Date();
+  // Show current month through December, in order, hiding past months automatically.
+  const orderedMonths = MONTH_NAMES_RM.slice(today.getMonth());
+
+  const byMonth = {};
+  rows.forEach(r => {
+    if (!byMonth[r.Month]) byMonth[r.Month] = [];
+    byMonth[r.Month].push(r);
+  });
+
+  let anyRendered = false;
+  orderedMonths.forEach(month => {
+    const items = byMonth[month];
+    if (!items || !items.length) return;
+    anyRendered = true;
+
+    const header = document.createElement('div');
+    header.className = 'rm-month-header';
+    header.textContent = month;
+    list.appendChild(header);
+
+    items.forEach(item => {
+      const lines = item.KeyActions.split('\n').filter(l => l.trim());
+      const title = lines[0] || '';
+      const bullets = lines.slice(1);
+
+      const el = document.createElement('div');
+      el.className = 'rm-item';
+      el.innerHTML = `
+        <div class="rm-item-top">
+          ${item.Goal ? `<span class="rm-goal-tag">${escapeHtmlRM(item.Goal)}</span>` : '<span></span>'}
+          <div class="rm-badges">
+            ${item.Priority ? `<span class="rm-badge" style="background:${RM_PRIORITY_COLORS[item.Priority] || RM_PRIORITY_COLORS['Low']}">${escapeHtmlRM(item.Priority)}</span>` : ''}
+            ${item.Status ? `<span class="rm-badge" style="background:${RM_STATUS_COLORS[item.Status] || '#737373'}">${escapeHtmlRM(item.Status)}</span>` : ''}
+          </div>
+        </div>
+        <div class="rm-title">${escapeHtmlRM(title)}</div>
+        ${bullets.length ? `<ul class="rm-bullets">${bullets.map(b => `<li>${escapeHtmlRM(b.replace(/^[•\-\u2022]\s*/, ''))}</li>`).join('')}</ul>` : ''}
+      `;
+      list.appendChild(el);
+    });
+  });
+
+  if (!anyRendered) {
+    list.innerHTML = '<div class="rm-item" style="color:var(--text-secondary);">No roadmap items for the rest of this year yet.</div>';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
 // LOGIN GATE
 // ══════════════════════════════════════════════════════════════
 const VALID_USERNAME = "RuDashboard";
@@ -1289,6 +1465,7 @@ window.onload = function() {
   }
   loadRuCalendar();
   loadEvpTravel();
+  loadRoadmap();
 };
 </script>
 
