@@ -915,14 +915,22 @@ function buildMergedDayIndex(evpEvents, leadershipRows) {
   }
 
   evpEvents.forEach(e => {
-    if (!e.Date) return;
-    const d = parseLocalDate(e.Date);
-    if (!d) return;
-    const entry = ensure(dateKeyRu(d));
-    entry.evpBadges.push({
-      title: e.Event || '',
-      color: CALENDAR_CATEGORY_COLORS[e.Category] || CALENDAR_CATEGORY_COLORS['EVP']
-    });
+    // Supports the new "Start Date" / "End Date" range columns; falls back to the
+    // original single "Date" column if that's still what the sheet has.
+    const startStr = e['Start Date'] || e['Date'];
+    if (!startStr) return;
+    const start = parseLocalDate(startStr);
+    if (!start) return;
+    const end = parseLocalDate(e['End Date']) || start;
+    const cur = new Date(start);
+    while (cur <= end) {
+      const entry = ensure(dateKeyRu(cur));
+      entry.evpBadges.push({
+        title: e.Event || '',
+        color: CALENDAR_CATEGORY_COLORS[e.Category] || CALENDAR_CATEGORY_COLORS['EVP']
+      });
+      cur.setDate(cur.getDate() + 1);
+    }
   });
 
   leadershipRows.forEach(row => {
