@@ -897,7 +897,7 @@
   <!-- EVP Priorities (Action Items) -->
   <div class="section-card">
     <div class="section-header open" onclick="toggleCollapse('priorities')" id="priorities-header">
-      <h2 class="section-title">EVP priorities</h2>
+      <h2 class="section-title">EVP action items</h2>
       <span class="collapsible-toggle open" id="priorities-toggle">+</span>
     </div>
     <div class="collapsible-content open" id="priorities-content">
@@ -1556,7 +1556,7 @@ function formatDueDateEP(str) {
   const d = parseLocalDate(str);
   if (!d) return '';
   const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  return monthNames[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+  return monthNames[d.getMonth()] + ' ' + d.getDate();
 }
 
 function mapEvpPriorityCsvRow(row) {
