@@ -744,6 +744,141 @@
       display: block;
     }
 
+    /* ── EVP External Engagement (custom, live from Google Sheet) ── */
+    .ee-status-note {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+    .ee-scroll {
+      max-height: 460px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+    .ee-table-header {
+      display: grid;
+      grid-template-columns: 62px 1fr 130px 1fr 84px 14px;
+      gap: 10px;
+      align-items: center;
+      padding: 7px 14px;
+      background: var(--surface-2);
+      font-size: 0.64rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      position: sticky;
+      top: 0;
+    }
+    .ee-row {
+      display: grid;
+      grid-template-columns: 62px 1fr 130px 1fr 84px 14px;
+      gap: 10px;
+      align-items: center;
+      padding: 9px 14px;
+      border-top: 1px solid #EFEBE3;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .ee-row:hover {
+      background: var(--accent-light);
+    }
+    .ee-row.no-extra {
+      cursor: default;
+    }
+    .ee-row.no-extra:hover {
+      background: transparent;
+    }
+    .ee-date {
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    .ee-date.no-date {
+      font-style: italic;
+    }
+    .ee-contact-name {
+      color: var(--text-primary);
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .ee-contact-email {
+      display: block;
+      font-size: 0.72rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-top: 1px;
+    }
+    .ee-contact-email a {
+      color: var(--link-accent);
+      text-decoration: none;
+    }
+    .ee-type-tag {
+      display: inline-block;
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--accent-light);
+      padding: 1px 7px;
+      border-radius: 999px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .ee-affiliation {
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .ee-topic {
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .ee-status-text {
+      font-size: 0.76rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .ee-row-chevron {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      transition: transform 0.15s;
+      flex-shrink: 0;
+    }
+    .ee-row-chevron.open {
+      transform: rotate(90deg);
+    }
+    .ee-expand-row {
+      display: none;
+      padding: 10px 14px 12px 14px;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      background: var(--surface-2);
+      border-top: 1px solid #EFEBE3;
+      line-height: 1.5;
+    }
+    .ee-expand-row.open {
+      display: block;
+    }
+    .ee-expand-row a {
+      color: var(--link-accent);
+      text-decoration: none;
+    }
+    .ee-expand-label {
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-right: 4px;
+    }
+
     /* ── Travel Cards ────────────────────────────── */
     .travel-preview-note {
       font-size: 0.78rem;
@@ -957,15 +1092,13 @@
     </div>
     <div class="collapsible-content" id="external-content">
       <div class="section-body">
-        <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSYOPui08lRzv4BV7GEX1YZx6uCbRk2CPIOg--nTuKQEPKxPH8tCr2lcIUdQlGnMdDycBqufrY4I1Rl/pubhtml?gid=647045535&single=true&widget=false&headers=false&chrome=false"
-                width="100%"
-                height="500"
-                frameborder="0"
-                style="border:1px solid var(--border);border-radius:var(--radius-sm);display:block;margin:0 auto;">
-        </iframe>
+        <div class="ee-status-note" id="ee-status">Loading engagements…</div>
+        <div class="ee-scroll" id="ee-scroll">
+          <div class="ee-list" id="ee-list"></div>
+        </div>
         <div style="margin-top:8px;text-align:right;">
-          <a href="https://docs.google.com/spreadsheets/d/1f4bYWXYeNbRHXVEupyvxTAv5K9FcIr2Fbw5pwIH0pNk/edit?usp=sharing" target="_blank" style="font-size:0.82rem;color:var(--link-accent);text-decoration:none;">
-            open in full screen →
+          <a href="https://docs.google.com/spreadsheets/d/1RcHAe8kzQIoMKFjjCbqVQQyWjOlomrFe/edit?usp=sharing&ouid=111752552908735098726&rtpof=true&sd=true#gid=184175031" target="_blank" style="font-size:0.82rem;color:var(--link-accent);text-decoration:none;">
+            open sheet to edit →
           </a>
         </div>
       </div>
@@ -1644,6 +1777,124 @@ function renderEvpPriorities(rows) {
 }
 
 // ══════════════════════════════════════════════════════════════
+// EVP EXTERNAL ENGAGEMENT (custom, live from Google Sheet)
+// ══════════════════════════════════════════════════════════════
+const EXTERNAL_ENGAGEMENT_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7GNwyEpfvL-RiTwo9xQSdiLf4wpjcTNrE13MD0zGFct5imiG3ah2ETYe_HEF96Q/pub?gid=184175031&single=true&output=csv";
+
+const EE_STATUS_COLORS = {
+  "Scheduled": "#0EA5E9",
+  "Completed": "#1B8A5A",
+  "Cancelled": "#AAA39F"
+};
+
+function escapeHtmlEE(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function formatDateEE(str) {
+  const d = parseLocalDate(str);
+  if (!d) return '';
+  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return monthNames[d.getMonth()] + ' ' + d.getDate();
+}
+
+function mapExternalEngagementCsvRow(row) {
+  return {
+    Date: (row['Date'] || '').trim(),
+    Name: (row['Contact Name'] || '').trim(),
+    Email: (row['Contact Email'] || '').trim(),
+    Affiliation: (row['Affiliation / Institution'] || '').trim(),
+    Type: (row['Type'] || '').trim(),
+    Topic: (row['Topic / Purpose'] || '').trim(),
+    Status: (row['Status'] || '').trim(),
+    NextSteps: (row['Next Steps'] || '').trim(),
+    Notes: (row['Notes'] || '').trim()
+  };
+}
+
+async function loadExternalEngagement() {
+  const note = document.getElementById('ee-status');
+  if (EXTERNAL_ENGAGEMENT_CSV_URL.indexOf("REPLACE_WITH") === 0) {
+    note.textContent = 'External engagement log not connected yet — publish the sheet as CSV and send the link over.';
+    return;
+  }
+  try {
+    const res = await fetch(EXTERNAL_ENGAGEMENT_CSV_URL);
+    if (!res.ok) throw new Error('Fetch failed: ' + res.status);
+    const text = await res.text();
+    const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
+    const rows = parsed.data.map(mapExternalEngagementCsvRow).filter(r => r.Name);
+    renderExternalEngagement(rows);
+    note.textContent = '';
+  } catch (err) {
+    console.error('External engagement load error:', err);
+    note.textContent = 'Unable to load the external engagement log right now. Check that the sheet is published and the link is correct.';
+  }
+}
+
+function toggleEeExpand(idx) {
+  const expandRow = document.getElementById('ee-expand-' + idx);
+  const chevron = document.getElementById('ee-chevron-' + idx);
+  if (!expandRow) return;
+  expandRow.classList.toggle('open');
+  if (chevron) chevron.classList.toggle('open');
+}
+
+function renderExternalEngagement(rows) {
+  const list = document.getElementById('ee-list');
+  list.innerHTML = '';
+
+  const sorted = rows
+    .map(r => ({ ...r, _date: parseLocalDate(r.Date) }))
+    .sort((a, b) => (a._date ? a._date.getTime() : Infinity) - (b._date ? b._date.getTime() : Infinity));
+
+  if (sorted.length === 0) {
+    list.innerHTML = '<div style="padding:14px 16px;color:var(--text-secondary);">No engagements logged yet.</div>';
+    return;
+  }
+
+  const header = document.createElement('div');
+  header.className = 'ee-table-header';
+  header.innerHTML = '<span>Date</span><span>Contact</span><span>Affiliation</span><span>Topic</span><span>Status</span><span></span>';
+  list.appendChild(header);
+
+  sorted.forEach((item, idx) => {
+    const statusColor = EE_STATUS_COLORS[item.Status] || '#737373';
+    const dateLabel = item.Date ? formatDateEE(item.Date) : 'No date';
+    const hasExtra = !!(item.NextSteps || item.Notes);
+
+    const row = document.createElement('div');
+    row.className = 'ee-row' + (hasExtra ? '' : ' no-extra');
+    row.innerHTML = `
+      <span class="ee-date${item.Date ? '' : ' no-date'}">${dateLabel}</span>
+      <span>
+        <span class="ee-contact-name">${escapeHtmlEE(item.Name)}</span>${item.Type ? `<span class="ee-type-tag">${escapeHtmlEE(item.Type)}</span>` : ''}
+        ${item.Email ? `<span class="ee-contact-email"><a href="mailto:${escapeHtmlEE(item.Email)}" onclick="event.stopPropagation()">${escapeHtmlEE(item.Email)}</a></span>` : ''}
+      </span>
+      <span class="ee-affiliation">${escapeHtmlEE(item.Affiliation)}</span>
+      <span class="ee-topic">${escapeHtmlEE(item.Topic)}</span>
+      <span class="ee-status-text" style="color:${statusColor}">${escapeHtmlEE(item.Status)}</span>
+      <span class="ee-row-chevron" id="ee-chevron-${idx}">${hasExtra ? '\u25B8' : ''}</span>
+    `;
+    if (hasExtra) {
+      row.onclick = () => toggleEeExpand(idx);
+    }
+    list.appendChild(row);
+
+    const expandRow = document.createElement('div');
+    expandRow.className = 'ee-expand-row';
+    expandRow.id = 'ee-expand-' + idx;
+    expandRow.innerHTML = `
+      ${item.NextSteps ? `<div><span class="ee-expand-label">Next steps:</span>${escapeHtmlEE(item.NextSteps)}</div>` : ''}
+      ${item.Notes ? `<div${item.NextSteps ? ' style="margin-top:6px;"' : ''}><span class="ee-expand-label">Notes:</span>${escapeHtmlEE(item.Notes)}</div>` : ''}
+    `;
+    list.appendChild(expandRow);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
 // LOGIN GATE
 // ══════════════════════════════════════════════════════════════
 const VALID_USERNAME = "RuDashboard";
@@ -1692,6 +1943,7 @@ window.onload = function() {
   loadEvpTravel();
   loadRoadmap();
   loadEvpPriorities();
+  loadExternalEngagement();
 };
 </script>
 
