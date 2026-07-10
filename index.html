@@ -416,15 +416,19 @@
       transform: translateY(-1px);
     }
 
-    /* ── 2-Month Calendar ────────────────────────── */
+    /* ── EVP + Leadership Calendar (merged view) ────────────────── */
+    .calendar-scroll-outer {
+      overflow-x: auto;
+      padding-bottom: 12px;
+    }
     .calendar-container {
       display: flex;
+      flex-wrap: nowrap;
       gap: 28px;
-      flex-wrap: wrap;
     }
     .calendar-month {
-      flex: 1;
-      min-width: 280px;
+      flex: 0 0 auto;
+      width: 560px;
     }
     .calendar-month-title {
       font-weight: 700;
@@ -435,11 +439,11 @@
     }
     .calendar-grid {
       display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 4px;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
     }
     .calendar-dow {
-      font-size: 0.68rem;
+      font-size: 0.7rem;
       font-weight: 700;
       color: var(--text-secondary);
       text-align: center;
@@ -448,10 +452,10 @@
       letter-spacing: 0.03em;
     }
     .calendar-day {
-      height: 82px;
+      height: 128px;
       border-radius: 8px;
       background: var(--surface-2);
-      padding: 5px 4px;
+      padding: 6px 6px;
       font-size: 0.75rem;
       overflow: hidden;
     }
@@ -461,25 +465,29 @@
     .calendar-day.today {
       box-shadow: inset 0 0 0 2px var(--accent);
     }
+    .calendar-day.holiday {
+      background: #E3E0DA;
+    }
     .calendar-day-num {
       font-weight: 700;
       font-size: 0.74rem;
-      margin-bottom: 3px;
+      margin-bottom: 2px;
       color: var(--text-primary);
+    }
+    .day-badge-slot {
+      min-height: 32px;
     }
     .calendar-event {
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
-      font-size: 0.58rem;
+      font-size: 0.6rem;
+      font-weight: 700;
       line-height: 1.25;
-      padding: 1px 4px;
+      padding: 2px 5px;
       border-radius: 4px;
-      margin-bottom: 2px;
       color: #FFFFFF;
       overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: normal;
       font-family: Arial, sans-serif;
     }
     .calendar-event-more {
@@ -487,13 +495,35 @@
       color: var(--text-secondary);
       padding: 0 4px;
     }
+    .day-ooo-row {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 0.64rem;
+      line-height: 1.35;
+      min-height: 15px;
+      margin-bottom: 1px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .day-ooo-icon { font-size: 0.66rem; flex-shrink: 0; }
     .calendar-legend {
       display: flex;
       gap: 16px;
       flex-wrap: wrap;
-      margin-top: 20px;
+      margin-top: 14px;
       font-size: 0.78rem;
       color: var(--text-secondary);
+    }
+    .legend-group-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-top: 12px;
+      margin-bottom: 4px;
     }
     .legend-dot {
       display: inline-block;
@@ -502,6 +532,14 @@
       border-radius: 50%;
       margin-right: 6px;
       vertical-align: middle;
+    }
+    .legend-icon-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 10px;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
     }
     .calendar-error {
       color: var(--text-secondary);
@@ -800,9 +838,10 @@ function toggleCollapse(id) {
 }
 
 // ══════════════════════════════════════════════════════════════
-// RU'S 2-MONTH CALENDAR
+// RU'S CALENDAR (merged: her own events + leadership team calendar)
 // ══════════════════════════════════════════════════════════════
 const CALENDAR_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJPAJ4jIYcrJaJN8QQN5kQQtWIKuiyiPTFvq9QxkiSPgEDvajtSqrOvHH2L4w6Ug/pub?gid=1050607726&single=true&output=csv";
+const LEADERSHIP_CAL_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsb5OHT8jU_Ka17CUCkiL03smuHg0yXZwmEJR72UTFszwiuO6k5e4gBt_Kx6TIGA/pub?gid=1926429411&single=true&output=csv";
 
 const CALENDAR_CATEGORY_COLORS = {
   "BOD": "#1B8A5A",
@@ -813,6 +852,16 @@ const CALENDAR_CATEGORY_COLORS = {
   "seminar": "#14B8A6",
   "workshop": "#6464FF",
   "other": "#737373"
+};
+
+const LEADERSHIP_EVENT_TYPE_COLORS = {
+  "Holiday": "#CD0F55",
+  "Conference": "#00A59B",
+  "Cell Science leadership": "#6464FF",
+  "Institute Leadership": "#8246E1",
+  "Hosting / Guest Visit": "#FF6E00",
+  "BOD/SAC": "#DC9600",
+  "Other": "#737373"
 };
 
 // Parses "YYYY-MM-DD" (or most common date strings) as a LOCAL date,
@@ -833,61 +882,148 @@ function parseLocalDate(str) {
   return isNaN(d) ? null : d;
 }
 
+function dateKeyRu(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
 async function loadRuCalendar() {
   const body = document.getElementById('rucalendar-body');
   if (CALENDAR_CSV_URL.indexOf("REPLACE_WITH") === 0) {
     body.innerHTML = '<div class="calendar-error">Calendar not connected yet — publish the Calendar Events Google Sheet as CSV and drop the link into CALENDAR_CSV_URL in the code.</div>';
     return;
   }
+
+  let evpEvents = [];
+  let leadershipRows = [];
+  let evpFailed = false;
+  let leadershipFailed = false;
+
   try {
     const res = await fetch(CALENDAR_CSV_URL);
     if (!res.ok) throw new Error('Fetch failed: ' + res.status);
     const text = await res.text();
-    const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
-    renderTwoMonthCalendar(parsed.data);
+    evpEvents = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
   } catch (err) {
-    console.error('Calendar load error:', err);
-    body.innerHTML = '<div class="calendar-error">Unable to load calendar events right now. Check that the sheet is published and the link is correct.</div>';
+    console.error('EVP calendar load error:', err);
+    evpFailed = true;
   }
+
+  try {
+    const res = await fetch(LEADERSHIP_CAL_CSV_URL);
+    if (!res.ok) throw new Error('Fetch failed: ' + res.status);
+    const text = await res.text();
+    leadershipRows = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
+  } catch (err) {
+    console.error('Leadership calendar load error:', err);
+    leadershipFailed = true;
+  }
+
+  if (evpFailed && leadershipFailed) {
+    body.innerHTML = '<div class="calendar-error">Unable to load calendar events right now. Check that both sheets are published and the links are correct.</div>';
+    return;
+  }
+
+  renderMergedCalendar(evpEvents, leadershipRows, evpFailed, leadershipFailed);
 }
 
-function renderTwoMonthCalendar(events) {
-  const body = document.getElementById('rucalendar-body');
-  body.innerHTML = '';
+function buildMergedDayIndex(evpEvents, leadershipRows) {
+  const index = {};
+  function ensure(key) {
+    if (!index[key]) index[key] = { badges: [], personal: [], travel: [] };
+    return index[key];
+  }
 
-  const eventsByDate = {};
-  events.forEach(e => {
+  evpEvents.forEach(e => {
     if (!e.Date) return;
     const d = parseLocalDate(e.Date);
     if (!d) return;
-    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-    if (!eventsByDate[key]) eventsByDate[key] = [];
-    eventsByDate[key].push(e);
+    const entry = ensure(dateKeyRu(d));
+    entry.badges.push({
+      title: e.Event || '',
+      color: CALENDAR_CATEGORY_COLORS[e.Category] || CALENDAR_CATEGORY_COLORS['other'],
+      isHoliday: false
+    });
   });
 
+  leadershipRows.forEach(row => {
+    const recordType = (row['Record Type'] || '').trim();
+    const start = parseLocalDate(row['Start Date']);
+    const end = parseLocalDate(row['End Date']) || start;
+    if (!start) return;
+    const cur = new Date(start);
+    while (cur <= end) {
+      const entry = ensure(dateKeyRu(cur));
+      if (recordType === 'Event') {
+        const eventType = (row['Event Type'] || '').trim();
+        entry.badges.push({
+          title: row['Event Title'] || '',
+          color: LEADERSHIP_EVENT_TYPE_COLORS[eventType] || LEADERSHIP_EVENT_TYPE_COLORS['Other'],
+          isHoliday: eventType === 'Holiday'
+        });
+      } else if (recordType === 'OOO') {
+        const oooType = (row['OOO Type'] || '').trim();
+        const person = (row['Person'] || '').trim();
+        if (oooType === 'Work Travel') entry.travel.push(person);
+        else if (oooType === 'Personal') entry.personal.push(person);
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+  });
+
+  return index;
+}
+
+function renderMergedCalendar(evpEvents, leadershipRows, evpFailed, leadershipFailed) {
+  const body = document.getElementById('rucalendar-body');
+  body.innerHTML = '';
+
+  if (evpFailed || leadershipFailed) {
+    const note = document.createElement('div');
+    note.className = 'calendar-error';
+    note.textContent = evpFailed
+      ? 'Note: your own calendar events could not be loaded — showing leadership team calendar only.'
+      : 'Note: the leadership team calendar could not be loaded — showing your own calendar only.';
+    body.appendChild(note);
+  }
+
+  const dayIndex = buildMergedDayIndex(evpEvents, leadershipRows);
   const today = new Date();
+
+  const scrollOuter = document.createElement('div');
+  scrollOuter.className = 'calendar-scroll-outer';
   const container = document.createElement('div');
   container.className = 'calendar-container';
+  scrollOuter.appendChild(container);
 
-  for (let m = 0; m < 2; m++) {
+  const monthCount = 12 - today.getMonth();
+  for (let m = 0; m < monthCount; m++) {
     const monthDate = new Date(today.getFullYear(), today.getMonth() + m, 1);
-    container.appendChild(buildMonthGrid(monthDate, eventsByDate, today));
+    container.appendChild(buildMonthGrid(monthDate, dayIndex, today));
   }
-  body.appendChild(container);
+  body.appendChild(scrollOuter);
 
   const legend = document.createElement('div');
   legend.className = 'calendar-legend';
-  legend.innerHTML = Object.entries(CALENDAR_CATEGORY_COLORS)
-    .map(([cat, color]) => `<span><span class="legend-dot" style="background:${color}"></span>${cat}</span>`)
-    .join('');
+  let legendHtml = '<div class="legend-group-label">Your calendar</div><div class="calendar-legend">' +
+    Object.entries(CALENDAR_CATEGORY_COLORS).map(([cat, color]) =>
+      `<span><span class="legend-dot" style="background:${color}"></span>${cat}</span>`).join('') +
+    '</div><div class="legend-group-label">Leadership team</div><div class="calendar-legend">' +
+    Object.entries(LEADERSHIP_EVENT_TYPE_COLORS).map(([cat, color]) =>
+      `<span><span class="legend-dot" style="background:${color}"></span>${cat}</span>`).join('') +
+    '</div>';
+  legend.innerHTML = legendHtml;
   body.appendChild(legend);
+
+  const iconLegend = document.createElement('div');
+  iconLegend.className = 'legend-icon-group';
+  iconLegend.innerHTML = '<span>✈️ Leadership work travel</span><span>🌴 Leadership personal / OOO</span>';
+  body.appendChild(iconLegend);
 }
 
-function buildMonthGrid(monthDate, eventsByDate, today) {
+function buildMonthGrid(monthDate, dayIndex, today) {
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const year = monthDate.getFullYear();
   const month = monthDate.getMonth();
-  const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   const monthDiv = document.createElement('div');
@@ -901,47 +1037,78 @@ function buildMonthGrid(monthDate, eventsByDate, today) {
   const grid = document.createElement('div');
   grid.className = 'calendar-grid';
 
-  ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(d => {
+  ['M', 'T', 'W', 'T', 'F'].forEach(d => {
     const dow = document.createElement('div');
     dow.className = 'calendar-dow';
     dow.textContent = d;
     grid.appendChild(dow);
   });
 
-  for (let i = 0; i < firstDay; i++) {
-    const empty = document.createElement('div');
-    empty.className = 'calendar-day empty';
-    grid.appendChild(empty);
-  }
+  let firstWeekdayPlaced = false;
 
   for (let day = 1; day <= daysInMonth; day++) {
+    const dow = new Date(year, month, day).getDay();
+    if (dow === 0 || dow === 6) continue;
+
+    const monIndex = dow - 1;
+    if (!firstWeekdayPlaced) {
+      for (let i = 0; i < monIndex; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'calendar-day empty';
+        grid.appendChild(empty);
+      }
+      firstWeekdayPlaced = true;
+    }
+
     const key = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
     const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
+    const dayData = dayIndex[key];
+    const isHoliday = dayData && dayData.badges.some(b => b.isHoliday);
     const cell = document.createElement('div');
-    cell.className = 'calendar-day' + (isToday ? ' today' : '');
+    cell.className = 'calendar-day' + (isToday ? ' today' : '') + (isHoliday ? ' holiday' : '');
 
     const num = document.createElement('div');
     num.className = 'calendar-day-num';
     num.textContent = day;
     cell.appendChild(num);
 
-    const dayEvents = eventsByDate[key] || [];
-    const maxShown = 2;
-    dayEvents.slice(0, maxShown).forEach(e => {
-      const ev = document.createElement('span');
+    const badgeSlot = document.createElement('div');
+    badgeSlot.className = 'day-badge-slot';
+    const badges = dayData ? dayData.badges : [];
+    const maxShown = 1;
+    badges.slice(0, maxShown).forEach(b => {
+      const ev = document.createElement('div');
       ev.className = 'calendar-event';
-      ev.style.background = CALENDAR_CATEGORY_COLORS[e.Category] || CALENDAR_CATEGORY_COLORS['other'];
-      ev.textContent = e.Event || '';
-      ev.title = (e.Event || '') + (e.Notes ? ' — ' + e.Notes : '');
-      cell.appendChild(ev);
+      ev.style.background = b.color;
+      ev.textContent = b.title;
+      ev.title = b.title;
+      badgeSlot.appendChild(ev);
     });
-    if (dayEvents.length > maxShown) {
+    if (badges.length > maxShown) {
       const more = document.createElement('div');
       more.className = 'calendar-event-more';
-      more.textContent = '+' + (dayEvents.length - maxShown) + ' more';
-      more.title = dayEvents.slice(maxShown).map(e => e.Event).join(', ');
-      cell.appendChild(more);
+      more.textContent = '+' + (badges.length - maxShown) + ' more';
+      more.title = badges.slice(maxShown).map(b => b.title).join(', ');
+      badgeSlot.appendChild(more);
     }
+    cell.appendChild(badgeSlot);
+
+    const personal = dayData ? dayData.personal : [];
+    const travel = dayData ? dayData.travel : [];
+
+    const personalRow = document.createElement('div');
+    personalRow.className = 'day-ooo-row';
+    if (personal.length) {
+      personalRow.innerHTML = '<span class="day-ooo-icon">🌴</span>' + personal.join(', ');
+    }
+    cell.appendChild(personalRow);
+
+    const travelRow = document.createElement('div');
+    travelRow.className = 'day-ooo-row';
+    if (travel.length) {
+      travelRow.innerHTML = '<span class="day-ooo-icon">✈️</span>' + travel.join(', ');
+    }
+    cell.appendChild(travelRow);
 
     grid.appendChild(cell);
   }
