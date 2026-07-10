@@ -637,6 +637,73 @@
       word-wrap: break-word;
     }
 
+    /* ── EVP Priorities (custom, live from Google Sheet) ─────────── */
+    .ep-status-note {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+    .ep-scroll {
+      max-height: 460px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+    .ep-list { display: flex; flex-direction: column; }
+    .ep-item {
+      padding: 14px 16px;
+      border-bottom: 1px solid #EFEBE3;
+    }
+    .ep-item:last-child { border-bottom: none; }
+    .ep-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .ep-status-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      padding: 3px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .ep-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+    .ep-meta {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+    .ep-due {
+      font-weight: 600;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    .ep-due.no-date {
+      color: var(--text-secondary);
+      font-weight: 400;
+      font-style: italic;
+    }
+    .ep-notes {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      line-height: 1.45;
+      margin-top: 4px;
+      overflow-wrap: break-word;
+    }
+
     /* ── Travel Cards ────────────────────────────── */
     .travel-preview-note {
       font-size: 0.78rem;
@@ -787,7 +854,7 @@
     </div>
   </div>
 
-  <!-- EVP Priorities (Deadlines & Action Items) -->
+  <!-- EVP Priorities (Action Items) -->
   <div class="section-card">
     <div class="section-header" onclick="toggleCollapse('priorities')" id="priorities-header">
       <h2 class="section-title">EVP priorities</h2>
@@ -795,15 +862,13 @@
     </div>
     <div class="collapsible-content" id="priorities-content">
       <div class="section-body">
-        <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vTooooITZvvuBDep9T7D4rV0N4CtetTUkhSObmeedzxv8nYO2Fk9s_zTUs5mtbISoR-UpoboWvmryz8/pubhtml?gid=0&single=true&widget=true&headers=false"
-                width="100%"
-                height="400"
-                frameborder="0"
-                style="border:1px solid var(--border);border-radius:var(--radius-sm);display:block;margin:0 auto;">
-        </iframe>
+        <div class="ep-status-note" id="ep-status">Loading priorities…</div>
+        <div class="ep-scroll" id="ep-scroll">
+          <div class="ep-list" id="ep-list"></div>
+        </div>
         <div style="margin-top:8px;text-align:right;">
-          <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vTooooITZvvuBDep9T7D4rV0N4CtetTUkhSObmeedzxv8nYO2Fk9s_zTUs5mtbISoR-UpoboWvmryz8/pubhtml?gid=0&single=true&widget=true&headers=false" target="_blank" style="font-size:0.82rem;color:var(--link-accent);text-decoration:none;">
-            open in full screen →
+          <a href="https://docs.google.com/spreadsheets/d/1-aHqGhwAgzkD34qugZEINJbhYfqwQ32g/edit?usp=sharing&ouid=111752552908735098726&rtpof=true&sd=true#gid=59098061" target="_blank" style="font-size:0.82rem;color:var(--link-accent);text-decoration:none;">
+            open sheet to edit →
           </a>
         </div>
       </div>
@@ -1430,6 +1495,95 @@ function renderRoadmap(rows) {
 }
 
 // ══════════════════════════════════════════════════════════════
+// EVP PRIORITIES (custom, live from Google Sheet)
+// ══════════════════════════════════════════════════════════════
+const EVP_PRIORITIES_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJPAJ4jIYcrJaJN8QQN5kQQtWIKuiyiPTFvq9QxkiSPgEDvajtSqrOvHH2L4w6Ug/pub?gid=59098061&single=true&output=csv";
+
+const EP_STATUS_COLORS = {
+  "Complete": "#1B8A5A",
+  "In Progress": "#FF6E00",
+  "Blocked / Hold": "#CD0F55",
+  "Not Started": "#737373"
+};
+
+function escapeHtmlEP(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function formatDueDateEP(str) {
+  const d = parseLocalDate(str);
+  if (!d) return '';
+  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return monthNames[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+}
+
+function mapEvpPriorityCsvRow(row) {
+  return {
+    Action: (row['Action'] || '').trim(),
+    DueDate: (row['Due Date'] || '').trim(),
+    Status: (row['Status'] || '').trim(),
+    Owners: (row['Owner(s)'] || '').trim(),
+    Notes: (row['Notes'] || '').trim()
+  };
+}
+
+async function loadEvpPriorities() {
+  const note = document.getElementById('ep-status');
+  if (EVP_PRIORITIES_CSV_URL.indexOf("REPLACE_WITH") === 0) {
+    note.textContent = 'Priorities not connected yet — publish the sheet as CSV and send the link over.';
+    return;
+  }
+  try {
+    const res = await fetch(EVP_PRIORITIES_CSV_URL);
+    if (!res.ok) throw new Error('Fetch failed: ' + res.status);
+    const text = await res.text();
+    const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
+    const rows = parsed.data.map(mapEvpPriorityCsvRow).filter(r => r.Action);
+    renderEvpPriorities(rows);
+    note.textContent = '';
+  } catch (err) {
+    console.error('EVP priorities load error:', err);
+    note.textContent = 'Unable to load priorities right now. Check that the sheet is published and the link is correct.';
+  }
+}
+
+function renderEvpPriorities(rows) {
+  const list = document.getElementById('ep-list');
+  list.innerHTML = '';
+
+  const sorted = rows
+    .map(r => ({ ...r, _date: parseLocalDate(r.DueDate) }))
+    .sort((a, b) => (a._date ? a._date.getTime() : Infinity) - (b._date ? b._date.getTime() : Infinity));
+
+  if (sorted.length === 0) {
+    list.innerHTML = '<div class="ep-item" style="color:var(--text-secondary);">No priorities logged yet.</div>';
+    return;
+  }
+
+  sorted.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'ep-item';
+    const statusColor = EP_STATUS_COLORS[item.Status] || '#737373';
+    const dueLabel = item.DueDate ? formatDueDateEP(item.DueDate) : 'No due date';
+    el.innerHTML = `
+      <div class="ep-item-top">
+        <span></span>
+        ${item.Status ? `<span class="ep-status-badge" style="background:${statusColor}">${escapeHtmlEP(item.Status)}</span>` : ''}
+      </div>
+      <div class="ep-title">${escapeHtmlEP(item.Action)}</div>
+      <div class="ep-meta">
+        <span>${escapeHtmlEP(item.Owners)}</span>
+        <span class="ep-due${item.DueDate ? '' : ' no-date'}">${item.DueDate ? 'Due ' + dueLabel : dueLabel}</span>
+      </div>
+      ${item.Notes ? `<div class="ep-notes">${escapeHtmlEP(item.Notes)}</div>` : ''}
+    `;
+    list.appendChild(el);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
 // LOGIN GATE
 // ══════════════════════════════════════════════════════════════
 const VALID_USERNAME = "RuDashboard";
@@ -1477,6 +1631,7 @@ window.onload = function() {
   loadRuCalendar();
   loadEvpTravel();
   loadRoadmap();
+  loadEvpPriorities();
 };
 </script>
 
