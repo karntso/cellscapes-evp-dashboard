@@ -649,59 +649,97 @@
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
     }
-    .ep-list { display: flex; flex-direction: column; }
-    .ep-item {
-      padding: 14px 16px;
-      border-bottom: 1px solid #EFEBE3;
-    }
-    .ep-item:last-child { border-bottom: none; }
-    .ep-item-top {
-      display: flex;
-      justify-content: space-between;
+    .ep-table-header {
+      display: grid;
+      grid-template-columns: 18px 1fr 110px 68px 92px 14px;
+      gap: 10px;
       align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-    .ep-status-badge {
-      display: inline-block;
-      font-size: 0.7rem;
+      padding: 7px 14px;
+      background: var(--surface-2);
+      font-size: 0.64rem;
       font-weight: 700;
-      color: #FFFFFF;
-      padding: 3px 10px;
-      border-radius: 999px;
-      white-space: nowrap;
-    }
-    .ep-title {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 6px;
-      line-height: 1.4;
-    }
-    .ep-meta {
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 8px;
-      font-size: 0.78rem;
       color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      position: sticky;
+      top: 0;
     }
-    .ep-due {
-      font-weight: 600;
-      color: var(--accent);
+    .ep-row {
+      display: grid;
+      grid-template-columns: 18px 1fr 110px 68px 92px 14px;
+      gap: 10px;
+      align-items: center;
+      padding: 9px 14px;
+      border-top: 1px solid #EFEBE3;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .ep-row:hover {
+      background: var(--accent-light);
+    }
+    .ep-row.no-notes {
+      cursor: default;
+    }
+    .ep-row.no-notes:hover {
+      background: transparent;
+    }
+    .ep-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .ep-row-action {
+      color: var(--text-primary);
+      overflow: hidden;
+      text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .ep-due.no-date {
+    .ep-row-owner {
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .ep-row-due {
+      font-size: 0.76rem;
+      color: var(--accent);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .ep-row-due.no-date {
       color: var(--text-secondary);
       font-weight: 400;
       font-style: italic;
     }
-    .ep-notes {
+    .ep-row-status-text {
+      font-size: 0.76rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .ep-row-chevron {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      transition: transform 0.15s;
+      flex-shrink: 0;
+    }
+    .ep-row-chevron.open {
+      transform: rotate(90deg);
+    }
+    .ep-notes-row {
+      display: none;
+      padding: 10px 14px 12px 42px;
       font-size: 0.78rem;
       color: var(--text-secondary);
-      line-height: 1.45;
-      margin-top: 4px;
+      background: var(--surface-2);
+      border-top: 1px solid #EFEBE3;
+      line-height: 1.5;
       overflow-wrap: break-word;
+    }
+    .ep-notes-row.open {
+      display: block;
     }
 
     /* ── Travel Cards ────────────────────────────── */
@@ -1549,6 +1587,14 @@ async function loadEvpPriorities() {
   }
 }
 
+function toggleEpNotes(idx) {
+  const notesRow = document.getElementById('ep-notes-' + idx);
+  const chevron = document.getElementById('ep-chevron-' + idx);
+  if (!notesRow) return;
+  notesRow.classList.toggle('open');
+  if (chevron) chevron.classList.toggle('open');
+}
+
 function renderEvpPriorities(rows) {
   const list = document.getElementById('ep-list');
   list.innerHTML = '';
@@ -1558,28 +1604,40 @@ function renderEvpPriorities(rows) {
     .sort((a, b) => (a._date ? a._date.getTime() : Infinity) - (b._date ? b._date.getTime() : Infinity));
 
   if (sorted.length === 0) {
-    list.innerHTML = '<div class="ep-item" style="color:var(--text-secondary);">No priorities logged yet.</div>';
+    list.innerHTML = '<div style="padding:14px 16px;color:var(--text-secondary);">No priorities logged yet.</div>';
     return;
   }
 
-  sorted.forEach(item => {
-    const el = document.createElement('div');
-    el.className = 'ep-item';
+  const header = document.createElement('div');
+  header.className = 'ep-table-header';
+  header.innerHTML = '<span></span><span>Action</span><span>Owner</span><span>Due</span><span>Status</span><span></span>';
+  list.appendChild(header);
+
+  sorted.forEach((item, idx) => {
     const statusColor = EP_STATUS_COLORS[item.Status] || '#737373';
     const dueLabel = item.DueDate ? formatDueDateEP(item.DueDate) : 'No due date';
-    el.innerHTML = `
-      <div class="ep-item-top">
-        <span></span>
-        ${item.Status ? `<span class="ep-status-badge" style="background:${statusColor}">${escapeHtmlEP(item.Status)}</span>` : ''}
-      </div>
-      <div class="ep-title">${escapeHtmlEP(item.Action)}</div>
-      <div class="ep-meta">
-        <span>${escapeHtmlEP(item.Owners)}</span>
-        <span class="ep-due${item.DueDate ? '' : ' no-date'}">${item.DueDate ? 'Due ' + dueLabel : dueLabel}</span>
-      </div>
-      ${item.Notes ? `<div class="ep-notes">${escapeHtmlEP(item.Notes)}</div>` : ''}
+    const hasNotes = !!item.Notes;
+
+    const row = document.createElement('div');
+    row.className = 'ep-row' + (hasNotes ? '' : ' no-notes');
+    row.innerHTML = `
+      <span class="ep-status-dot" style="background:${statusColor}"></span>
+      <span class="ep-row-action">${escapeHtmlEP(item.Action)}</span>
+      <span class="ep-row-owner">${escapeHtmlEP(item.Owners)}</span>
+      <span class="ep-row-due${item.DueDate ? '' : ' no-date'}">${dueLabel}</span>
+      <span class="ep-row-status-text" style="color:${statusColor}">${escapeHtmlEP(item.Status)}</span>
+      <span class="ep-row-chevron" id="ep-chevron-${idx}">${hasNotes ? '\u25B8' : ''}</span>
     `;
-    list.appendChild(el);
+    if (hasNotes) {
+      row.onclick = () => toggleEpNotes(idx);
+    }
+    list.appendChild(row);
+
+    const notesRow = document.createElement('div');
+    notesRow.className = 'ep-notes-row';
+    notesRow.id = 'ep-notes-' + idx;
+    notesRow.textContent = item.Notes || '';
+    list.appendChild(notesRow);
   });
 }
 
