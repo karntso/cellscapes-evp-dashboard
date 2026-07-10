@@ -452,7 +452,7 @@
       letter-spacing: 0.03em;
     }
     .calendar-day {
-      height: 128px;
+      height: 168px;
       border-radius: 8px;
       background: var(--surface-2);
       padding: 6px 6px;
@@ -477,11 +477,12 @@
       color: var(--text-primary);
     }
     .day-badge-slot {
-      min-height: 32px;
+      min-height: 62px;
     }
     .day-evp-badge-slot {
       margin-top: auto;
       padding-top: 3px;
+      min-height: 30px;
     }
     .calendar-event {
       display: -webkit-box;
@@ -495,6 +496,7 @@
       color: #FFFFFF;
       overflow: hidden;
       font-family: Arial, sans-serif;
+      margin-bottom: 2px;
     }
     .calendar-event-more {
       font-size: 0.56rem;
@@ -1245,7 +1247,7 @@ function buildMonthGrid(monthDate, dayIndex, today) {
     const badgeSlot = document.createElement('div');
     badgeSlot.className = 'day-badge-slot';
     const leadershipBadges = dayData ? dayData.leadershipBadges : [];
-    const maxShown = 1;
+    const maxShown = 2;
     leadershipBadges.slice(0, maxShown).forEach(b => {
       const ev = document.createElement('div');
       ev.className = 'calendar-event';
@@ -1286,7 +1288,7 @@ function buildMonthGrid(monthDate, dayIndex, today) {
     if (evpBadges.length) {
       const evpSlot = document.createElement('div');
       evpSlot.className = 'day-evp-badge-slot';
-      evpBadges.slice(0, 1).forEach(b => {
+      evpBadges.slice(0, 2).forEach(b => {
         const ev = document.createElement('div');
         ev.className = 'calendar-event';
         ev.style.background = b.color;
@@ -1294,11 +1296,11 @@ function buildMonthGrid(monthDate, dayIndex, today) {
         ev.title = b.title;
         evpSlot.appendChild(ev);
       });
-      if (evpBadges.length > 1) {
+      if (evpBadges.length > 2) {
         const more = document.createElement('div');
         more.className = 'calendar-event-more';
-        more.textContent = '+' + (evpBadges.length - 1) + ' more';
-        more.title = evpBadges.slice(1).map(b => b.title).join(', ');
+        more.textContent = '+' + (evpBadges.length - 2) + ' more';
+        more.title = evpBadges.slice(2).map(b => b.title).join(', ');
         evpSlot.appendChild(more);
       }
       cell.appendChild(evpSlot);
