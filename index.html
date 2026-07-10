@@ -758,7 +758,7 @@
     }
     .ee-table-header {
       display: grid;
-      grid-template-columns: 62px 1fr 130px 1fr 84px 14px;
+      grid-template-columns: 56px 170px 1fr 1fr 80px 14px;
       gap: 10px;
       align-items: center;
       padding: 7px 14px;
@@ -773,7 +773,7 @@
     }
     .ee-row {
       display: grid;
-      grid-template-columns: 62px 1fr 130px 1fr 84px 14px;
+      grid-template-columns: 56px 170px 1fr 1fr 80px 14px;
       gap: 10px;
       align-items: center;
       padding: 9px 14px;
@@ -815,7 +815,7 @@
       margin-top: 1px;
     }
     .ee-contact-email a {
-      color: var(--link-accent);
+      color: var(--text-secondary);
       text-decoration: none;
     }
     .ee-type-tag {
@@ -1793,16 +1793,22 @@ function escapeHtmlEE(str) {
   return div.innerHTML;
 }
 
-function formatDateEE(str) {
-  const d = parseLocalDate(str);
-  if (!d) return '';
+function formatDateEE(startStr, endStr) {
   const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  return monthNames[d.getMonth()] + ' ' + d.getDate();
+  const start = parseLocalDate(startStr);
+  if (!start) return '';
+  const end = parseLocalDate(endStr);
+  const startLabel = monthNames[start.getMonth()] + ' ' + start.getDate();
+  if (!end || end.getTime() === start.getTime()) return startLabel;
+  const sameMonth = start.getMonth() === end.getMonth();
+  const endLabel = sameMonth ? end.getDate() : (monthNames[end.getMonth()] + ' ' + end.getDate());
+  return startLabel + '–' + endLabel;
 }
 
 function mapExternalEngagementCsvRow(row) {
   return {
-    Date: (row['Date'] || '').trim(),
+    StartDate: (row['Start Date'] || row['Date'] || '').trim(),
+    EndDate: (row['End Date'] || '').trim(),
     Name: (row['Contact Name'] || '').trim(),
     Email: (row['Contact Email'] || '').trim(),
     Affiliation: (row['Affiliation / Institution'] || '').trim(),
@@ -1825,7 +1831,8 @@ async function loadExternalEngagement() {
     if (!res.ok) throw new Error('Fetch failed: ' + res.status);
     const text = await res.text();
     const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
-    const rows = parsed.data.map(mapExternalEngagementCsvRow).filter(r => r.Name);
+    // Keep rows with a named contact OR an event/affiliation-only entry (e.g. a conference with no single contact).
+    const rows = parsed.data.map(mapExternalEngagementCsvRow).filter(r => r.Name || r.Affiliation);
     renderExternalEngagement(rows);
     note.textContent = '';
   } catch (err) {
@@ -1847,7 +1854,7 @@ function renderExternalEngagement(rows) {
   list.innerHTML = '';
 
   const sorted = rows
-    .map(r => ({ ...r, _date: parseLocalDate(r.Date) }))
+    .map(r => ({ ...r, _date: parseLocalDate(r.StartDate) }))
     .sort((a, b) => (a._date ? a._date.getTime() : Infinity) - (b._date ? b._date.getTime() : Infinity));
 
   if (sorted.length === 0) {
@@ -1862,15 +1869,15 @@ function renderExternalEngagement(rows) {
 
   sorted.forEach((item, idx) => {
     const statusColor = EE_STATUS_COLORS[item.Status] || '#737373';
-    const dateLabel = item.Date ? formatDateEE(item.Date) : 'No date';
+    const dateLabel = item.StartDate ? formatDateEE(item.StartDate, item.EndDate) : 'No date';
     const hasExtra = !!(item.NextSteps || item.Notes);
 
     const row = document.createElement('div');
     row.className = 'ee-row' + (hasExtra ? '' : ' no-extra');
     row.innerHTML = `
-      <span class="ee-date${item.Date ? '' : ' no-date'}">${dateLabel}</span>
+      <span class="ee-date${item.StartDate ? '' : ' no-date'}">${dateLabel}</span>
       <span>
-        <span class="ee-contact-name">${escapeHtmlEE(item.Name)}</span>${item.Type ? `<span class="ee-type-tag">${escapeHtmlEE(item.Type)}</span>` : ''}
+        ${item.Name ? `<span class="ee-contact-name">${escapeHtmlEE(item.Name)}</span>` : ''}
         ${item.Email ? `<span class="ee-contact-email"><a href="mailto:${escapeHtmlEE(item.Email)}" onclick="event.stopPropagation()">${escapeHtmlEE(item.Email)}</a></span>` : ''}
       </span>
       <span class="ee-affiliation">${escapeHtmlEE(item.Affiliation)}</span>
