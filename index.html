@@ -627,6 +627,15 @@
       padding-left: 18px;
     }
     .rm-bullets li { margin-bottom: 2px; }
+    .rm-notes {
+      font-size: 0.76rem;
+      font-weight: 400;
+      color: var(--text-secondary);
+      margin-top: 6px;
+      line-height: 1.5;
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+    }
 
     /* ── Travel Cards ────────────────────────────── */
     .travel-preview-note {
@@ -1342,7 +1351,8 @@ function mapRoadmapCsvRow(row) {
     Goal: (row['Strategic Goal'] || '').trim(),
     Priority: (row['Priority'] || '').trim(),
     Status: (row['Status'] || '').trim(),
-    KeyActions: (row['Key Actions'] || '').trim()
+    KeyActions: (row['Key Actions'] || '').trim(),
+    Notes: (row['Notes'] || '').trim()
   };
 }
 
@@ -1408,6 +1418,7 @@ function renderRoadmap(rows) {
         </div>
         <div class="rm-title">${escapeHtmlRM(title)}</div>
         ${bullets.length ? `<ul class="rm-bullets">${bullets.map(b => `<li>${escapeHtmlRM(b.replace(/^[•\-\u2022]\s*/, ''))}</li>`).join('')}</ul>` : ''}
+        ${item.Notes ? `<div class="rm-notes">${escapeHtmlRM(item.Notes)}</div>` : ''}
       `;
       list.appendChild(el);
     });
