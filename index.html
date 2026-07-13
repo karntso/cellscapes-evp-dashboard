@@ -1044,8 +1044,8 @@
       padding-left: 20px;
     }
     .goal-midyear-block {
-      background: #FFF8ED;
-      border-left: 3px solid #FF6E00;
+      background: var(--surface-2);
+      border-left: 3px solid var(--border);
       margin: 18px -18px 0 -18px;
       padding: 14px 18px 16px 16px;
     }
@@ -1064,15 +1064,10 @@
       letter-spacing: 0.04em;
       margin-bottom: 4px;
       margin-top: 12px;
+      color: var(--text-primary);
     }
     .goal-midyear-label:first-of-type {
       margin-top: 0;
-    }
-    .goal-midyear-label.progress {
-      color: #1B8A5A;
-    }
-    .goal-midyear-label.challenges {
-      color: var(--rose);
     }
     .goal-midyear-text {
       font-size: 0.85rem;
@@ -1271,19 +1266,6 @@
     </div>
   </div>
 
-  <!-- EVP Travel -->
-  <div class="section-card">
-    <div class="section-header" onclick="toggleCollapse('travel')" id="travel-header">
-      <h2 class="section-title">EVP travel</h2>
-      <span class="collapsible-toggle" id="travel-toggle">+</span>
-    </div>
-    <div class="collapsible-content" id="travel-content">
-      <div class="section-body" id="travel-body">
-        <div class="calendar-error">Loading travel details…</div>
-      </div>
-    </div>
-  </div>
-
   <!-- EVP External Engagement -->
   <div class="section-card">
     <div class="section-header" onclick="toggleCollapse('external')" id="external-header">
@@ -1344,7 +1326,7 @@
               <div id="goal1-update-slot"></div>
 
               <div class="goal-midyear-block">
-                <div class="goal-midyear-heading">Mid-Year Update — as of July 2026</div>
+                <div class="goal-midyear-heading">JULY 2026 MID-YEAR UPDATE</div>
                 <div class="goal-midyear-label progress">Mid-Year Progress</div>
                 <div class="goal-midyear-text">Established and socialized a clear CellScapes vision and strategic narrative, with strong validation from the SAC (creating a new deck with an external partner and leadership team). As CellScapes programs are finalized, the next phase will be to develop a more specific program-level narrative with clear objectives and impact.</div>
                 <div class="goal-midyear-label challenges">Challenges</div>
@@ -1388,7 +1370,7 @@
               <div id="goal2-update-slot"></div>
 
               <div class="goal-midyear-block">
-                <div class="goal-midyear-heading">Mid-Year Update — as of July 2026</div>
+                <div class="goal-midyear-heading">JULY 2026 MID-YEAR UPDATE</div>
                 <div class="goal-midyear-label progress">Mid-Year Progress</div>
                 <div class="goal-midyear-text">Established the foundation for the Measure → Model → Build framework through a reproducible 3D lumenoid system, emerging model → predict → test workflows, and early demonstrations of programmable multicellular behavior. Refined scientific priorities based on SAC feedback to focus on a small number of integrated proof-of-concept modules.</div>
                 <div class="goal-midyear-label challenges">Challenges</div>
@@ -1429,7 +1411,7 @@
               <div id="goal3-update-slot"></div>
 
               <div class="goal-midyear-block">
-                <div class="goal-midyear-heading">Mid-Year Update — as of July 2026</div>
+                <div class="goal-midyear-heading">JULY 2026 MID-YEAR UPDATE</div>
                 <div class="goal-midyear-label progress">Mid-Year Progress</div>
                 <div class="goal-midyear-text">Completed the DY move and established the new leadership structure. Launched focused cross-disciplinary working groups, initiated organizational and resource planning, and began designing a formal postdoctoral program to address key capability gaps with limited-term hires.</div>
                 <div class="goal-midyear-label challenges">Challenges</div>
@@ -1473,7 +1455,7 @@
               <div id="goal4-update-slot"></div>
 
               <div class="goal-midyear-block">
-                <div class="goal-midyear-heading">Mid-Year Update — as of July 2026</div>
+                <div class="goal-midyear-heading">JULY 2026 MID-YEAR UPDATE</div>
                 <div class="goal-midyear-label progress">Mid-Year Progress</div>
                 <div class="goal-midyear-text">Established CellScapes as a recognized scientific convener through the Lake Conference, Synthetic Biology Workshop, strategic engagement at ISSCR and GRC, and expanding external partnerships. Initiated recruitment for a Director of Scientific Operations and Partnerships to lead and support the necessary collaborations for CellScapes.</div>
                 <div class="goal-midyear-label challenges">Challenges</div>
@@ -1492,6 +1474,19 @@
             edit measures status →
           </a>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EVP Travel -->
+  <div class="section-card">
+    <div class="section-header" onclick="toggleCollapse('travel')" id="travel-header">
+      <h2 class="section-title">EVP travel</h2>
+      <span class="collapsible-toggle" id="travel-toggle">+</span>
+    </div>
+    <div class="collapsible-content" id="travel-content">
+      <div class="section-body" id="travel-body">
+        <div class="calendar-error">Loading travel details…</div>
       </div>
     </div>
   </div>
