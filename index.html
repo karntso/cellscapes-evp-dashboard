@@ -701,11 +701,11 @@
     .ep-row.done {
       opacity: 0.45;
     }
-    .ep-status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
+    .ep-priority-icon {
+      font-size: 0.95rem;
+      font-weight: 700;
       flex-shrink: 0;
+      text-align: center;
     }
     .ep-row-action {
       color: var(--text-primary);
@@ -1211,19 +1211,6 @@
     </div>
   </div>
 
-  <!-- Ru's Calendar (2-month view) -->
-  <div class="section-card">
-    <div class="section-header open" onclick="toggleCollapse('rucalendar')" id="rucalendar-header">
-      <h2 class="section-title">EVP calendar</h2>
-      <span class="collapsible-toggle open" id="rucalendar-toggle">+</span>
-    </div>
-    <div class="collapsible-content open" id="rucalendar-content">
-      <div class="section-body" id="rucalendar-body">
-        <div class="calendar-error">Loading calendar…</div>
-      </div>
-    </div>
-  </div>
-
   <!-- EVP Priorities (Action Items) -->
   <div class="section-card">
     <div class="section-header open" onclick="toggleCollapse('priorities')" id="priorities-header">
@@ -1241,6 +1228,19 @@
             open sheet to edit →
           </a>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ru's Calendar (2-month view) -->
+  <div class="section-card">
+    <div class="section-header open" onclick="toggleCollapse('rucalendar')" id="rucalendar-header">
+      <h2 class="section-title">EVP calendar</h2>
+      <span class="collapsible-toggle open" id="rucalendar-toggle">+</span>
+    </div>
+    <div class="collapsible-content open" id="rucalendar-content">
+      <div class="section-body" id="rucalendar-body">
+        <div class="calendar-error">Loading calendar…</div>
       </div>
     </div>
   </div>
@@ -2086,7 +2086,8 @@ function mapEvpPriorityCsvRow(row) {
     DueDate: (row['Due Date'] || '').trim(),
     Status: (row['Status'] || '').trim(),
     Owners: (row['Owner(s)'] || '').trim(),
-    Notes: (row['Notes'] || '').trim()
+    Notes: (row['Notes'] || '').trim(),
+    Priority: (row['Priority'] || '').trim()
   };
 }
 
@@ -2146,10 +2147,17 @@ function renderEvpPriorities(rows) {
     const dueLabel = item.DueDate ? formatDueDateEP(item.DueDate) : 'No due date';
     const hasNotes = !!item.Notes;
 
+    let priorityIcon = '';
+    if (item.Priority === 'High') {
+      priorityIcon = '<span class="ep-priority-icon" style="color:#CD0F55;" title="High priority">\u2191</span>';
+    } else if (item.Priority === 'Low') {
+      priorityIcon = '<span class="ep-priority-icon" style="color:#AAA39F;" title="Low priority">\u2193</span>';
+    }
+
     const row = document.createElement('div');
     row.className = 'ep-row' + (hasNotes ? '' : ' no-notes') + (item.Status === 'Complete' ? ' done' : '');
     row.innerHTML = `
-      <span class="ep-status-dot" style="background:${statusColor}"></span>
+      ${priorityIcon}
       <span class="ep-row-action">${escapeHtmlEP(item.Action)}</span>
       <span class="ep-row-owner">${escapeHtmlEP(item.Owners)}</span>
       <span class="ep-row-due${item.DueDate ? '' : ' no-date'}">${dueLabel}</span>
