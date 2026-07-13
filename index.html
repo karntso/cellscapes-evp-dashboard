@@ -429,6 +429,12 @@
     .calendar-month {
       flex: 0 0 auto;
       width: 560px;
+      padding-right: 28px;
+      border-right: 1px solid var(--border);
+    }
+    .calendar-month:last-child {
+      padding-right: 0;
+      border-right: none;
     }
     .calendar-month-title {
       font-weight: 700;
@@ -469,6 +475,12 @@
     }
     .calendar-day.holiday {
       background: #E3E0DA;
+    }
+    .calendar-day.past {
+      opacity: 0.45;
+    }
+    .calendar-day.past.holiday {
+      opacity: 0.55;
     }
     .calendar-day-num {
       font-weight: 700;
@@ -685,6 +697,9 @@
     }
     .ep-row.no-notes:hover {
       background: transparent;
+    }
+    .ep-row.done {
+      opacity: 0.45;
     }
     .ep-status-dot {
       width: 8px;
@@ -938,6 +953,35 @@
       color: var(--text-primary);
       margin-bottom: 12px;
       line-height: 1.5;
+    }
+    .goal-update-block {
+      background: var(--accent-light);
+      border-left: 3px solid var(--accent);
+      margin: 0 -18px 16px -18px;
+      padding: 12px 18px 14px 16px;
+    }
+    .goal-update-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 4px;
+    }
+    .goal-update-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .goal-update-date {
+      font-size: 0.68rem;
+      color: var(--accent-mid);
+      font-style: italic;
+    }
+    .goal-update-text {
+      font-size: 0.85rem;
+      color: var(--text-primary);
+      line-height: 1.55;
     }
     .goal-context {
       font-size: 0.83rem;
@@ -1249,6 +1293,7 @@
           <div class="goal-card-body" id="goal1-content">
             <div class="goal-card-inner">
               <div class="goal-objective">Define and articulate a clear, compelling CellScapes mission and narrative.</div>
+              <div id="goal1-update-slot"></div>
               <div class="goal-context">With the transition into CellScapes in its final phases, scientific progress now depends on clarity of vision, alignment of leadership and staff on focused goals, and external engagement to broaden impact. Establishing this foundation will significantly accelerate the execution of our science.</div>
 
               <div class="goal-section-label">Approach</div>
@@ -1287,6 +1332,7 @@
           <div class="goal-card-body" id="goal2-content">
             <div class="goal-card-inner">
               <div class="goal-objective">Achieve scientific progress across CellScapes programs via 1- and 2-year milestones.</div>
+              <div id="goal2-update-slot"></div>
               <div class="goal-context">Early scientific progress is essential to maintain alignment, momentum, and impact as CellScapes transitions from vision to execution.</div>
 
               <div class="goal-section-label">Approach</div>
@@ -1329,6 +1375,7 @@
           <div class="goal-card-body" id="goal3-content">
             <div class="goal-card-inner">
               <div class="goal-objective">Solidify the new organization structure, leadership, and culture for effective execution of CellScapes vision along with the DY move.</div>
+              <div id="goal3-update-slot"></div>
               <div class="goal-context">Following several organizational changes in 2025, stabilization is required to sustain momentum and enable leaders and staff to operate effectively, along with a physical move to a new building.</div>
 
               <div class="goal-section-label">Approach</div>
@@ -1368,6 +1415,7 @@
           <div class="goal-card-body" id="goal4-content">
             <div class="goal-card-inner">
               <div class="goal-objective">Position CellScapes as a cross-disciplinary moonshot and hub where synthetic biology, modeling, theory, and cell biology converge to tackle fundamental questions in cell biology.</div>
+              <div id="goal4-update-slot"></div>
               <div class="goal-context">As CellScapes moves from vision to execution, sustainable progress depends on deep engagement with the scientific communities most central to our success. Establishing CellScapes as a visible hub will enable scale, credibility, and long-term collaboration.</div>
 
               <div class="goal-section-label">Approach</div>
@@ -1401,6 +1449,11 @@
           </div>
         </div>
 
+        <div style="margin-top:8px;text-align:right;">
+          <a href="https://docs.google.com/spreadsheets/d/1-aHqGhwAgzkD34qugZEINJbhYfqwQ32g/edit?usp=sharing&ouid=111752552908735098726&rtpof=true&sd=true#gid=1029127091" target="_blank" style="font-size:0.82rem;color:var(--link-accent);text-decoration:none;">
+            open sheet to edit →
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -1665,11 +1718,13 @@ function buildMonthGrid(monthDate, dayIndex, today) {
     }
 
     const key = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+    const cellDate = new Date(year, month, day);
     const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
+    const isPast = cellDate < new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const dayData = dayIndex[key];
     const isHoliday = dayData && dayData.leadershipBadges.some(b => b.isHoliday);
     const cell = document.createElement('div');
-    cell.className = 'calendar-day' + (isToday ? ' today' : '') + (isHoliday ? ' holiday' : '');
+    cell.className = 'calendar-day' + (isToday ? ' today' : '') + (isHoliday ? ' holiday' : '') + (isPast ? ' past' : '');
 
     const num = document.createElement('div');
     num.className = 'calendar-day-num';
@@ -2036,7 +2091,12 @@ function renderEvpPriorities(rows) {
 
   const sorted = rows
     .map(r => ({ ...r, _date: parseLocalDate(r.DueDate) }))
-    .sort((a, b) => (a._date ? a._date.getTime() : Infinity) - (b._date ? b._date.getTime() : Infinity));
+    .sort((a, b) => {
+      const aDone = a.Status === 'Complete' ? 1 : 0;
+      const bDone = b.Status === 'Complete' ? 1 : 0;
+      if (aDone !== bDone) return aDone - bDone;
+      return (a._date ? a._date.getTime() : Infinity) - (b._date ? b._date.getTime() : Infinity);
+    });
 
   if (sorted.length === 0) {
     list.innerHTML = '<div style="padding:14px 16px;color:var(--text-secondary);">No priorities logged yet.</div>';
@@ -2054,7 +2114,7 @@ function renderEvpPriorities(rows) {
     const hasNotes = !!item.Notes;
 
     const row = document.createElement('div');
-    row.className = 'ep-row' + (hasNotes ? '' : ' no-notes');
+    row.className = 'ep-row' + (hasNotes ? '' : ' no-notes') + (item.Status === 'Complete' ? ' done' : '');
     row.innerHTML = `
       <span class="ep-status-dot" style="background:${statusColor}"></span>
       <span class="ep-row-action">${escapeHtmlEP(item.Action)}</span>
@@ -2234,6 +2294,61 @@ function handleLogin(e) {
 }
 
 // ══════════════════════════════════════════════════════════════
+// EVP GOAL UPDATES (custom, live from Google Sheet)
+// ══════════════════════════════════════════════════════════════
+const GOAL_UPDATES_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJPAJ4jIYcrJaJN8QQN5kQQtWIKuiyiPTFvq9QxkiSPgEDvajtSqrOvHH2L4w6Ug/pub?gid=1029127091&single=true&output=csv";
+
+const GOAL_SLOT_MAP = {
+  "Mission and Narrative": "goal1-update-slot",
+  "Scientific Progress": "goal2-update-slot",
+  "Organization, Leadership, Culture": "goal3-update-slot",
+  "Disciplinary Hub Building": "goal4-update-slot"
+};
+
+function escapeHtmlGU(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function formatGoalUpdateDate(str) {
+  const d = parseLocalDate(str);
+  if (!d) return '';
+  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return monthNames[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+}
+
+async function loadGoalUpdates() {
+  if (GOAL_UPDATES_CSV_URL.indexOf("REPLACE_WITH") === 0) return;
+  try {
+    const res = await fetch(GOAL_UPDATES_CSV_URL);
+    if (!res.ok) throw new Error('Fetch failed: ' + res.status);
+    const text = await res.text();
+    const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
+    parsed.data.forEach(row => {
+      const goal = (row['Goal'] || '').trim();
+      const update = (row['Update'] || '').trim();
+      const lastUpdated = (row['Last Updated'] || '').trim();
+      const slotId = GOAL_SLOT_MAP[goal];
+      if (!slotId || !update) return;
+      const slot = document.getElementById(slotId);
+      if (!slot) return;
+      slot.innerHTML = `
+        <div class="goal-update-block">
+          <div class="goal-update-top">
+            <span class="goal-update-label">Latest update</span>
+            ${lastUpdated ? `<span class="goal-update-date">${escapeHtmlGU(formatGoalUpdateDate(lastUpdated))}</span>` : ''}
+          </div>
+          <div class="goal-update-text">${escapeHtmlGU(update)}</div>
+        </div>
+      `;
+    });
+  } catch (err) {
+    console.error('Goal updates load error:', err);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
 // INITIALIZE ON PAGE LOAD
 // ══════════════════════════════════════════════════════════════
 window.onload = function() {
@@ -2251,6 +2366,7 @@ window.onload = function() {
   loadRoadmap();
   loadEvpPriorities();
   loadExternalEngagement();
+  loadGoalUpdates();
 };
 </script>
 
