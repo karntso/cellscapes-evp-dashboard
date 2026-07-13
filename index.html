@@ -955,33 +955,63 @@
       line-height: 1.5;
     }
     .goal-update-block {
-      background: var(--accent-light);
-      border-left: 3px solid var(--accent);
-      margin: 0 -18px 16px -18px;
-      padding: 12px 18px 14px 16px;
-    }
-    .goal-update-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 4px;
+      background: #FCE8F0;
+      border-left: 3px solid var(--rose);
+      margin: 16px -18px 16px -18px;
+      padding: 12px 16px 4px 16px;
     }
     .goal-update-label {
       font-size: 0.68rem;
       font-weight: 700;
-      color: var(--accent);
+      color: var(--rose);
       text-transform: uppercase;
       letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    .goal-update-scroll {
+      max-height: 130px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .goal-update-entry {
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #F5D5E0;
+    }
+    .goal-update-entry:last-child {
+      margin-bottom: 4px;
+      padding-bottom: 4px;
+      border-bottom: none;
     }
     .goal-update-date {
       font-size: 0.68rem;
-      color: var(--accent-mid);
+      color: #B8134F;
       font-style: italic;
+      margin-bottom: 2px;
     }
     .goal-update-text {
       font-size: 0.85rem;
       color: var(--text-primary);
-      line-height: 1.55;
+      line-height: 1.5;
+    }
+    .goal-bullets li.measure-done {
+      color: var(--text-secondary);
+      text-decoration: line-through;
+      text-decoration-color: #ccc;
+    }
+    .goal-bullets li.measure-done::marker {
+      content: "\2713  ";
+      color: #1B8A5A;
+      font-weight: 700;
+    }
+    .goal-bullets li.measure-done ul li {
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+    .goal-bullets li.measure-done ul li::marker {
+      content: normal;
+      color: inherit;
+      font-weight: normal;
     }
     .goal-context {
       font-size: 0.83rem;
@@ -1293,7 +1323,6 @@
           <div class="goal-card-body" id="goal1-content">
             <div class="goal-card-inner">
               <div class="goal-objective">Define and articulate a clear, compelling CellScapes mission and narrative.</div>
-              <div id="goal1-update-slot"></div>
               <div class="goal-context">With the transition into CellScapes in its final phases, scientific progress now depends on clarity of vision, alignment of leadership and staff on focused goals, and external engagement to broaden impact. Establishing this foundation will significantly accelerate the execution of our science.</div>
 
               <div class="goal-section-label">Approach</div>
@@ -1305,12 +1334,14 @@
               </ul>
 
               <div class="goal-section-label">Measures of Success</div>
-              <ul class="goal-bullets">
-                <li>A finalized CellScapes mission statement and scientific roadmap that is actively used to guide leadership decisions and scientific prioritization</li>
-                <li>Adoption of a single, modular CellScapes core presentation, reused by staff for external engagements</li>
-                <li>Successful execution of 2026 Lake Conference as the first CellScapes-era convening</li>
-                <li>Increased invitations for the EVP and CellScapes leadership to participate in high-impact scientific talks, panels, and advisory roles</li>
+              <ul class="goal-bullets" id="goal1-measures">
+                <li id="goal1-measure-1">A finalized CellScapes mission statement and scientific roadmap that is actively used to guide leadership decisions and scientific prioritization</li>
+                <li id="goal1-measure-2">Adoption of a single, modular CellScapes core presentation, reused by staff for external engagements</li>
+                <li id="goal1-measure-3">Successful execution of 2026 Lake Conference as the first CellScapes-era convening</li>
+                <li id="goal1-measure-4">Increased invitations for the EVP and CellScapes leadership to participate in high-impact scientific talks, panels, and advisory roles</li>
               </ul>
+
+              <div id="goal1-update-slot"></div>
 
               <div class="goal-midyear-block">
                 <div class="goal-midyear-heading">Mid-Year Update — as of July 2026</div>
@@ -1332,7 +1363,6 @@
           <div class="goal-card-body" id="goal2-content">
             <div class="goal-card-inner">
               <div class="goal-objective">Achieve scientific progress across CellScapes programs via 1- and 2-year milestones.</div>
-              <div id="goal2-update-slot"></div>
               <div class="goal-context">Early scientific progress is essential to maintain alignment, momentum, and impact as CellScapes transitions from vision to execution.</div>
 
               <div class="goal-section-label">Approach</div>
@@ -1343,17 +1373,19 @@
               </ul>
 
               <div class="goal-section-label">Measures of Success</div>
-              <ul class="goal-bullets">
-                <li>As seamless a move as possible to DY, and handling of inevitable challenges that will come with it</li>
-                <li>Clear progress against near-term milestones within each program:
+              <ul class="goal-bullets" id="goal2-measures">
+                <li id="goal2-measure-1">As seamless a move as possible to DY, and handling of inevitable challenges that will come with it</li>
+                <li id="goal2-measure-2">Clear progress against near-term milestones within each program:
                   <ul>
                     <li>Endo: completion and submission of a proof-of-concept manuscript defining dynamic cell state representations</li>
                     <li>3D lumenoids: demonstrable advances in predictive, multi-scale models of multicellular organization</li>
                     <li>Synthoids: validated synthetic control systems that enable reproducible multicellular behaviors</li>
                   </ul>
                 </li>
-                <li>Progress towards publications and/or data/tools that answer biological questions and demonstrate CellScapes progress</li>
+                <li id="goal2-measure-3">Progress towards publications and/or data/tools that answer biological questions and demonstrate CellScapes progress</li>
               </ul>
+
+              <div id="goal2-update-slot"></div>
 
               <div class="goal-midyear-block">
                 <div class="goal-midyear-heading">Mid-Year Update — as of July 2026</div>
@@ -1375,7 +1407,6 @@
           <div class="goal-card-body" id="goal3-content">
             <div class="goal-card-inner">
               <div class="goal-objective">Solidify the new organization structure, leadership, and culture for effective execution of CellScapes vision along with the DY move.</div>
-              <div id="goal3-update-slot"></div>
               <div class="goal-context">Following several organizational changes in 2025, stabilization is required to sustain momentum and enable leaders and staff to operate effectively, along with a physical move to a new building.</div>
 
               <div class="goal-section-label">Approach</div>
@@ -1387,13 +1418,15 @@
               </ul>
 
               <div class="goal-section-label">Measures of Success</div>
-              <ul class="goal-bullets">
-                <li>Successful integration of new directors into leadership team and programs, leading to increased scientific output</li>
-                <li>Clear articulation and adoption of leadership roles, responsibilities, and decision-making authority at all levels</li>
-                <li>Visible and sustained scholarly practices across teams (e.g., journal clubs, seminars, cross-group scientific discussions)</li>
-                <li>Qualitative evidence of staff empowerment, increased scientific literacy, focus, and professional growth among staff and leadership</li>
-                <li>A new team culture in a new physical space with enhanced collaboration with SeaHub and other collaborators</li>
+              <ul class="goal-bullets" id="goal3-measures">
+                <li id="goal3-measure-1">Successful integration of new directors into leadership team and programs, leading to increased scientific output</li>
+                <li id="goal3-measure-2">Clear articulation and adoption of leadership roles, responsibilities, and decision-making authority at all levels</li>
+                <li id="goal3-measure-3">Visible and sustained scholarly practices across teams (e.g., journal clubs, seminars, cross-group scientific discussions)</li>
+                <li id="goal3-measure-4">Qualitative evidence of staff empowerment, increased scientific literacy, focus, and professional growth among staff and leadership</li>
+                <li id="goal3-measure-5">A new team culture in a new physical space with enhanced collaboration with SeaHub and other collaborators</li>
               </ul>
+
+              <div id="goal3-update-slot"></div>
 
               <div class="goal-midyear-block">
                 <div class="goal-midyear-heading">Mid-Year Update — as of July 2026</div>
@@ -1415,7 +1448,6 @@
           <div class="goal-card-body" id="goal4-content">
             <div class="goal-card-inner">
               <div class="goal-objective">Position CellScapes as a cross-disciplinary moonshot and hub where synthetic biology, modeling, theory, and cell biology converge to tackle fundamental questions in cell biology.</div>
-              <div id="goal4-update-slot"></div>
               <div class="goal-context">As CellScapes moves from vision to execution, sustainable progress depends on deep engagement with the scientific communities most central to our success. Establishing CellScapes as a visible hub will enable scale, credibility, and long-term collaboration.</div>
 
               <div class="goal-section-label">Approach</div>
@@ -1426,17 +1458,19 @@
               </ul>
 
               <div class="goal-section-label">Measures of Success</div>
-              <ul class="goal-bullets">
-                <li>Formalized or strengthened advisory and collaborative frameworks spanning synthetic biology, modeling/theory, and experimental cell and developmental biology</li>
-                <li>Evidence of new or expanded collaborations (e.g., joint grants, postdocs, shared projects) emerging from hub-building efforts</li>
-                <li>Successful execution of:
+              <ul class="goal-bullets" id="goal4-measures">
+                <li id="goal4-measure-1">Formalized or strengthened advisory and collaborative frameworks spanning synthetic biology, modeling/theory, and experimental cell and developmental biology</li>
+                <li id="goal4-measure-2">Evidence of new or expanded collaborations (e.g., joint grants, postdocs, shared projects) emerging from hub-building efforts</li>
+                <li id="goal4-measure-3">Successful execution of:
                   <ul>
                     <li>The Synthetic Multicellular Biology Workshop, as a focused, hub-building extension of the Lake Conference</li>
                     <li>The co-hosted AICS/ISSCR/SBD conference bringing together cell biology, stem cell biology, and developmental biology communities around shared CellScapes-relevant questions</li>
                   </ul>
                 </li>
-                <li>Qualitative feedback from collaborators and advisors indicating CellScapes is perceived as a central, integrative scientific hub</li>
+                <li id="goal4-measure-4">Qualitative feedback from collaborators and advisors indicating CellScapes is perceived as a central, integrative scientific hub</li>
               </ul>
+
+              <div id="goal4-update-slot"></div>
 
               <div class="goal-midyear-block">
                 <div class="goal-midyear-heading">Mid-Year Update — as of July 2026</div>
@@ -1451,7 +1485,11 @@
 
         <div style="margin-top:8px;text-align:right;">
           <a href="https://docs.google.com/spreadsheets/d/1-aHqGhwAgzkD34qugZEINJbhYfqwQ32g/edit?usp=sharing&ouid=111752552908735098726&rtpof=true&sd=true#gid=1029127091" target="_blank" style="font-size:0.82rem;color:var(--link-accent);text-decoration:none;">
-            open sheet to edit →
+            edit goal updates →
+          </a>
+          &nbsp;&nbsp;
+          <a href="https://docs.google.com/spreadsheets/d/1-aHqGhwAgzkD34qugZEINJbhYfqwQ32g/edit?usp=sharing&ouid=111752552908735098726&rtpof=true&sd=true#gid=1734027144" target="_blank" style="font-size:0.82rem;color:var(--link-accent);text-decoration:none;">
+            edit measures status →
           </a>
         </div>
       </div>
@@ -2297,12 +2335,20 @@ function handleLogin(e) {
 // EVP GOAL UPDATES (custom, live from Google Sheet)
 // ══════════════════════════════════════════════════════════════
 const GOAL_UPDATES_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJPAJ4jIYcrJaJN8QQN5kQQtWIKuiyiPTFvq9QxkiSPgEDvajtSqrOvHH2L4w6Ug/pub?gid=1029127091&single=true&output=csv";
+const MEASURES_STATUS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJPAJ4jIYcrJaJN8QQN5kQQtWIKuiyiPTFvq9QxkiSPgEDvajtSqrOvHH2L4w6Ug/pub?gid=1734027144&single=true&output=csv";
 
 const GOAL_SLOT_MAP = {
   "Mission and Narrative": "goal1-update-slot",
   "Scientific Progress": "goal2-update-slot",
   "Organization, Leadership, Culture": "goal3-update-slot",
   "Disciplinary Hub Building": "goal4-update-slot"
+};
+
+const GOAL_ID_MAP = {
+  "Mission and Narrative": "goal1",
+  "Scientific Progress": "goal2",
+  "Organization, Leadership, Culture": "goal3",
+  "Disciplinary Hub Building": "goal4"
 };
 
 function escapeHtmlGU(str) {
@@ -2325,26 +2371,63 @@ async function loadGoalUpdates() {
     if (!res.ok) throw new Error('Fetch failed: ' + res.status);
     const text = await res.text();
     const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
+
+    const byGoal = {};
     parsed.data.forEach(row => {
       const goal = (row['Goal'] || '').trim();
       const update = (row['Update'] || '').trim();
-      const lastUpdated = (row['Last Updated'] || '').trim();
+      const date = (row['Date'] || row['Last Updated'] || '').trim();
+      if (!goal || !update) return;
+      if (!byGoal[goal]) byGoal[goal] = [];
+      byGoal[goal].push({ update, date, _date: parseLocalDate(date) });
+    });
+
+    Object.entries(byGoal).forEach(([goal, entries]) => {
       const slotId = GOAL_SLOT_MAP[goal];
-      if (!slotId || !update) return;
+      if (!slotId) return;
       const slot = document.getElementById(slotId);
       if (!slot) return;
+
+      entries.sort((a, b) => (b._date ? b._date.getTime() : 0) - (a._date ? a._date.getTime() : 0));
+
+      const entriesHtml = entries.map(e => `
+        <div class="goal-update-entry">
+          ${e.date ? `<div class="goal-update-date">${escapeHtmlGU(formatGoalUpdateDate(e.date))}</div>` : ''}
+          <div class="goal-update-text">${escapeHtmlGU(e.update)}</div>
+        </div>
+      `).join('');
+
       slot.innerHTML = `
         <div class="goal-update-block">
-          <div class="goal-update-top">
-            <span class="goal-update-label">Latest update</span>
-            ${lastUpdated ? `<span class="goal-update-date">${escapeHtmlGU(formatGoalUpdateDate(lastUpdated))}</span>` : ''}
-          </div>
-          <div class="goal-update-text">${escapeHtmlGU(update)}</div>
+          <div class="goal-update-label">Updates</div>
+          <div class="goal-update-scroll">${entriesHtml}</div>
         </div>
       `;
     });
   } catch (err) {
     console.error('Goal updates load error:', err);
+  }
+}
+
+async function loadMeasuresStatus() {
+  if (MEASURES_STATUS_CSV_URL.indexOf("REPLACE_WITH") === 0) return;
+  try {
+    const res = await fetch(MEASURES_STATUS_CSV_URL);
+    if (!res.ok) throw new Error('Fetch failed: ' + res.status);
+    const text = await res.text();
+    const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
+
+    parsed.data.forEach(row => {
+      const goal = (row['Goal'] || '').trim();
+      const measureNum = (row['Measure #'] || '').trim();
+      const status = (row['Status'] || '').trim();
+      const goalId = GOAL_ID_MAP[goal];
+      if (!goalId || !measureNum || status !== 'Done') return;
+      const li = document.getElementById(`${goalId}-measure-${measureNum}`);
+      if (li) li.classList.add('measure-done');
+    });
+  } catch (err) {
+    console.error('Measures status load error:', err);
   }
 }
 
@@ -2367,6 +2450,7 @@ window.onload = function() {
   loadEvpPriorities();
   loadExternalEngagement();
   loadGoalUpdates();
+  loadMeasuresStatus();
 };
 </script>
 
