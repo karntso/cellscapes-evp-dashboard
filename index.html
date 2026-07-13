@@ -2147,7 +2147,7 @@ function renderEvpPriorities(rows) {
     const dueLabel = item.DueDate ? formatDueDateEP(item.DueDate) : 'No due date';
     const hasNotes = !!item.Notes;
 
-    let priorityIcon = '';
+    let priorityIcon = '<span class="ep-priority-icon"></span>';
     if (item.Priority === 'High') {
       priorityIcon = '<span class="ep-priority-icon" style="color:#CD0F55;" title="High priority">\u2191</span>';
     } else if (item.Priority === 'Low') {
