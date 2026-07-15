@@ -496,6 +496,35 @@
       padding-top: 3px;
       min-height: 30px;
     }
+    .calendar-week-focus {
+      grid-column: 1 / -1;
+      background: #F5F5FF;
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin: 2px 0 10px;
+      font-size: 0.76rem;
+      color: var(--text-primary);
+      min-height: 0;
+    }
+    .calendar-week-focus:empty {
+      display: none;
+    }
+    .cwf-label {
+      font-size: 0.66rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+    .cwf-bullets {
+      margin: 0;
+      padding-left: 16px;
+      line-height: 1.5;
+    }
+    .cwf-bullets li {
+      margin-bottom: 1px;
+    }
     .calendar-event {
       display: -webkit-box;
       -webkit-line-clamp: 2;
@@ -570,62 +599,6 @@
       color: var(--text-secondary);
       font-size: 0.85rem;
       padding: 8px 0;
-    }
-
-    /* ── EVP Goals Focus (live from Priorities data) ─────────────── */
-    .gf-header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 12px;
-    }
-    .gf-week-label {
-      font-size: 0.78rem;
-      color: var(--text-secondary);
-    }
-    .gf-banner {
-      font-size: 0.82rem;
-      padding: 8px 14px;
-      border-radius: var(--radius-sm);
-      margin-bottom: 14px;
-    }
-    .gf-on-track {
-      background: #EAF3DE;
-      border-left: 3px solid #639922;
-      color: #27500A;
-    }
-    .gf-off-track {
-      background: var(--surface-2);
-      border-left: 3px solid var(--border);
-      color: var(--text-secondary);
-    }
-    .gf-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-    }
-    .gf-chip {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 12px;
-      text-align: center;
-    }
-    .gf-chip-ontrack {
-      border: 2px solid #1B8A5A;
-    }
-    .gf-chip-count {
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: var(--text-secondary);
-    }
-    .gf-count-ontrack {
-      color: #1B8A5A;
-    }
-    .gf-chip-label {
-      font-size: 0.68rem;
-      color: var(--text-primary);
-      line-height: 1.3;
-      margin-top: 2px;
     }
 
     /* ── Roadmapping (custom, live from Google Sheet) ────────────── */
@@ -721,7 +694,7 @@
     }
     .ep-table-header {
       display: grid;
-      grid-template-columns: 18px 1fr 110px 68px 92px 14px;
+      grid-template-columns: 18px 100px 1fr 110px 68px 92px 14px;
       gap: 10px;
       align-items: center;
       padding: 7px 14px;
@@ -736,7 +709,7 @@
     }
     .ep-row {
       display: grid;
-      grid-template-columns: 18px 1fr 110px 68px 92px 14px;
+      grid-template-columns: 18px 100px 1fr 110px 68px 92px 14px;
       gap: 10px;
       align-items: center;
       padding: 9px 14px;
@@ -757,11 +730,25 @@
     .ep-row.done {
       opacity: 0.45;
     }
+    .ep-row.core-goal {
+      background: #F5F5FF;
+    }
+    .ep-row.core-goal:hover {
+      background: var(--accent-light);
+    }
     .ep-priority-icon {
       font-size: 0.95rem;
       font-weight: 700;
       flex-shrink: 0;
       text-align: center;
+    }
+    .ep-row-category {
+      font-size: 0.7rem;
+      color: var(--accent);
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .ep-row-action {
       color: var(--text-primary);
@@ -1301,24 +1288,6 @@
     </div>
   </div>
 
-  <!-- EVP Goals Focus -->
-  <div class="section-card">
-    <div class="section-header open" onclick="toggleCollapse('goalsfocus')" id="goalsfocus-header">
-      <h2 class="section-title">EVP goals focus</h2>
-      <span class="collapsible-toggle open" id="goalsfocus-toggle">+</span>
-    </div>
-    <div class="collapsible-content open" id="goalsfocus-content">
-      <div class="section-body" id="goals-focus-body">
-        <div class="gf-header-row">
-          <span></span>
-          <span class="gf-week-label" id="goals-focus-week">Loading…</span>
-        </div>
-        <div class="gf-banner gf-off-track" id="goals-focus-banner">Loading this week's focus…</div>
-        <div class="gf-grid" id="goals-focus-grid"></div>
-      </div>
-    </div>
-  </div>
-
   <!-- EVP Roadmapping -->
   <div class="section-card">
     <div class="section-header" onclick="toggleCollapse('roadmapping')" id="roadmapping-header">
@@ -1782,6 +1751,8 @@ function renderMergedCalendar(evpEvents, leadershipRows, evpFailed, leadershipFa
   iconLegend.className = 'legend-icon-group';
   iconLegend.innerHTML = '<span>✈️ Leadership work travel</span><span>🌴 Leadership personal / OOO</span>';
   body.appendChild(iconLegend);
+
+  tryRenderCalendarWeekFocus();
 }
 
 function buildMonthGrid(monthDate, dayIndex, today) {
@@ -1809,18 +1780,33 @@ function buildMonthGrid(monthDate, dayIndex, today) {
   });
 
   let firstWeekdayPlaced = false;
+  let col = 0;
+  let weekStartDate = null;
+
+  function appendWeekFocusSlot() {
+    const slot = document.createElement('div');
+    slot.className = 'calendar-week-focus';
+    slot.id = 'week-focus-' + dateKeyRu(weekStartDate);
+    grid.appendChild(slot);
+  }
 
   for (let day = 1; day <= daysInMonth; day++) {
     const dow = new Date(year, month, day).getDay();
     if (dow === 0 || dow === 6) continue;
 
     const monIndex = dow - 1;
+
+    if (col === 0) {
+      weekStartDate = new Date(year, month, day - monIndex);
+    }
+
     if (!firstWeekdayPlaced) {
       for (let i = 0; i < monIndex; i++) {
         const empty = document.createElement('div');
         empty.className = 'calendar-day empty';
         grid.appendChild(empty);
       }
+      col += monIndex;
       firstWeekdayPlaced = true;
     }
 
@@ -1902,6 +1888,16 @@ function buildMonthGrid(monthDate, dayIndex, today) {
     }
 
     grid.appendChild(cell);
+    col++;
+
+    if (col === 5) {
+      appendWeekFocusSlot();
+      col = 0;
+    }
+  }
+
+  if (col > 0) {
+    appendWeekFocusSlot();
   }
 
   monthDiv.appendChild(grid);
@@ -2179,7 +2175,8 @@ async function loadEvpPriorities() {
     const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
     const rows = parsed.data.map(mapEvpPriorityCsvRow).filter(r => r.Action);
     renderEvpPriorities(rows);
-    renderGoalsFocus(rows);
+    cachedEvpPriorityRows = rows;
+    tryRenderCalendarWeekFocus();
     note.textContent = '';
   } catch (err) {
     console.error('EVP priorities load error:', err);
@@ -2196,76 +2193,45 @@ function toggleEpNotes(idx) {
 }
 
 const CORE_GOAL_CATEGORIES = ["Mission & Narrative", "Scientific Progress", "Org/Leadership/Culture", "Hub Building"];
-const ALL_FOCUS_CATEGORIES = [...CORE_GOAL_CATEGORIES, "APR/BOD/SAC", "Other"];
 
-function getCurrentWeekRange() {
-  const today = new Date();
-  const dow = today.getDay();
-  const diffToMonday = dow === 0 ? -6 : 1 - dow;
-  const monday = new Date(today.getFullYear(), today.getMonth(), today.getDate() + diffToMonday);
-  const friday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 4);
-  return { start: monday, end: friday };
-}
+let cachedEvpPriorityRows = null;
 
-function formatWeekLabel(start, end) {
-  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  const sameMonth = start.getMonth() === end.getMonth();
-  const startLabel = monthNames[start.getMonth()] + ' ' + start.getDate();
-  const endLabel = sameMonth ? end.getDate() : (monthNames[end.getMonth()] + ' ' + end.getDate());
-  return startLabel + '\u2013' + endLabel;
-}
+function renderCalendarWeekFocus(rows) {
+  const slots = document.querySelectorAll('[id^="week-focus-"]');
+  if (!slots.length) return;
 
-function renderGoalsFocus(rows) {
-  const container = document.getElementById('goals-focus-body');
-  if (!container) return;
+  slots.forEach(slot => {
+    const weekStartKey = slot.id.replace('week-focus-', '');
+    const weekStart = parseLocalDate(weekStartKey);
+    if (!weekStart) return;
+    const weekEnd = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 4);
+    const startTime = weekStart.getTime();
+    const endTime = weekEnd.getTime();
 
-  const { start, end } = getCurrentWeekRange();
-  const startTime = start.getTime();
-  const endTime = end.getTime();
+    const matches = rows.filter(r => {
+      if (!r.Category || !CORE_GOAL_CATEGORIES.includes(r.Category)) return false;
+      if (r.Status === 'Cancelled') return false;
+      const d = parseLocalDate(r.DueDate);
+      if (!d) return false;
+      return d.getTime() >= startTime && d.getTime() <= endTime;
+    });
 
-  const counts = {};
-  ALL_FOCUS_CATEGORIES.forEach(cat => counts[cat] = 0);
-
-  rows.forEach(r => {
-    if (!r.Category || !ALL_FOCUS_CATEGORIES.includes(r.Category)) return;
-    if (r.Status === 'Cancelled') return;
-    const d = parseLocalDate(r.DueDate);
-    if (!d) return;
-    if (d.getTime() >= startTime && d.getTime() <= endTime) {
-      counts[r.Category]++;
+    if (matches.length === 0) {
+      slot.innerHTML = '';
+      return;
     }
+
+    const bullets = matches.slice(0, 3).map(m => `<li>${escapeHtmlEP(m.Action)} <span style="color:var(--text-secondary);">(${escapeHtmlEP(m.Category)})</span></li>`).join('');
+    const more = matches.length > 3 ? `<li style="color:var(--text-secondary);">+${matches.length - 3} more</li>` : '';
+    slot.innerHTML = `
+      <div class="cwf-label">Goal focus this week</div>
+      <ul class="cwf-bullets">${bullets}${more}</ul>
+    `;
   });
+}
 
-  const onTrackGoal = CORE_GOAL_CATEGORIES.find(cat => counts[cat] >= 2);
-
-  const weekLabel = document.getElementById('goals-focus-week');
-  if (weekLabel) weekLabel.textContent = formatWeekLabel(start, end);
-
-  const banner = document.getElementById('goals-focus-banner');
-  if (banner) {
-    if (onTrackGoal) {
-      banner.className = 'gf-banner gf-on-track';
-      banner.textContent = 'On track — ' + onTrackGoal + ' has ' + counts[onTrackGoal] + ' active items this week';
-    } else {
-      banner.className = 'gf-banner gf-off-track';
-      banner.textContent = 'No goal has 2+ active items yet this week';
-    }
-  }
-
-  const grid = document.getElementById('goals-focus-grid');
-  if (grid) {
-    grid.innerHTML = ALL_FOCUS_CATEGORIES.map(cat => {
-      const count = counts[cat];
-      const isCore = CORE_GOAL_CATEGORIES.includes(cat);
-      const onTrack = isCore && count >= 2;
-      return `
-        <div class="gf-chip${onTrack ? ' gf-chip-ontrack' : ''}">
-          <div class="gf-chip-count${onTrack ? ' gf-count-ontrack' : ''}">${count}</div>
-          <div class="gf-chip-label">${cat}</div>
-        </div>
-      `;
-    }).join('');
-  }
+function tryRenderCalendarWeekFocus() {
+  if (cachedEvpPriorityRows) renderCalendarWeekFocus(cachedEvpPriorityRows);
 }
 
 function renderEvpPriorities(rows) {
@@ -2288,7 +2254,7 @@ function renderEvpPriorities(rows) {
 
   const header = document.createElement('div');
   header.className = 'ep-table-header';
-  header.innerHTML = '<span></span><span>Action</span><span>Owner</span><span>Due</span><span>Status</span><span></span>';
+  header.innerHTML = '<span></span><span>Category</span><span>Action</span><span>Owner</span><span>Due</span><span>Status</span><span></span>';
   list.appendChild(header);
 
   sorted.forEach((item, idx) => {
@@ -2303,10 +2269,13 @@ function renderEvpPriorities(rows) {
       priorityIcon = '<span class="ep-priority-icon" style="color:#AAA39F;" title="Low priority">\u2193</span>';
     }
 
+    const isCoreGoal = CORE_GOAL_CATEGORIES.includes(item.Category);
+
     const row = document.createElement('div');
-    row.className = 'ep-row' + (hasNotes ? '' : ' no-notes') + (item.Status === 'Complete' ? ' done' : '');
+    row.className = 'ep-row' + (hasNotes ? '' : ' no-notes') + (item.Status === 'Complete' ? ' done' : '') + (isCoreGoal ? ' core-goal' : '');
     row.innerHTML = `
       ${priorityIcon}
+      <span class="ep-row-category">${escapeHtmlEP(item.Category)}</span>
       <span class="ep-row-action">${escapeHtmlEP(item.Action)}</span>
       <span class="ep-row-owner">${escapeHtmlEP(item.Owners)}</span>
       <span class="ep-row-due${item.DueDate ? '' : ' no-date'}">${dueLabel}</span>
