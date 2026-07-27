@@ -1234,7 +1234,7 @@
 
 <!-- Tab bar -->
 <div class="tabs">
-  <button class="tab-btn active" onclick="switchTab('priorities', event)">Priorities &amp; calendar</button>
+  <button class="tab-btn active" onclick="switchTab('priorities', event)">priorities &amp; calendar</button>
   <button class="tab-btn" onclick="switchTab('goals-tracker', event)">goals tracker</button>
 </div>
 
@@ -2800,6 +2800,93 @@ window.onload = function() {
   }
 </style>
 
+  /* ── two-week focus layout ── */
+  .gt-focus-two-week {
+    display: grid;
+    grid-template-columns: 1fr 1px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  @media (max-width: 860px) {
+    .gt-focus-two-week { grid-template-columns: 1fr; }
+    .gt-focus-divider { display: none; }
+  }
+  .gt-focus-divider {
+    background: var(--gt-focus-border);
+    opacity: 0.25;
+    align-self: stretch;
+    min-height: 60px;
+  }
+  .gt-focus-col { min-width: 0; }
+  .gt-focus-title--next {
+    color: var(--text-secondary);
+  }
+  .gt-focus-title--next::before {
+    background: var(--text-secondary) !important;
+    opacity: 0.4;
+  }
+
+  /* ── accomplishments section ── */
+  .gt-accom-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .gt-accom-header {
+    padding: 14px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .gt-accom-title {
+    font-size: 1rem; font-weight: 700; color: var(--text-primary);
+  }
+  .gt-accom-subtitle {
+    font-size: 0.76rem; color: var(--text-secondary);
+  }
+  .gt-accom-month {
+    padding: 0 20px 16px;
+  }
+  .gt-accom-month-label {
+    font-size: 0.7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .08em;
+    color: var(--accent);
+    padding: 12px 0 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2px;
+  }
+  .gt-accom-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--surface-2);
+    font-size: 0.86rem;
+  }
+  .gt-accom-row:last-child { border-bottom: none; }
+  .gt-accom-pillar-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0; margin-top: 5px;
+  }
+  .gt-accom-text {
+    flex: 1; color: var(--text-primary); line-height: 1.45;
+  }
+  .gt-accom-note {
+    font-size: 0.76rem; color: var(--text-secondary);
+    font-style: italic; white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .gt-accom-empty {
+    padding: 16px 20px;
+    font-size: 0.82rem; color: var(--text-secondary); font-style: italic;
+  }
+</style>
+
 <!-- Goals Tracker Tab -->
 <div id="tab-goals-tracker" class="tab-content">
 
@@ -2816,16 +2903,36 @@ window.onload = function() {
     <div class="gt-notes-text" id="gt-notes-text"></div>
   </div>
 
-  <!-- focus banner -->
+  <!-- focus banner: this week + next week -->
   <div class="gt-focus" id="gt-focus-section" style="display:none;">
-    <div class="gt-focus-title">goal focus this week</div>
-    <div class="gt-focus-grid" id="gt-focus-grid">
-      <div class="gt-focus-empty">No items pinned — mark any row as "yes" in the Pinned column of the sheet.</div>
+    <div class="gt-focus-two-week">
+      <div class="gt-focus-col">
+        <div class="gt-focus-title">goal focus this week</div>
+        <div class="gt-focus-grid" id="gt-focus-grid-this">
+          <div class="gt-focus-empty">no items pinned for this week — set Pinned to "this week" in the sheet.</div>
+        </div>
+      </div>
+      <div class="gt-focus-divider"></div>
+      <div class="gt-focus-col">
+        <div class="gt-focus-title gt-focus-title--next">goal focus next week</div>
+        <div class="gt-focus-grid" id="gt-focus-grid-next">
+          <div class="gt-focus-empty">no items pinned for next week — set Pinned to "next week" in the sheet.</div>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- pillars -->
   <div class="gt-pillars" id="gt-pillars"></div>
+
+  <!-- accomplishments -->
+  <div class="gt-accom-section" id="gt-accom-section" style="display:none;">
+    <div class="gt-accom-header">
+      <div class="gt-accom-title">accomplishments</div>
+      <div class="gt-accom-subtitle">auto-grouped by month · add rows to the Accomplishments tab in the sheet</div>
+    </div>
+    <div id="gt-accom-body"></div>
+  </div>
 
 </div>
 
@@ -2849,6 +2956,7 @@ window.onload = function() {
 
 const GT_ACTIONS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJPAJ4jIYcrJaJN8QQN5kQQtWIKuiyiPTFvq9QxkiSPgEDvajtSqrOvHH2L4w6Ug/pub?gid=1069937827&single=true&output=csv";
 const GT_NOTES_CSV_URL   = "REPLACE_WITH_GOALS_NOTES_TAB_CSV_URL";
+const GT_ACCOM_CSV_URL   = "REPLACE_WITH_ACCOMPLISHMENTS_TAB_CSV_URL";
 const GT_SHEET_EDIT_URL  = "https://docs.google.com/spreadsheets/d/1-aHqGhwAgzkD34qugZEINJbhYfqwQ32g/edit#gid=1069937827";
 
 const GT_PILLARS_META = [
@@ -2922,6 +3030,7 @@ async function loadGoalsTracker() {
     renderGtNotes(notesText);
     renderGtFocus(gtAllRows);
     renderGtPillars(gtAllRows);
+    loadGtAccomplishments();
 
   } catch(err) {
     statusEl.textContent = 'could not load goals tracker — check the sheet is published as CSV and the URL is correct.';
@@ -2955,7 +3064,7 @@ function renderGtFocus(rows) {
     const pm = GT_PILLARS_META.find(p => p.key === (r['Pillar']||'').trim()) || GT_PILLARS_META[0];
     const card = document.createElement('div');
     card.className = 'gt-focus-card';
-    card.innerHTML = `<span class="gt-ptag" style="color:${pm.color}">${pm.label}</span>${escGt(r['Action item']||'')}`;
+    card.innerHTML = `<span class="gt-ptag">${pm.label}</span>${escGt(r['Action item']||'')}`;
     grid.appendChild(card);
   });
 }
@@ -3007,7 +3116,7 @@ function renderGtPillars(rows) {
     visible.forEach((r, idx) => {
       const rowId = pm.key + '_' + idx;
       const status = gtNormStatus(r['Status']);
-      const isPinned = (r['Pinned']||'').trim().toLowerCase() === 'yes';
+      const pinnedVal = (r['Pinned']||'').trim().toLowerCase(); const isPinned = pinnedVal === 'yes' || pinnedVal === 'this week' || pinnedVal === 'next week';
       const risk  = (r['Key risk']||'').trim();
       const owner = (r['Owner']||'').trim();
       const due   = (r['Due date']||'').trim();
@@ -3026,7 +3135,7 @@ function renderGtPillars(rows) {
             <span class="gt-chevron" id="gtchev-${rowId}">${isExpanded ? '▲' : '▾'}</span>
           </span>
         </div>
-        ${isPinned ? '<span class="gt-pin-badge">focus this week</span>' : ''}
+        ${isPinned ? `<span class="gt-pin-badge">${(r['Pinned']||'').trim().toLowerCase()==='next week'?'focus next week':'focus this week'}</span>` : ''}
         <div id="gtmeta-${rowId}" style="display:${isExpanded?'block':'none'}">
           <div class="gt-meta">
             <div class="gt-meta-item">
@@ -3106,6 +3215,83 @@ function showGtSetupInstructions(e) {
     '  Not started | In progress | On track | At risk | Complete\n\n' +
     'Pinned values: yes | no'
   );
+}
+
+// ── Accomplishments ──────────────────────────────────────────
+async function loadGtAccomplishments() {
+  const section = document.getElementById('gt-accom-section');
+  const body    = document.getElementById('gt-accom-body');
+  if (!section || !body) return;
+
+  if (GT_ACCOM_CSV_URL.startsWith('REPLACE_WITH')) {
+    section.style.display = '';
+    body.innerHTML = '<div class="gt-accom-empty">accomplishments not connected yet — add an "Accomplishments" tab to the sheet (columns: Date, Pillar, Accomplishment, Notes), publish as CSV, and paste the URL into GT_ACCOM_CSV_URL.</div>';
+    return;
+  }
+
+  try {
+    const res = await fetch(GT_ACCOM_CSV_URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const rows = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
+
+    section.style.display = '';
+
+    if (!rows.length) {
+      body.innerHTML = '<div class="gt-accom-empty">no accomplishments logged yet — add rows to the Accomplishments tab in the sheet.</div>';
+      return;
+    }
+
+    // Group by month (YYYY-MM from Date column)
+    const months = {};
+    const MONTH_NAMES = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+    rows.forEach(r => {
+      const dateStr = (r['Date']||'').trim();
+      let monthKey = 'undated';
+      let monthLabel = 'undated';
+      if (dateStr) {
+        const d = new Date(dateStr);
+        if (!isNaN(d)) {
+          monthKey = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+          monthLabel = MONTH_NAMES[d.getMonth()] + ' ' + d.getFullYear();
+        }
+      }
+      if (!months[monthKey]) months[monthKey] = { label: monthLabel, rows: [] };
+      months[monthKey].rows.push(r);
+    });
+
+    // Sort months descending (most recent first)
+    const sortedKeys = Object.keys(months).filter(k => k !== 'undated').sort().reverse();
+    if (months['undated']) sortedKeys.push('undated');
+
+    body.innerHTML = '';
+    sortedKeys.forEach(key => {
+      const { label, rows: mRows } = months[key];
+      const monthDiv = document.createElement('div');
+      monthDiv.className = 'gt-accom-month';
+      monthDiv.innerHTML = `<div class="gt-accom-month-label">${label}</div>`;
+
+      mRows.forEach(r => {
+        const pm = GT_PILLARS_META.find(p => p.key === (r['Pillar']||'').trim());
+        const dotColor = pm ? pm.color : 'var(--text-secondary)';
+        const note = (r['Notes']||'').trim();
+        const row = document.createElement('div');
+        row.className = 'gt-accom-row';
+        row.innerHTML = `
+          <span class="gt-accom-pillar-dot" style="background:${dotColor}"></span>
+          <span class="gt-accom-text">${escGt(r['Accomplishment']||r['accomplishment']||'')}</span>
+          ${note ? `<span class="gt-accom-note">${escGt(note)}</span>` : ''}`;
+        monthDiv.appendChild(row);
+      });
+
+      body.appendChild(monthDiv);
+    });
+
+  } catch(err) {
+    section.style.display = '';
+    body.innerHTML = '<div class="gt-accom-empty">could not load accomplishments — check the sheet is published as CSV.</div>';
+    console.error('Accomplishments load error:', err);
+  }
 }
 
 function escGt(str) {
