@@ -1232,6 +1232,12 @@
   </a>
 </div>
 
+<!-- Tab bar -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('priorities', event)">Priorities &amp; calendar</button>
+  <button class="tab-btn" onclick="switchTab('goals-tracker', event)">&#9733; Goals tracker</button>
+</div>
+
 <!-- Tab 1: Ru's Priorities -->
 <div id="tab-priorities" class="tab-content active">
 
@@ -1542,18 +1548,11 @@
 // ══════════════════════════════════════════════════════════════
 // TAB SWITCHING
 // ══════════════════════════════════════════════════════════════
-function switchTab(tabName) {
-  // Hide all tabs
-  document.querySelectorAll('.tab-content').forEach(tab => {
-    tab.classList.remove('active');
-  });
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  
-  // Show selected tab
+function switchTab(tabName, evt) {
+  document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
   document.getElementById('tab-' + tabName).classList.add('active');
-  event.target.classList.add('active');
+  if (evt && evt.target) evt.target.classList.add('active');
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -2572,7 +2571,541 @@ window.onload = function() {
   loadExternalEngagement();
   loadGoalUpdates();
   loadMeasuresStatus();
+  loadGoalsTracker();
 };
+</script>
+
+<!-- ═══════════════════════════════════════════════════
+     GOALS TRACKER — Tab 2
+     Reads from a published Google Sheet CSV tab.
+     To connect: publish the "Goals Tracker" sheet tab
+     as CSV and paste the URL into GT_CSV_URL below.
+════════════════════════════════════════════════════ -->
+<style>
+  /*
+   * Goals Tracker — brand-aligned palette
+   * Base:    #000000  #FFFFFF  #F3F0E8  #DED9D1  #AAA39F  #737373
+   * Primary: #6464FF (AI Blue)  #8246E1 (AI Violet)  #CD0F55 (AI Maroon)  #00A59B (AI Teal)
+   * Accents used sparingly for status only
+   */
+  :root {
+    /* Pillar accents — one primary colour each, clean and distinct */
+    --gt-c1: #6464FF; --gt-c1-bg: #EDEDFF;   /* AI Blue   — Mission & Narrative    */
+    --gt-c2: #00A59B; --gt-c2-bg: #E0F4F3;   /* AI Teal   — Scientific Progress    */
+    --gt-c3: #8246E1; --gt-c3-bg: #EDE5F9;   /* AI Violet — Org / Leadership       */
+    --gt-c4: #CD0F55; --gt-c4-bg: #FCE8F0;   /* AI Maroon — Hub Building           */
+
+    /* Focus banner — uses AI Blue, clean and authoritative (replaces yellow) */
+    --gt-focus-bg:     #F5F5FF;
+    --gt-focus-border: #6464FF;
+    --gt-focus-text:   #3333CC;
+
+    /* Status pills — monochrome-first, only At Risk uses a warm accent */
+    --gt-ns-bg: #F3F0E8; --gt-ns-c: #737373;   /* Not started — warm neutral       */
+    --gt-ip-bg: #EDEDFF; --gt-ip-c: #4040CC;   /* In progress — AI Blue tint       */
+    --gt-ot-bg: #E0F4F3; --gt-ot-c: #007A72;   /* On track    — AI Teal tint       */
+    --gt-ar-bg: #FCE8F0; --gt-ar-c: #9A0A3E;   /* At risk     — AI Maroon tint     */
+    --gt-cp-bg: #000000; --gt-cp-c: #FFFFFF;   /* Complete    — solid black badge  */
+  }
+
+  /* ── focus banner ── */
+  .gt-focus {
+    background: var(--gt-focus-bg);
+    border: 1.5px solid var(--gt-focus-border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 20px;
+  }
+  .gt-focus-title {
+    font-size: 0.88rem; font-weight: 700;
+    color: var(--gt-focus-text); margin-bottom: 12px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .gt-focus-title::before {
+    content: '';
+    display: inline-block; width: 8px; height: 8px;
+    border-radius: 50%; background: var(--gt-focus-border);
+    flex-shrink: 0;
+  }
+  .gt-focus-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px,1fr));
+    gap: 10px;
+  }
+  .gt-focus-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--gt-focus-border);
+    border-radius: var(--radius-sm);
+    padding: 10px 13px;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--text-primary);
+  }
+  .gt-focus-card .gt-ptag {
+    display: block; font-size: 0.62rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .07em;
+    margin-bottom: 4px;
+  }
+  .gt-focus-empty {
+    font-size: 0.82rem; color: var(--text-secondary); font-style: italic;
+  }
+
+  /* ── sheet link bar ── */
+  .gt-sheet-bar {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 20px; flex-wrap: wrap;
+  }
+  .gt-sheet-note { font-size: 0.8rem; color: var(--text-secondary); }
+  .gt-sheet-link {
+    font-size: 0.82rem; font-weight: 600;
+    color: var(--link-accent); text-decoration: none;
+  }
+  .gt-sheet-link:hover { text-decoration: underline; }
+  .gt-last-updated { font-size: 0.78rem; color: var(--text-secondary); font-style: italic; }
+
+  /* ── weekly notes card ── */
+  .gt-notes-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 18px 22px; margin-bottom: 20px;
+  }
+  .gt-notes-label {
+    font-size: 0.72rem; font-weight: 700; color: var(--accent);
+    text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px;
+  }
+  .gt-notes-text {
+    font-size: 0.88rem; color: var(--text-primary);
+    line-height: 1.6; white-space: pre-wrap;
+  }
+  .gt-notes-empty { font-style: italic; color: var(--text-secondary); }
+
+  /* ── pillars grid ── */
+  .gt-pillars {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 900px) { .gt-pillars { grid-template-columns: 1fr; } }
+
+  /* ── pillar card ── */
+  .gt-pcard {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .gt-pcard-head {
+    padding: 14px 18px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start;
+    justify-content: space-between; gap: 10px;
+  }
+  .gt-pnum {
+    font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .1em; margin-bottom: 2px;
+  }
+  .gt-ptitle { font-size: 1rem; font-weight: 700; color: var(--text-primary); }
+  .gt-pcount {
+    font-size: 0.7rem; color: var(--text-secondary);
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 2px 9px;
+    white-space: nowrap; flex-shrink: 0; margin-top: 2px;
+  }
+
+  /* ── cadence tabs ── */
+  .gt-cad-tabs {
+    display: flex; border-bottom: 1px solid var(--border);
+    padding: 0 18px; overflow-x: auto; gap: 0;
+  }
+  .gt-cad-tab {
+    padding: 8px 12px; font-family: Arial, sans-serif;
+    font-size: 0.8rem; font-weight: 600;
+    color: var(--text-secondary); background: none; border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer; white-space: nowrap;
+    transition: color .15s, border-color .15s;
+  }
+  .gt-cad-tab:hover { color: var(--text-primary); }
+  .gt-cad-tab.active { color: var(--text-primary); }
+
+  /* ── action rows ── */
+  .gt-actions { padding: 8px 18px 14px; }
+  .gt-action {
+    padding: 9px 0; border-bottom: 1px solid var(--surface-2);
+  }
+  .gt-action:last-child { border-bottom: none; }
+  .gt-action-top { display: flex; align-items: flex-start; gap: 8px; }
+  .gt-action-text {
+    flex: 1; font-size: 0.86rem; color: var(--text-primary); line-height: 1.45;
+  }
+
+  /* ── status pill ── */
+  .gt-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 0.7rem; font-weight: 700; padding: 2px 9px;
+    border-radius: 999px; white-space: nowrap; flex-shrink: 0;
+  }
+  .gt-pill.not-started { background: var(--gt-ns-bg); color: var(--gt-ns-c); }
+  .gt-pill.in-progress  { background: var(--gt-ip-bg); color: var(--gt-ip-c); }
+  .gt-pill.on-track     { background: var(--gt-ot-bg); color: var(--gt-ot-c); }
+  .gt-pill.at-risk      { background: var(--gt-ar-bg); color: var(--gt-ar-c); }
+  .gt-pill.complete     { background: var(--gt-cp-bg); color: var(--gt-cp-c); }
+
+  /* ── meta fields (risk, owner, due) ── */
+  .gt-meta {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px; margin-top: 8px;
+    background: var(--surface-2);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+  }
+  .gt-meta-item { font-size: 0.76rem; }
+  .gt-meta-item label {
+    display: block; font-size: 0.62rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .05em;
+    color: var(--text-secondary); margin-bottom: 2px;
+  }
+  .gt-meta-item span { color: var(--text-primary); }
+  .gt-meta-item.full { grid-column: 1 / -1; }
+  .gt-meta-empty { color: var(--text-secondary); font-style: italic; }
+
+  /* ── toggle details button ── */
+  .gt-toggle-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 0.72rem; color: var(--text-secondary);
+    text-decoration: underline; text-underline-offset: 2px;
+    font-family: Arial, sans-serif; padding: 0; margin-top: 5px;
+    display: block;
+    transition: color .15s;
+  }
+  .gt-toggle-btn:hover { color: var(--text-primary); }
+
+  /* ── pinned badge ── */
+  .gt-pin-badge {
+    display: inline-block; font-size: 0.65rem; font-weight: 700;
+    background: var(--gt-focus-bg); border: 1px solid var(--gt-focus-border);
+    color: var(--gt-focus-text); border-radius: 999px;
+    padding: 1px 7px; margin-top: 4px;
+  }
+
+  /* ── loading / error states ── */
+  .gt-status-msg {
+    font-size: 0.82rem; color: var(--text-secondary); padding: 6px 0;
+  }
+</style>
+
+<!-- Goals Tracker Tab -->
+<div id="tab-goals-tracker" class="tab-content">
+
+  <!-- sheet link bar -->
+  <div class="gt-sheet-bar">
+    <span class="gt-sheet-note" id="gt-status-msg">Loading goals tracker…</span>
+    <a id="gt-sheet-link" href="#" target="_blank" class="gt-sheet-link" style="display:none;">open sheet to edit →</a>
+    <span class="gt-last-updated" id="gt-last-updated"></span>
+  </div>
+
+  <!-- weekly notes -->
+  <div class="gt-notes-card" id="gt-notes-card" style="display:none;">
+    <div class="gt-notes-label">Weekly notes &amp; blockers</div>
+    <div class="gt-notes-text" id="gt-notes-text"></div>
+  </div>
+
+  <!-- focus banner -->
+  <div class="gt-focus" id="gt-focus-section" style="display:none;">
+    <div class="gt-focus-title">&#9733; Goal focus this week</div>
+    <div class="gt-focus-grid" id="gt-focus-grid">
+      <div class="gt-focus-empty">No items pinned — mark any row as "yes" in the Pinned column of the sheet.</div>
+    </div>
+  </div>
+
+  <!-- pillars -->
+  <div class="gt-pillars" id="gt-pillars"></div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// GOALS TRACKER — Google Sheet reader
+//
+// SETUP INSTRUCTIONS:
+// 1. Open your existing Google Sheet.
+// 2. Add a new tab named "Goals Tracker".
+// 3. Row 1 = headers (exact names matter):
+//    Pillar | Cadence | Action item | Status | Key risk | Owner | Due date | Pinned | Notes
+//    (Notes is a single merged cell or just the first row's column I — only one notes row needed)
+// 4. Rows 2+ = one action item per row (pre-filled data below).
+// 5. Add a second tab named "Goals Notes" with columns:
+//    Field | Value
+//    Weekly notes | <your notes text>
+// 6. File → Share → Publish to web → select each tab → CSV → copy URL.
+// 7. Paste the two URLs into GT_ACTIONS_CSV_URL and GT_NOTES_CSV_URL below.
+// ══════════════════════════════════════════════════════════════
+
+const GT_ACTIONS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJPAJ4jIYcrJaJN8QQN5kQQtWIKuiyiPTFvq9QxkiSPgEDvajtSqrOvHH2L4w6Ug/pub?gid=1069937827&single=true&output=csv";
+const GT_NOTES_CSV_URL   = "REPLACE_WITH_GOALS_NOTES_TAB_CSV_URL";
+const GT_SHEET_EDIT_URL  = "https://docs.google.com/spreadsheets/d/1-aHqGhwAgzkD34qugZEINJbhYfqwQ32g/edit#gid=1069937827";
+
+const GT_PILLARS_META = [
+  { key:"Mission",        label:"Mission &amp; Narrative",           num:"Goal 01", color:"var(--gt-c1)", bg:"var(--gt-c1-bg)" },
+  { key:"Science",        label:"Scientific Progress",               num:"Goal 02", color:"var(--gt-c2)", bg:"var(--gt-c2-bg)" },
+  { key:"Org / Leadership",label:"Organization / Leadership / Culture",num:"Goal 03", color:"var(--gt-c3)", bg:"var(--gt-c3-bg)" },
+  { key:"Hub Building",   label:"Hub Building &amp; Partnerships",   num:"Goal 04", color:"var(--gt-c4)", bg:"var(--gt-c4-bg)" }
+];
+
+const GT_CADENCES = ["Bi-weekly","Monthly","Quarterly","Mid-year"];
+
+const STATUS_CLASS = {
+  "not started":"not-started","in progress":"in-progress",
+  "on track":"on-track","at risk":"at-risk","complete":"complete"
+};
+const STATUS_ICON = {
+  "not-started":"○","in-progress":"◑","on-track":"●","at-risk":"⚠","complete":"✓"
+};
+const STATUS_LABEL = {
+  "not-started":"Not started","in-progress":"In progress",
+  "on-track":"On track","at-risk":"At risk","complete":"Complete"
+};
+
+let gtActiveTabs = {};
+let gtExpandedRows = {};
+let gtAllRows = [];
+
+function gtNormStatus(raw) {
+  if (!raw) return "not-started";
+  const s = raw.trim().toLowerCase();
+  return STATUS_CLASS[s] || "not-started";
+}
+
+async function loadGoalsTracker() {
+  const statusEl = document.getElementById('gt-status-msg');
+
+  if (GT_ACTIONS_CSV_URL.startsWith("REPLACE_WITH")) {
+    statusEl.innerHTML = 'Goals tracker not connected yet — publish the sheet tab as CSV and paste the URL into <code>GT_ACTIONS_CSV_URL</code> in the code. <a href="#" onclick="showGtSetupInstructions(event)" style="color:var(--link-accent)">See setup instructions →</a>';
+    renderGtPillarsWithFallback();
+    return;
+  }
+
+  try {
+    const res = await fetch(GT_ACTIONS_CSV_URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
+    gtAllRows = parsed.data;
+
+    // load notes
+    let notesText = '';
+    if (!GT_NOTES_CSV_URL.startsWith("REPLACE_WITH")) {
+      try {
+        const nr = await fetch(GT_NOTES_CSV_URL);
+        const nt = await nr.text();
+        const np = Papa.parse(nt, { header: true, skipEmptyLines: true });
+        const notesRow = np.data.find(r => (r['Field']||'').toLowerCase().includes('weekly'));
+        if (notesRow) notesText = notesRow['Value'] || '';
+      } catch(e) {}
+    }
+
+    statusEl.textContent = 'Live from Google Sheet · refreshes on page load';
+    const linkEl = document.getElementById('gt-sheet-link');
+    if (!GT_SHEET_EDIT_URL.startsWith("REPLACE_WITH")) {
+      linkEl.href = GT_SHEET_EDIT_URL;
+      linkEl.style.display = '';
+    }
+    document.getElementById('gt-last-updated').textContent =
+      'Last loaded ' + new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+
+    renderGtNotes(notesText);
+    renderGtFocus(gtAllRows);
+    renderGtPillars(gtAllRows);
+
+  } catch(err) {
+    statusEl.textContent = 'Could not load goals tracker — check the sheet is published as CSV and the URL is correct.';
+    console.error('Goals tracker load error:', err);
+    renderGtPillarsWithFallback();
+  }
+}
+
+function renderGtNotes(text) {
+  const card = document.getElementById('gt-notes-card');
+  const el = document.getElementById('gt-notes-text');
+  if (text && text.trim()) {
+    el.innerHTML = '';
+    el.classList.remove('gt-notes-empty');
+    el.textContent = text.trim();
+    card.style.display = '';
+  }
+}
+
+function renderGtFocus(rows) {
+  const section = document.getElementById('gt-focus-section');
+  const grid = document.getElementById('gt-focus-grid');
+  const pinned = rows.filter(r => (r['Pinned']||'').trim().toLowerCase() === 'yes');
+  section.style.display = '';
+  if (!pinned.length) {
+    grid.innerHTML = '<div class="gt-focus-empty">No items pinned — set any row\'s Pinned column to "yes" in the sheet.</div>';
+    return;
+  }
+  grid.innerHTML = '';
+  pinned.forEach(r => {
+    const pm = GT_PILLARS_META.find(p => p.key === (r['Pillar']||'').trim()) || GT_PILLARS_META[0];
+    const card = document.createElement('div');
+    card.className = 'gt-focus-card';
+    card.innerHTML = `<span class="gt-ptag" style="color:${pm.color}">${pm.label}</span>${escGt(r['Action item']||'')}`;
+    grid.appendChild(card);
+  });
+}
+
+function renderGtPillars(rows) {
+  const container = document.getElementById('gt-pillars');
+  container.innerHTML = '';
+  GT_PILLARS_META.forEach(pm => {
+    if (!gtActiveTabs[pm.key]) gtActiveTabs[pm.key] = 'Bi-weekly';
+    const pillarRows = rows.filter(r => (r['Pillar']||'').trim() === pm.key);
+    const doneCount = pillarRows.filter(r => gtNormStatus(r['Status']) === 'complete').length;
+
+    const card = document.createElement('div');
+    card.className = 'gt-pcard';
+    card.innerHTML = `
+      <div class="gt-pcard-head" style="border-top:4px solid ${pm.color}">
+        <div>
+          <div class="gt-pnum" style="color:${pm.color}">${pm.num}</div>
+          <div class="gt-ptitle">${pm.label}</div>
+        </div>
+        <span class="gt-pcount">${doneCount}/${pillarRows.length} complete</span>
+      </div>
+      <div class="gt-cad-tabs" id="gtcad-${pm.key.replace(/[^a-z]/gi,'_')}"></div>
+      <div class="gt-actions" id="gtact-${pm.key.replace(/[^a-z]/gi,'_')}"></div>`;
+    container.appendChild(card);
+
+    const tabsEl = document.getElementById('gtcad-' + pm.key.replace(/[^a-z]/gi,'_'));
+    GT_CADENCES.forEach(cad => {
+      const btn = document.createElement('button');
+      btn.className = 'gt-cad-tab' + (gtActiveTabs[pm.key] === cad ? ' active' : '');
+      btn.textContent = cad;
+      if (gtActiveTabs[pm.key] === cad) {
+        btn.style.borderBottomColor = pm.color;
+        btn.style.color = pm.color;
+      }
+      btn.addEventListener('click', () => {
+        gtActiveTabs[pm.key] = cad;
+        renderGtPillars(gtAllRows);
+      });
+      tabsEl.appendChild(btn);
+    });
+
+    const actEl = document.getElementById('gtact-' + pm.key.replace(/[^a-z]/gi,'_'));
+    const visible = pillarRows.filter(r => (r['Cadence']||'').trim() === gtActiveTabs[pm.key]);
+    if (!visible.length) {
+      actEl.innerHTML = '<div class="gt-status-msg">No actions for this cadence.</div>';
+      return;
+    }
+    visible.forEach((r, idx) => {
+      const rowId = pm.key + '_' + idx;
+      const status = gtNormStatus(r['Status']);
+      const isPinned = (r['Pinned']||'').trim().toLowerCase() === 'yes';
+      const risk  = (r['Key risk']||'').trim();
+      const owner = (r['Owner']||'').trim();
+      const due   = (r['Due date']||'').trim();
+      const hasDetails = risk || owner || due;
+      const isExpanded = gtExpandedRows[rowId];
+
+      const item = document.createElement('div');
+      item.className = 'gt-action';
+      item.innerHTML = `
+        <div class="gt-action-top">
+          <span class="gt-action-text">${escGt(r['Action item']||'')}</span>
+          <span class="gt-pill ${status}">${STATUS_ICON[status]} ${STATUS_LABEL[status]}</span>
+        </div>
+        ${isPinned ? '<span class="gt-pin-badge">&#9733; Focus this week</span>' : ''}
+        ${hasDetails || true ? `<button class="gt-toggle-btn" id="gtbtn-${rowId}" onclick="gtToggle('${rowId}')">${isExpanded ? '▲ Hide details' : '▼ Show details'}</button>` : ''}
+        <div id="gtmeta-${rowId}" style="display:${isExpanded?'block':'none'}">
+          <div class="gt-meta">
+            <div class="gt-meta-item">
+              <label>Key risk / pivot needed</label>
+              <span>${risk ? escGt(risk) : '<span class="gt-meta-empty">—</span>'}</span>
+            </div>
+            <div class="gt-meta-item">
+              <label>Owner</label>
+              <span>${owner ? escGt(owner) : '<span class="gt-meta-empty">—</span>'}</span>
+            </div>
+            <div class="gt-meta-item full">
+              <label>Due / target date</label>
+              <span>${due ? escGt(due) : '<span class="gt-meta-empty">—</span>'}</span>
+            </div>
+          </div>
+        </div>`;
+      actEl.appendChild(item);
+    });
+  });
+}
+
+function gtToggle(rowId) {
+  gtExpandedRows[rowId] = !gtExpandedRows[rowId];
+  const meta = document.getElementById('gtmeta-' + rowId);
+  const btn  = document.getElementById('gtbtn-' + rowId);
+  if (meta) meta.style.display = gtExpandedRows[rowId] ? 'block' : 'none';
+  if (btn)  btn.textContent = gtExpandedRows[rowId] ? '▲ Hide details' : '▼ Show details';
+}
+
+function renderGtPillarsWithFallback() {
+  // Render empty pillar shells when sheet is not connected
+  const container = document.getElementById('gt-pillars');
+  container.innerHTML = '';
+  GT_PILLARS_META.forEach(pm => {
+    const card = document.createElement('div');
+    card.className = 'gt-pcard';
+    card.innerHTML = `
+      <div class="gt-pcard-head" style="border-top:4px solid ${pm.color}">
+        <div>
+          <div class="gt-pnum" style="color:${pm.color}">${pm.num}</div>
+          <div class="gt-ptitle">${pm.label}</div>
+        </div>
+        <span class="gt-pcount">—</span>
+      </div>
+      <div style="padding:16px 18px; font-size:0.82rem; color:var(--text-secondary); font-style:italic;">Connect the Google Sheet to see actions.</div>`;
+    container.appendChild(card);
+  });
+  document.getElementById('gt-focus-section').style.display = '';
+  document.getElementById('gt-notes-card').style.display = 'none';
+}
+
+function showGtSetupInstructions(e) {
+  e.preventDefault();
+  alert(
+    'GOALS TRACKER — GOOGLE SHEET SETUP\n\n' +
+    'Tab 1: "Goals Tracker"\n' +
+    'Columns (Row 1 headers):\n' +
+    '  A: Pillar\n' +
+    '  B: Cadence\n' +
+    '  C: Action item\n' +
+    '  D: Status\n' +
+    '  E: Key risk\n' +
+    '  F: Owner\n' +
+    '  G: Due date\n' +
+    '  H: Pinned\n\n' +
+    'Tab 2: "Goals Notes"\n' +
+    'Columns:\n' +
+    '  A: Field\n' +
+    '  B: Value\n' +
+    'Row 2: "Weekly notes" | <your notes text>\n\n' +
+    'Then: File → Share → Publish to web\n' +
+    'Select each tab → CSV → copy the URL\n' +
+    'Paste into GT_ACTIONS_CSV_URL and GT_NOTES_CSV_URL in the HTML file.\n\n' +
+    'Pillar values (must match exactly):\n' +
+    '  Mission\n  Science\n  Org / Leadership\n  Hub Building\n\n' +
+    'Status values:\n' +
+    '  Not started | In progress | On track | At risk | Complete\n\n' +
+    'Pinned values: yes | no'
+  );
+}
+
+function escGt(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
 </script>
 
 </body>
