@@ -1235,7 +1235,7 @@
 <!-- Tab bar -->
 <div class="tabs">
   <button class="tab-btn active" onclick="switchTab('priorities', event)">Priorities &amp; calendar</button>
-  <button class="tab-btn" onclick="switchTab('goals-tracker', event)">&#9733; Goals tracker</button>
+  <button class="tab-btn" onclick="switchTab('goals-tracker', event)">goals tracker</button>
 </div>
 
 <!-- Tab 1: Ru's Priorities -->
@@ -2772,16 +2772,19 @@ window.onload = function() {
   .gt-meta-item.full { grid-column: 1 / -1; }
   .gt-meta-empty { color: var(--text-secondary); font-style: italic; }
 
-  /* ── toggle details button ── */
-  .gt-toggle-btn {
-    background: none; border: none; cursor: pointer;
-    font-size: 0.72rem; color: var(--text-secondary);
-    text-decoration: underline; text-underline-offset: 2px;
-    font-family: Arial, sans-serif; padding: 0; margin-top: 5px;
-    display: block;
+  /* ── action row hover ── */
+  .gt-action:hover { background: var(--surface-2); border-radius: var(--radius-sm); margin: 0 -4px; padding: 9px 4px; }
+
+  /* ── right-side pill + chevron group ── */
+  .gt-action-right {
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+  }
+  .gt-chevron {
+    font-size: 0.7rem; color: var(--text-secondary);
+    min-width: 10px; text-align: center;
     transition: color .15s;
   }
-  .gt-toggle-btn:hover { color: var(--text-primary); }
+  .gt-action:hover .gt-chevron { color: var(--text-primary); }
 
   /* ── pinned badge ── */
   .gt-pin-badge {
@@ -2802,20 +2805,20 @@ window.onload = function() {
 
   <!-- sheet link bar -->
   <div class="gt-sheet-bar">
-    <span class="gt-sheet-note" id="gt-status-msg">Loading goals tracker…</span>
+    <span class="gt-sheet-note" id="gt-status-msg">loading goals tracker…</span>
     <a id="gt-sheet-link" href="#" target="_blank" class="gt-sheet-link" style="display:none;">open sheet to edit →</a>
     <span class="gt-last-updated" id="gt-last-updated"></span>
   </div>
 
   <!-- weekly notes -->
   <div class="gt-notes-card" id="gt-notes-card" style="display:none;">
-    <div class="gt-notes-label">Weekly notes &amp; blockers</div>
+    <div class="gt-notes-label">weekly notes &amp; blockers</div>
     <div class="gt-notes-text" id="gt-notes-text"></div>
   </div>
 
   <!-- focus banner -->
   <div class="gt-focus" id="gt-focus-section" style="display:none;">
-    <div class="gt-focus-title">&#9733; Goal focus this week</div>
+    <div class="gt-focus-title">goal focus this week</div>
     <div class="gt-focus-grid" id="gt-focus-grid">
       <div class="gt-focus-empty">No items pinned — mark any row as "yes" in the Pinned column of the sheet.</div>
     </div>
@@ -2849,13 +2852,13 @@ const GT_NOTES_CSV_URL   = "REPLACE_WITH_GOALS_NOTES_TAB_CSV_URL";
 const GT_SHEET_EDIT_URL  = "https://docs.google.com/spreadsheets/d/1-aHqGhwAgzkD34qugZEINJbhYfqwQ32g/edit#gid=1069937827";
 
 const GT_PILLARS_META = [
-  { key:"Mission",        label:"Mission &amp; Narrative",           num:"Goal 01", color:"var(--gt-c1)", bg:"var(--gt-c1-bg)" },
-  { key:"Science",        label:"Scientific Progress",               num:"Goal 02", color:"var(--gt-c2)", bg:"var(--gt-c2-bg)" },
-  { key:"Org / Leadership",label:"Organization / Leadership / Culture",num:"Goal 03", color:"var(--gt-c3)", bg:"var(--gt-c3-bg)" },
-  { key:"Hub Building",   label:"Hub Building &amp; Partnerships",   num:"Goal 04", color:"var(--gt-c4)", bg:"var(--gt-c4-bg)" }
+  { key:"Mission",        label:"mission &amp; narrative",              num:"goal 01", color:"var(--gt-c1)", bg:"var(--gt-c1-bg)" },
+  { key:"Science",        label:"scientific progress",                  num:"goal 02", color:"var(--gt-c2)", bg:"var(--gt-c2-bg)" },
+  { key:"Org / Leadership",label:"organization / leadership / culture", num:"goal 03", color:"var(--gt-c3)", bg:"var(--gt-c3-bg)" },
+  { key:"Hub Building",   label:"hub building &amp; partnerships",      num:"goal 04", color:"var(--gt-c4)", bg:"var(--gt-c4-bg)" }
 ];
 
-const GT_CADENCES = ["Bi-weekly","Monthly","Quarterly","Mid-year"];
+const GT_CADENCES = ["Bi-weekly","Monthly","Quarterly","Mid-year","Other"];
 
 const STATUS_CLASS = {
   "not started":"not-started","in progress":"in-progress",
@@ -2865,8 +2868,8 @@ const STATUS_ICON = {
   "not-started":"○","in-progress":"◑","on-track":"●","at-risk":"⚠","complete":"✓"
 };
 const STATUS_LABEL = {
-  "not-started":"Not started","in-progress":"In progress",
-  "on-track":"On track","at-risk":"At risk","complete":"Complete"
+  "not-started":"not started","in-progress":"in progress",
+  "on-track":"on track","at-risk":"at risk","complete":"complete"
 };
 
 let gtActiveTabs = {};
@@ -2883,7 +2886,7 @@ async function loadGoalsTracker() {
   const statusEl = document.getElementById('gt-status-msg');
 
   if (GT_ACTIONS_CSV_URL.startsWith("REPLACE_WITH")) {
-    statusEl.innerHTML = 'Goals tracker not connected yet — publish the sheet tab as CSV and paste the URL into <code>GT_ACTIONS_CSV_URL</code> in the code. <a href="#" onclick="showGtSetupInstructions(event)" style="color:var(--link-accent)">See setup instructions →</a>';
+    statusEl.innerHTML = 'goals tracker not connected yet — publish the sheet tab as CSV and paste the URL into <code>GT_ACTIONS_CSV_URL</code> in the code. <a href="#" onclick="showGtSetupInstructions(event)" style="color:var(--link-accent)">see setup instructions →</a>';
     renderGtPillarsWithFallback();
     return;
   }
@@ -2907,21 +2910,21 @@ async function loadGoalsTracker() {
       } catch(e) {}
     }
 
-    statusEl.textContent = 'Live from Google Sheet · refreshes on page load';
+    statusEl.textContent = 'live from Google Sheet · refreshes on page load';
     const linkEl = document.getElementById('gt-sheet-link');
     if (!GT_SHEET_EDIT_URL.startsWith("REPLACE_WITH")) {
       linkEl.href = GT_SHEET_EDIT_URL;
       linkEl.style.display = '';
     }
     document.getElementById('gt-last-updated').textContent =
-      'Last loaded ' + new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+      'last loaded ' + new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
 
     renderGtNotes(notesText);
     renderGtFocus(gtAllRows);
     renderGtPillars(gtAllRows);
 
   } catch(err) {
-    statusEl.textContent = 'Could not load goals tracker — check the sheet is published as CSV and the URL is correct.';
+    statusEl.textContent = 'could not load goals tracker — check the sheet is published as CSV and the URL is correct.';
     console.error('Goals tracker load error:', err);
     renderGtPillarsWithFallback();
   }
@@ -2944,7 +2947,7 @@ function renderGtFocus(rows) {
   const pinned = rows.filter(r => (r['Pinned']||'').trim().toLowerCase() === 'yes');
   section.style.display = '';
   if (!pinned.length) {
-    grid.innerHTML = '<div class="gt-focus-empty">No items pinned — set any row\'s Pinned column to "yes" in the sheet.</div>';
+    grid.innerHTML = '<div class="gt-focus-empty">no items pinned — set any row\'s Pinned column to "yes" in the sheet.</div>';
     return;
   }
   grid.innerHTML = '';
@@ -2998,7 +3001,7 @@ function renderGtPillars(rows) {
     const actEl = document.getElementById('gtact-' + pm.key.replace(/[^a-z]/gi,'_'));
     const visible = pillarRows.filter(r => (r['Cadence']||'').trim() === gtActiveTabs[pm.key]);
     if (!visible.length) {
-      actEl.innerHTML = '<div class="gt-status-msg">No actions for this cadence.</div>';
+      actEl.innerHTML = '<div class="gt-status-msg">no actions for this cadence.</div>';
       return;
     }
     visible.forEach((r, idx) => {
@@ -3013,25 +3016,29 @@ function renderGtPillars(rows) {
 
       const item = document.createElement('div');
       item.className = 'gt-action';
+      item.style.cursor = 'pointer';
+      item.onclick = () => gtToggle(rowId);
       item.innerHTML = `
         <div class="gt-action-top">
           <span class="gt-action-text">${escGt(r['Action item']||'')}</span>
-          <span class="gt-pill ${status}">${STATUS_ICON[status]} ${STATUS_LABEL[status]}</span>
+          <span class="gt-action-right">
+            <span class="gt-pill ${status}">${STATUS_ICON[status]} ${STATUS_LABEL[status]}</span>
+            <span class="gt-chevron" id="gtchev-${rowId}">${isExpanded ? '▲' : '▾'}</span>
+          </span>
         </div>
-        ${isPinned ? '<span class="gt-pin-badge">&#9733; Focus this week</span>' : ''}
-        ${hasDetails || true ? `<button class="gt-toggle-btn" id="gtbtn-${rowId}" onclick="gtToggle('${rowId}')">${isExpanded ? '▲ Hide details' : '▼ Show details'}</button>` : ''}
+        ${isPinned ? '<span class="gt-pin-badge">focus this week</span>' : ''}
         <div id="gtmeta-${rowId}" style="display:${isExpanded?'block':'none'}">
           <div class="gt-meta">
             <div class="gt-meta-item">
-              <label>Key risk / pivot needed</label>
+              <label>key risk / pivot needed</label>
               <span>${risk ? escGt(risk) : '<span class="gt-meta-empty">—</span>'}</span>
             </div>
             <div class="gt-meta-item">
-              <label>Owner</label>
+              <label>owner</label>
               <span>${owner ? escGt(owner) : '<span class="gt-meta-empty">—</span>'}</span>
             </div>
             <div class="gt-meta-item full">
-              <label>Due / target date</label>
+              <label>due / target date</label>
               <span>${due ? escGt(due) : '<span class="gt-meta-empty">—</span>'}</span>
             </div>
           </div>
@@ -3044,9 +3051,9 @@ function renderGtPillars(rows) {
 function gtToggle(rowId) {
   gtExpandedRows[rowId] = !gtExpandedRows[rowId];
   const meta = document.getElementById('gtmeta-' + rowId);
-  const btn  = document.getElementById('gtbtn-' + rowId);
+  const chev = document.getElementById('gtchev-' + rowId);
   if (meta) meta.style.display = gtExpandedRows[rowId] ? 'block' : 'none';
-  if (btn)  btn.textContent = gtExpandedRows[rowId] ? '▲ Hide details' : '▼ Show details';
+  if (chev) chev.textContent = gtExpandedRows[rowId] ? '▲' : '▾';
 }
 
 function renderGtPillarsWithFallback() {
@@ -3064,7 +3071,7 @@ function renderGtPillarsWithFallback() {
         </div>
         <span class="gt-pcount">—</span>
       </div>
-      <div style="padding:16px 18px; font-size:0.82rem; color:var(--text-secondary); font-style:italic;">Connect the Google Sheet to see actions.</div>`;
+      <div style="padding:16px 18px; font-size:0.82rem; color:var(--text-secondary); font-style:italic;">connect the Google Sheet to see actions.</div>`;
     container.appendChild(card);
   });
   document.getElementById('gt-focus-section').style.display = '';
