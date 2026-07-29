@@ -3224,10 +3224,10 @@ async function loadGoalsTracker() {
     const res = await fetch(GT_ACTIONS_CSV_URL);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const text = await res.text();
-    const allParsed = Papa.parse(text, { header:false, skipEmptyLines:true }).data;
-    // Row 0 = banner, Row 1 = real headers, Row 2+ = data
-    const headers = allParsed[1] || [];
-    const dataRows = allParsed.slice(2);
+    const allParsed = Papa.parse(text, { header:false, skipEmptyLines:false }).data;
+    // Row 0 = banner, Row 1 = blank, Row 2 = real headers, Row 3+ = data
+    const headers = allParsed[2] || [];
+    const dataRows = allParsed.slice(3);
     const rawRows = dataRows.map(row => {
       const obj = {};
       headers.forEach((h, i) => { obj[h] = row[i] || ''; });
