@@ -2583,10 +2583,10 @@ window.onload = function() {
 // GOALS TRACKER v2
 // ══════════════════════════════════════════════════════════════
 
-const GT_ACTIONS_CSV_URL = "REPLACE_WITH_GOALS_TRACKER_TAB_CSV_URL";
-const GT_LOG_CSV_URL     = "REPLACE_WITH_ACTIVITY_LOG_TAB_CSV_URL";
-const GT_ACCOM_CSV_URL   = "REPLACE_WITH_ACCOMPLISHMENTS_TAB_CSV_URL";
-const GT_SHEET_EDIT_URL  = "REPLACE_WITH_GOOGLE_SHEET_EDIT_URL";
+const GT_ACTIONS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vStZOAlsjjT6QatC2oqxNqUnTxT6Rdd_m0lCsAGDvfarzp2P2V3C0O4Qmv_OXVgQeLaEU16_8CC0d-0/pub?gid=510931153&single=true&output=csv";
+const GT_LOG_CSV_URL     = "https://docs.google.com/spreadsheets/d/e/2PACX-1vStZOAlsjjT6QatC2oqxNqUnTxT6Rdd_m0lCsAGDvfarzp2P2V3C0O4Qmv_OXVgQeLaEU16_8CC0d-0/pub?gid=2090445654&single=true&output=csv";
+const GT_ACCOM_CSV_URL   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vStZOAlsjjT6QatC2oqxNqUnTxT6Rdd_m0lCsAGDvfarzp2P2V3C0O4Qmv_OXVgQeLaEU16_8CC0d-0/pub?gid=895196455&single=true&output=csv";
+const GT_SHEET_EDIT_URL  = "https://docs.google.com/spreadsheets/d/1KjbY2McYMPK6sYDIiQEQ2Z84espLJ0E3ry45qSsCARA/edit#gid=510931153";
 
 const GT_PILLARS = [
   {key:"Mission",          label:"mission & narrative",             color:"var(--gt-c1)",bg:"var(--gt-c1-bg)"},
@@ -2973,7 +2973,7 @@ async function loadGtAccomplishments() {
   try {
     const res  = await fetch(GT_ACCOM_CSV_URL);
     const text = await res.text();
-    const rows = parseCSV(text, 2);
+    const rows = parseCSV(text, 0); // row 1=headers
     if (!rows.length) { bodyEl.innerHTML = '<div class="gt-accom-empty">no accomplishments logged yet.</div>'; return; }
     const months = {};
     rows.forEach(r => {
@@ -3022,10 +3022,10 @@ async function loadGoalsTracker() {
       GT_LOG_CSV_URL.startsWith('REPLACE_WITH') ? null : fetch(GT_LOG_CSV_URL)
     ]);
     const actText = await actRes.text();
-    gtActions = parseCSV(actText, 2);
+    gtActions = parseCSV(actText, 1); // row 1=blank, row 2=headers
     if (logRes) {
       const logText = await logRes.text();
-      gtLog = parseCSV(logText, 2);
+      gtLog = parseCSV(logText, 1); // row 1=blank, row 2=headers
     }
     statusEl.textContent = 'live from Google Sheet · refreshes on page load';
     const linkEl = document.getElementById('gt-sheet-link');
