@@ -3224,12 +3224,17 @@ async function loadGoalsTracker() {
     const res = await fetch(GT_ACTIONS_CSV_URL);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const text = await res.text();
-    const rawRows = Papa.parse(text, { header:true, skipEmptyLines:true }).data;
+    const allParsed = Papa.parse(text, { header:false, skipEmptyLines:true }).data;
+    // Row 0 = banner, Row 1 = real headers, Row 2+ = data
+    const headers = allParsed[1] || [];
+    const dataRows = allParsed.slice(2);
+    const rawRows = dataRows.map(row => {
+      const obj = {};
+      headers.forEach((h, i) => { obj[h] = row[i] || ''; });
+      return obj;
+    });
     gtAllRows = normaliseRows(rawRows);
-    if (gtAllRows.length > 0) {
-      console.log('GT columns:', Object.keys(gtAllRows[0]));
-      console.log('GT first row:', gtAllRows[0]);
-    }
+    console.log('GT columns:', Object.keys(gtAllRows[0] || {}));
 
     let notesText = '';
     if (!GT_NOTES_CSV_URL.startsWith('REPLACE_WITH')) {
@@ -3460,7 +3465,23 @@ async function loadGtAccomplishments() {
     const res = await fetch(GT_ACCOM_CSV_URL);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const text = await res.text();
-    const rows = normaliseRows(Papa.parse(text, { header:true, skipEmptyLines:true }).data);
+    const accomParsed = Papa.parse(text, { header:false, skipEmptyLines:true }).data;
+    // Detect if row 0 is a banner (no 'Date' in first cell) or real header
+    let accomHeaders, accomData;
+    const firstCell = (accomParsed[0] && accomParsed[0][0] || '').toLowerCase();
+    if (firstCell === 'date') {
+      accomHeaders = accomParsed[0];
+      accomData    = accomParsed.slice(1);
+    } else {
+      // banner row present — use row 1 as headers
+      accomHeaders = accomParsed[1] || [];
+      accomData    = accomParsed.slice(2);
+    }
+    const rows = normaliseRows(accomData.map(row => {
+      const obj = {};
+      accomHeaders.forEach((h, i) => { obj[h] = row[i] || ''; });
+      return obj;
+    }));
     if (!rows.length) {
       body.innerHTML = '<div class="gt-accom-empty">no accomplishments logged yet — add rows to the Accomplishments tab in the sheet.</div>';
       return;
