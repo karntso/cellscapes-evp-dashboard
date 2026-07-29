@@ -2805,13 +2805,15 @@ window.onload = function() {
     white-space: nowrap;
   }
   .gt-due-badge {
-    font-size: 0.68rem; font-weight: 600;
-    background: #FFF8E1; color: #B8860B;
+    font-size: 0.68rem; font-weight: 500;
+    background: var(--surface-2); color: var(--text-secondary);
+    border: 0.5px solid var(--border);
     border-radius: 4px; padding: 2px 7px;
     white-space: nowrap;
   }
   .gt-due-badge.urgent {
-    background: #FCE8F0; color: #9A0A3E;
+    background: var(--surface-2); color: var(--text-secondary);
+    border-color: var(--border);
   }
   .gt-due-inline {
     font-size: 0.72rem; color: var(--text-secondary);
@@ -2829,7 +2831,9 @@ window.onload = function() {
     font-size: 0.68rem; font-weight: 700;
     padding: 2px 8px; border-radius: 999px;
     white-space: nowrap; flex-shrink: 0;
+    line-height: 1.2;
   }
+  .gt-pill * { font-size: inherit; line-height: inherit; }
   .gt-pill.not-started { background: #F0EFEB; color: #777770; }
   .gt-pill.in-progress  { background: #EDEDFF; color: #4040CC; }
   .gt-pill.on-track     { background: #E0F4F3; color: #007A72; }
@@ -3185,7 +3189,7 @@ const STATUS_MAP = {
   "not started":"not-started","in progress":"in-progress",
   "on track":"on-track","at risk":"at-risk","complete":"complete","completed":"complete"
 };
-const STATUS_ICON  = {"not-started":"○","in-progress":"◑","on-track":"●","at-risk":"⚠","complete":"✓"};
+const STATUS_ICON  = {"not-started":"○","in-progress":"◑","on-track":"●","at-risk":"!","complete":"✓"};
 const STATUS_LABEL = {"not-started":"not started","in-progress":"in progress","on-track":"on track","at-risk":"at risk","complete":"complete"};
 
 const FOCUS_STATUS_MAP = {
@@ -3398,7 +3402,7 @@ function renderGtList(containerId, rows, showDue) {
     const status = gtNormStatus(gf(r,'Status'));
     const pillar = gf(r,'Pillar');
     const pm     = GT_PILLARS_META.find(p => p.key === pillar) || GT_PILLARS_META[0];
-    const risk   = (gf(r,'Key risk','Key Risk','key risk')).trim();
+    const risk   = (gf(r,'Notes','Key risk','Key Risk','notes','key risk')).trim();
     const owner  = (gf(r,'Owner')).trim();
     const due    = (gf(r,'Due date','Due Date','due date')).trim();
     const cadence= gf(r,'Cadence');
@@ -3413,7 +3417,7 @@ function renderGtList(containerId, rows, showDue) {
     let metaHtml = '';
     if (isExpanded) {
       metaHtml = `<div class="gt-meta">
-        <div class="gt-meta-item"><label>key risk / pivot needed</label><span>${risk ? escGt(risk) : '<span class="gt-meta-empty">—</span>'}</span></div>
+        <div class="gt-meta-item"><label>notes</label><span>${risk ? escGt(risk) : '<span class="gt-meta-empty">—</span>'}</span></div>
         <div class="gt-meta-item"><label>owner</label><span>${owner ? escGt(owner) : '<span class="gt-meta-empty">—</span>'}</span></div>
         ${due ? `<div class="gt-meta-item full"><label>due date</label><span>${formatDue(due)}</span></div>` : ''}
       </div>`;
@@ -3429,7 +3433,6 @@ function renderGtList(containerId, rows, showDue) {
         </span>
       </div>
       <div class="gt-action-pillar-row">
-        <span class="gt-pillar-dot" style="background:${pm.color}"></span>
         <span class="gt-pillar-name">${pm.label}</span>
         ${!showDue && cadence ? `<span class="gt-cadence-tag">${cadence.toLowerCase()}</span>` : ''}
       </div>
