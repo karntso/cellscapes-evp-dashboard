@@ -3190,13 +3190,46 @@ function gtNormStatus(raw) {
 }
 
 // ── Load ────────────────────────────────────────────────────────
+// ── CSV normalisation helpers ─────────────────────────────────────
+// Strips UTF-8 BOM, trims every key and value, and builds a
+// case-insensitive + whitespace-tolerant lookup so minor header
+// variations in Google Sheets exports don't break field access.
+function normaliseRows(rows) {
+  return rows.map(row => {
+    const out = {};
+    Object.keys(row).forEach(k => {
+      // strip BOM and trim
+      const cleanKey = k.replace(/^\uFEFF/, '').trim();
+      out[cleanKey] = (row[k] || '').trim();
+    });
+    return out;
+  });
+}
+
+// Flexible field getter: tries exact key first, then case-insensitive match
+function gf(row, ...candidates) {
+  for (const key of candidates) {
+    if (row[key] !== undefined) return (row[key] || '').trim();
+    // case-insensitive fallback
+    const lower = key.toLowerCase();
+    const found = Object.keys(row).find(k => k.toLowerCase() === lower);
+    if (found !== undefined) return (row[found] || '').trim();
+  }
+  return '';
+}
+
 async function loadGoalsTracker() {
   const statusEl = document.getElementById('gt-status-msg');
   try {
     const res = await fetch(GT_ACTIONS_CSV_URL);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const text = await res.text();
-    gtAllRows = Papa.parse(text, { header:true, skipEmptyLines:true }).data;
+    const rawRows = Papa.parse(text, { header:true, skipEmptyLines:true }).data;
+    gtAllRows = normaliseRows(rawRows);
+    if (gtAllRows.length > 0) {
+      console.log('GT columns:', Object.keys(gtAllRows[0]));
+      console.log('GT first row:', gtAllRows[0]);
+    }
 
     let notesText = '';
     if (!GT_NOTES_CSV_URL.startsWith('REPLACE_WITH')) {
@@ -3256,7 +3289,7 @@ function renderGtFocus(rows) {
   weeksEl.innerHTML = '';
   ['Week 1','Week 2','Week 3','Week 4'].forEach((week, idx) => {
     const weekNum = idx + 1;
-    const items   = rows.filter(r => (r['Pinned']||'').trim() === week);
+    const items   = rows.filter(r => gf(r,'Pinned') === week);
 
     let labelClass = 'future-week';
     let weekLabel  = week.toLowerCase();
@@ -3278,11 +3311,11 @@ function renderGtFocus(rows) {
       col.appendChild(empty);
     } else {
       items.forEach(r => {
-        const pm = GT_PILLARS_META.find(p => p.key === (r['Pillar']||'').trim()) || GT_PILLARS_META[0];
-        const rawFS = (r['Focus Status']||'').trim().toLowerCase();
+        const pm = GT_PILLARS_META.find(p => p.key === gf(r,'Pillar')) || GT_PILLARS_META[0];
+        const rawFS = gf(r,'Focus Status','Focus status').toLowerCase();
         const fsClass = FOCUS_STATUS_CLASS[rawFS] || 'not-set';
         const fsLabel = FOCUS_STATUS_LABEL[fsClass] || '';
-        const typeTag = (r['Type']||'').trim();
+        const typeTag = gf(r,'Type','type');
 
         const card = document.createElement('div');
         card.className = 'gt-focus-card';
@@ -3290,8 +3323,8 @@ function renderGtFocus(rows) {
         card.innerHTML =
           `<span class="gt-ptag">${pm.label}</span>` +
           (typeTag === 'Time-bound' ? `<span class="gt-type-badge tb" style="float:right">deadline</span>` : '') +
-          escGt(r['Action item']||'') +
-          (r['Due date'] ? `<div class="gt-due-inline">due ${formatDue(r['Due date'])}</div>` : '') +
+          escGt(gf(r,'Action item','Action Item','action item')) +
+          (gf(r,'Due date','Due Date','due date') ? `<div class="gt-due-inline">due ${formatDue(gf(r,'Due date','Due Date','due date'))}</div>` : '') +
           (fsLabel ? `<br><span class="gt-focus-pill ${fsClass}">${fsLabel}</span>` : '');
         col.appendChild(card);
       });
@@ -3311,15 +3344,15 @@ function gtApplyFilters() {
   const cadenceF = document.getElementById('gt-cadence-filter').value;
 
   const recurring = gtAllRows.filter(r => {
-    const type = (r['Type']||'').trim();
-    if (type !== 'Recurring') return false;
-    if (pillarF  && (r['Pillar']||'').trim()  !== pillarF)  return false;
-    if (cadenceF && (r['Cadence']||'').trim() !== cadenceF) return false;
+    const type = gf(r,'Type','type');
+    if (type.toLowerCase() !== 'recurring') return false;
+    if (pillarF  && gf(r,'Pillar')  !== pillarF)  return false;
+    if (cadenceF && gf(r,'Cadence') !== cadenceF) return false;
     return true;
   });
 
   const deadlines = gtAllRows
-    .filter(r => (r['Type']||'').trim() === 'Time-bound')
+    .filter(r => gf(r,'Type','type').toLowerCase() === 'time-bound')
     .sort((a,b) => {
       const da = a['Due date'] ? new Date(a['Due date']) : new Date('9999-12-31');
       const db = b['Due date'] ? new Date(b['Due date']) : new Date('9999-12-31');
@@ -3341,13 +3374,13 @@ function renderGtList(containerId, rows, showDue) {
 
   rows.forEach((r, idx) => {
     const rowId  = containerId + '_' + idx;
-    const status = gtNormStatus(r['Status']);
-    const pillar = (r['Pillar']||'').trim();
+    const status = gtNormStatus(gf(r,'Status'));
+    const pillar = gf(r,'Pillar');
     const pm     = GT_PILLARS_META.find(p => p.key === pillar) || GT_PILLARS_META[0];
-    const risk   = (r['Key risk']||'').trim();
-    const owner  = (r['Owner']||'').trim();
-    const due    = (r['Due date']||'').trim();
-    const cadence= (r['Cadence']||'').trim();
+    const risk   = (gf(r,'Key risk','Key Risk','key risk')).trim();
+    const owner  = (gf(r,'Owner')).trim();
+    const due    = (gf(r,'Due date','Due Date','due date')).trim();
+    const cadence= gf(r,'Cadence');
     const isExpanded = gtExpandedRows[rowId];
     const isUrgent   = due && isDueSoon(due);
 
@@ -3368,7 +3401,7 @@ function renderGtList(containerId, rows, showDue) {
     item.innerHTML = `
       <div class="gt-action-top">
         <span class="gt-pillar-dot" style="background:${pm.color}" title="${pillar}"></span>
-        <span class="gt-action-text">${escGt(r['Action item']||'')}</span>
+        <span class="gt-action-text">${escGt(gf(r,'Action item','Action Item','action item'))}</span>
         <span class="gt-action-right">
           ${showDue && due ? `<span class="gt-due-badge${isUrgent?' urgent':''}">${formatDue(due)}</span>` : ''}
           ${!showDue ? `<span class="gt-cadence-tag">${cadence.toLowerCase()}</span>` : ''}
@@ -3427,14 +3460,14 @@ async function loadGtAccomplishments() {
     const res = await fetch(GT_ACCOM_CSV_URL);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const text = await res.text();
-    const rows = Papa.parse(text, { header:true, skipEmptyLines:true }).data;
+    const rows = normaliseRows(Papa.parse(text, { header:true, skipEmptyLines:true }).data);
     if (!rows.length) {
       body.innerHTML = '<div class="gt-accom-empty">no accomplishments logged yet — add rows to the Accomplishments tab in the sheet.</div>';
       return;
     }
     const months = {};
     rows.forEach(r => {
-      const dateStr = (r['Date']||'').trim();
+      const dateStr = gf(r,'Date','date');
       let key = 'undated', label = 'undated';
       if (dateStr) {
         const d = new Date(dateStr);
@@ -3455,13 +3488,13 @@ async function loadGtAccomplishments() {
       div.className = 'gt-accom-month';
       div.innerHTML = `<div class="gt-accom-month-label">${label}</div>`;
       mRows.forEach(r => {
-        const pm = GT_PILLARS_META.find(p => p.key === (r['Pillar']||'').trim());
+        const pm = GT_PILLARS_META.find(p => p.key === gf(r,'Pillar'));
         const dot = pm ? pm.color : 'var(--text-secondary)';
-        const note = (r['Notes']||'').trim();
+        const note = (gf(r,'Notes','notes')).trim();
         const row = document.createElement('div');
         row.className = 'gt-accom-row';
         row.innerHTML = `<span class="gt-accom-pillar-dot" style="background:${dot}"></span>
-          <span class="gt-accom-text">${escGt(r['Accomplishment']||'')}</span>
+          <span class="gt-accom-text">${escGt(gf(r,'Accomplishment','accomplishment')||'')}</span>
           ${note?`<span class="gt-accom-note">${escGt(note)}</span>`:''}`;
         div.appendChild(row);
       });
