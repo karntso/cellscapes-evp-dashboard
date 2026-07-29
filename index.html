@@ -2615,10 +2615,10 @@ window.onload = function() {
   /* ── monthly week focus layout ── */
   .gt-focus-weeks {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 0;
   }
-  @media (max-width: 1000px) { .gt-focus-weeks { grid-template-columns: repeat(2,1fr); } }
+  @media (max-width: 1100px) { .gt-focus-weeks { grid-template-columns: repeat(3,1fr); } }
   @media (max-width: 600px)  { .gt-focus-weeks { grid-template-columns: 1fr; } }
   .gt-focus-week-col {
     padding: 0 16px 4px 0;
@@ -2925,7 +2925,7 @@ window.onload = function() {
           <div class="gt-zone-title">
             <i class="ti ti-refresh" aria-hidden="true"></i> recurring rhythm
           </div>
-          <div class="gt-zone-sub">always-on actions · filter by pillar and cadence</div>
+          <div class="gt-zone-sub">weekly and quarterly habits · monthly items shown above</div>
         </div>
         <div class="gt-zone-controls">
           <select id="gt-pillar-filter" class="gt-select" onchange="gtApplyFilters()">
@@ -3297,25 +3297,58 @@ function renderGtNotes(text) {
 
 // ── Monthly focus banner ────────────────────────────────────────
 function renderGtFocus(rows) {
-  const section = document.getElementById('gt-focus-section');
-  const heading = document.getElementById('gt-focus-heading');
-  const weeksEl = document.getElementById('gt-focus-weeks');
+  const section  = document.getElementById('gt-focus-section');
+  const heading  = document.getElementById('gt-focus-heading');
+  const weeksEl  = document.getElementById('gt-focus-weeks');
+  if (!section) return;
   section.style.display = '';
 
   const now = new Date();
+  const MONTHS = ['january','february','march','april','may','june',
+                  'july','august','september','october','november','december'];
+  const monthName      = MONTHS[now.getMonth()];
   const currentWeekNum = Math.ceil(now.getDate() / 7);
-  if (heading) heading.textContent = 'goals for: ' + MONTHS[now.getMonth()];
+  if (heading) heading.textContent = 'goals for: ' + monthName;
 
-  const FOCUS_STATUS_CLASS = {
-    'in progress':'in-progress','completed':'completed',
-    'at risk':'at-risk','hold / blocked':'hold-blocked','hold/blocked':'hold-blocked',''  :'not-set'
-  };
+  // Monthly rhythm — always shown at top of banner
+  const monthlyItems = rows.filter(r => gf(r,'Cadence').toLowerCase() === 'monthly');
 
   weeksEl.innerHTML = '';
-  ['Week 1','Week 2','Week 3','Week 4'].forEach((week, idx) => {
-    const weekNum = idx + 1;
-    const items   = rows.filter(r => gf(r,'Pinned') === week);
 
+  // Monthly rhythm strip
+  if (monthlyItems.length) {
+    const monthlyCol = document.createElement('div');
+    monthlyCol.style.cssText = 'grid-column:1/-1;border-bottom:1px solid rgba(100,100,255,0.12);padding-bottom:14px;margin-bottom:14px;';
+    const monthlyLbl = document.createElement('div');
+    monthlyLbl.className = 'gt-focus-week-label current-week';
+    monthlyLbl.style.cssText = 'margin-bottom:10px;font-size:0.65rem;';
+    monthlyLbl.textContent = 'monthly rhythm';
+    monthlyCol.appendChild(monthlyLbl);
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;';
+    monthlyItems.forEach(r => {
+      const pm = GT_PILLARS_META.find(p => p.key === gf(r,'Pillar')) || GT_PILLARS_META[0];
+      const status = gtNormStatus(gf(r,'Status'));
+      const card = document.createElement('div');
+      card.className = 'gt-focus-card';
+      card.innerHTML =
+        `<span class="gt-ptag">${pm.label}</span>` +
+        `<span style="float:right"><span class="gt-pill ${status}" style="font-size:0.6rem;padding:1px 6px;">${STATUS_ICON[status]} ${STATUS_LABEL[status]}</span></span>` +
+        escGt(gf(r,'Action item','Action Item','action item'));
+      grid.appendChild(card);
+    });
+    monthlyCol.appendChild(grid);
+    weeksEl.appendChild(monthlyCol);
+  }
+
+  // Weekly pinned columns
+  const weekGrid = document.createElement('div');
+  weekGrid.style.cssText = 'display:grid;grid-template-columns:repeat(5,1fr);gap:0;width:100%;';
+  weeksEl.appendChild(weekGrid);
+
+  ['Week 1','Week 2','Week 3','Week 4','Week 5'].forEach((week, idx) => {
+    const weekNum  = idx + 1;
+    const items    = rows.filter(r => gf(r,'Pinned') === week);
     let labelClass = 'future-week';
     let weekLabel  = week.toLowerCase();
     if (weekNum < currentWeekNum)        { labelClass = 'past-week';    weekLabel += ' ↩'; }
@@ -3331,36 +3364,34 @@ function renderGtFocus(rows) {
     if (!items.length) {
       const empty = document.createElement('div');
       empty.className = 'gt-focus-empty';
-      empty.style.cssText = 'font-size:.78rem;margin-top:6px';
+      empty.style.cssText = 'font-size:.75rem;margin-top:6px';
       empty.textContent = 'nothing pinned';
       col.appendChild(empty);
     } else {
       items.forEach(r => {
         const pm = GT_PILLARS_META.find(p => p.key === gf(r,'Pillar')) || GT_PILLARS_META[0];
-        const rawFS = gf(r,'Focus Status','Focus status').toLowerCase();
-        const fsClass = FOCUS_STATUS_CLASS[rawFS] || 'not-set';
-        const fsLabel = FOCUS_STATUS_LABEL[fsClass] || '';
-        const typeTag = gf(r,'Type','type');
-
+        const status = gtNormStatus(gf(r,'Status'));
+        const due = gf(r,'Due date','Due Date','due date');
         const card = document.createElement('div');
         card.className = 'gt-focus-card';
         card.style.marginBottom = '8px';
         card.innerHTML =
           `<span class="gt-ptag">${pm.label}</span>` +
-          ''  +
           escGt(gf(r,'Action item','Action Item','action item')) +
-          (gf(r,'Due date','Due Date','due date') ? `<div class="gt-due-inline">due ${formatDue(gf(r,'Due date','Due Date','due date'))}</div>` : '') +
-          (fsLabel ? `<br><span class="gt-focus-pill ${fsClass}">${fsLabel}</span>` : '');
+          (due ? `<div class="gt-due-inline">due ${formatDue(due)}</div>` : '') +
+          `<br><span class="gt-pill ${status}" style="font-size:0.6rem;padding:1px 6px;">${STATUS_ICON[status]} ${STATUS_LABEL[status]}</span>`;
         col.appendChild(card);
       });
     }
-    weeksEl.appendChild(col);
+    weekGrid.appendChild(col);
   });
 }
 
-// ── Two-zone render ─────────────────────────────────────────────
 function renderGtTwoZone(rows) {
   document.getElementById('gt-two-zone').style.display = '';
+  // Default cadence filter to Bi-weekly so the list isn't overwhelming on load
+  const cadSel = document.getElementById('gt-cadence-filter');
+  if (cadSel && cadSel.value === '') cadSel.value = 'Bi-weekly';
   gtApplyFilters();
 }
 
@@ -3369,10 +3400,13 @@ function gtApplyFilters() {
   const cadenceF = document.getElementById('gt-cadence-filter').value;
 
   const recurring = gtAllRows.filter(r => {
-    const type = gf(r,'Type','type');
+    const type    = gf(r,'Type','type');
+    const cadence = gf(r,'Cadence');
     if (type.toLowerCase() !== 'recurring') return false;
+    // Monthly items are shown in the focus banner — exclude here unless explicitly filtered
+    if (!cadenceF && cadence === 'Monthly') return false;
     if (pillarF  && gf(r,'Pillar')  !== pillarF)  return false;
-    if (cadenceF && gf(r,'Cadence') !== cadenceF) return false;
+    if (cadenceF && cadence !== cadenceF) return false;
     return true;
   });
 
