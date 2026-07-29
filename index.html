@@ -2800,31 +2800,65 @@ window.onload = function() {
   }
 </style>
 
-  /* ── two-week focus layout ── */
-  .gt-focus-two-week {
+<style>
+  /* ── monthly week focus layout ── */
+  .gt-focus-weeks {
     display: grid;
-    grid-template-columns: 1fr 1px 1fr;
-    gap: 20px;
-    align-items: start;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
   }
-  @media (max-width: 860px) {
-    .gt-focus-two-week { grid-template-columns: 1fr; }
-    .gt-focus-divider { display: none; }
+  @media (max-width: 1000px) { .gt-focus-weeks { grid-template-columns: repeat(2,1fr); } }
+  @media (max-width: 600px)  { .gt-focus-weeks { grid-template-columns: 1fr; } }
+  .gt-focus-week-col {
+    padding: 0 16px 4px 0;
+    border-right: 1px solid rgba(100,100,255,0.15);
+    min-width: 0;
   }
-  .gt-focus-divider {
-    background: var(--gt-focus-border);
-    opacity: 0.25;
-    align-self: stretch;
-    min-height: 60px;
+  .gt-focus-week-col:last-child { border-right: none; padding-right: 0; }
+  .gt-focus-week-col + .gt-focus-week-col { padding-left: 16px; padding-right: 16px; }
+  .gt-focus-week-col:last-child { padding-left: 16px; }
+  .gt-focus-week-label {
+    font-size: 0.7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .07em;
+    color: var(--gt-focus-text);
+    margin-bottom: 8px; padding-bottom: 6px;
+    border-bottom: 1px solid rgba(100,100,255,0.2);
   }
-  .gt-focus-col { min-width: 0; }
-  .gt-focus-title--next {
+  .gt-focus-week-label.current-week {
+    color: var(--gt-focus-text);
+  }
+  .gt-focus-week-label.past-week {
+    color: var(--text-secondary);
+    opacity: 0.7;
+  }
+  .gt-focus-week-label.future-week {
     color: var(--text-secondary);
   }
-  .gt-focus-title--next::before {
-    background: var(--text-secondary) !important;
-    opacity: 0.4;
+  .gt-focus-month-heading {
+    font-size: 0.88rem; font-weight: 700;
+    color: var(--gt-focus-text);
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 6px;
   }
+  .gt-focus-month-heading::before {
+    content: '';
+    display: inline-block; width: 8px; height: 8px;
+    border-radius: 50%; background: var(--gt-focus-border);
+    flex-shrink: 0;
+  }
+
+  /* ── focus status pill ── */
+  .gt-focus-pill {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 0.62rem; font-weight: 700;
+    padding: 1px 6px; border-radius: 999px;
+    white-space: nowrap; margin-top: 4px;
+  }
+  .gt-focus-pill.in-progress  { background: var(--gt-ip-bg); color: var(--gt-ip-c); }
+  .gt-focus-pill.completed    { background: #000; color: #fff; }
+  .gt-focus-pill.at-risk      { background: var(--gt-ar-bg); color: var(--gt-ar-c); }
+  .gt-focus-pill.hold-blocked { background: var(--gt-ns-bg); color: var(--gt-ns-c); }
+  .gt-focus-pill.not-set      { display: none; }
 
   /* ── accomplishments section ── */
   .gt-accom-section {
@@ -2838,20 +2872,12 @@ window.onload = function() {
   .gt-accom-header {
     padding: 14px 20px 12px;
     border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-    flex-wrap: wrap;
+    display: flex; align-items: baseline;
+    gap: 12px; flex-wrap: wrap;
   }
-  .gt-accom-title {
-    font-size: 1rem; font-weight: 700; color: var(--text-primary);
-  }
-  .gt-accom-subtitle {
-    font-size: 0.76rem; color: var(--text-secondary);
-  }
-  .gt-accom-month {
-    padding: 0 20px 16px;
-  }
+  .gt-accom-title { font-size: 1rem; font-weight: 700; color: var(--text-primary); }
+  .gt-accom-subtitle { font-size: 0.76rem; color: var(--text-secondary); }
+  .gt-accom-month { padding: 0 20px 16px; }
   .gt-accom-month-label {
     font-size: 0.7rem; font-weight: 700;
     text-transform: uppercase; letter-spacing: .08em;
@@ -2861,11 +2887,8 @@ window.onload = function() {
     margin-bottom: 2px;
   }
   .gt-accom-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 9px 0;
-    border-bottom: 1px solid var(--surface-2);
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 9px 0; border-bottom: 1px solid var(--surface-2);
     font-size: 0.86rem;
   }
   .gt-accom-row:last-child { border-bottom: none; }
@@ -2873,13 +2896,10 @@ window.onload = function() {
     width: 8px; height: 8px; border-radius: 50%;
     flex-shrink: 0; margin-top: 5px;
   }
-  .gt-accom-text {
-    flex: 1; color: var(--text-primary); line-height: 1.45;
-  }
+  .gt-accom-text { flex: 1; color: var(--text-primary); line-height: 1.45; }
   .gt-accom-note {
     font-size: 0.76rem; color: var(--text-secondary);
-    font-style: italic; white-space: nowrap;
-    flex-shrink: 0;
+    font-style: italic; white-space: nowrap; flex-shrink: 0;
   }
   .gt-accom-empty {
     padding: 16px 20px;
@@ -2887,7 +2907,7 @@ window.onload = function() {
   }
 </style>
 
-<!-- Goals Tracker Tab -->
+<!-- Goals Tracker Tab --><!-- Goals Tracker Tab -->
 <div id="tab-goals-tracker" class="tab-content">
 
   <!-- sheet link bar -->
@@ -2903,23 +2923,10 @@ window.onload = function() {
     <div class="gt-notes-text" id="gt-notes-text"></div>
   </div>
 
-  <!-- focus banner: this week + next week -->
+  <!-- focus banner: monthly 4-week view -->
   <div class="gt-focus" id="gt-focus-section" style="display:none;">
-    <div class="gt-focus-two-week">
-      <div class="gt-focus-col">
-        <div class="gt-focus-title">goal focus this week</div>
-        <div class="gt-focus-grid" id="gt-focus-grid-this">
-          <div class="gt-focus-empty">no items pinned for this week — set Pinned to "this week" in the sheet.</div>
-        </div>
-      </div>
-      <div class="gt-focus-divider"></div>
-      <div class="gt-focus-col">
-        <div class="gt-focus-title gt-focus-title--next">goal focus next week</div>
-        <div class="gt-focus-grid" id="gt-focus-grid-next">
-          <div class="gt-focus-empty">no items pinned for next week — set Pinned to "next week" in the sheet.</div>
-        </div>
-      </div>
-    </div>
+    <div class="gt-focus-month-heading" id="gt-focus-heading">goal focus</div>
+    <div class="gt-focus-weeks" id="gt-focus-weeks"></div>
   </div>
 
   <!-- pillars -->
@@ -2956,7 +2963,7 @@ window.onload = function() {
 
 const GT_ACTIONS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJPAJ4jIYcrJaJN8QQN5kQQtWIKuiyiPTFvq9QxkiSPgEDvajtSqrOvHH2L4w6Ug/pub?gid=1069937827&single=true&output=csv";
 const GT_NOTES_CSV_URL   = "REPLACE_WITH_GOALS_NOTES_TAB_CSV_URL";
-const GT_ACCOM_CSV_URL   = "REPLACE_WITH_ACCOMPLISHMENTS_TAB_CSV_URL";
+const GT_ACCOM_CSV_URL   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJPAJ4jIYcrJaJN8QQN5kQQtWIKuiyiPTFvq9QxkiSPgEDvajtSqrOvHH2L4w6Ug/pub?gid=320976729&single=true&output=csv";
 const GT_SHEET_EDIT_URL  = "https://docs.google.com/spreadsheets/d/1-aHqGhwAgzkD34qugZEINJbhYfqwQ32g/edit#gid=1069937827";
 
 const GT_PILLARS_META = [
@@ -3051,21 +3058,84 @@ function renderGtNotes(text) {
 }
 
 function renderGtFocus(rows) {
-  const section = document.getElementById('gt-focus-section');
-  const grid = document.getElementById('gt-focus-grid');
-  const pinned = rows.filter(r => (r['Pinned']||'').trim().toLowerCase() === 'yes');
+  const section  = document.getElementById('gt-focus-section');
+  const heading  = document.getElementById('gt-focus-heading');
+  const weeksEl  = document.getElementById('gt-focus-weeks');
+  if (!section) return;
   section.style.display = '';
-  if (!pinned.length) {
-    grid.innerHTML = '<div class="gt-focus-empty">no items pinned — set any row\'s Pinned column to "yes" in the sheet.</div>';
-    return;
-  }
-  grid.innerHTML = '';
-  pinned.forEach(r => {
-    const pm = GT_PILLARS_META.find(p => p.key === (r['Pillar']||'').trim()) || GT_PILLARS_META[0];
-    const card = document.createElement('div');
-    card.className = 'gt-focus-card';
-    card.innerHTML = `<span class="gt-ptag">${pm.label}</span>${escGt(r['Action item']||'')}`;
-    grid.appendChild(card);
+
+  // Determine current month name and current week-of-month (1–4)
+  const now = new Date();
+  const MONTHS = ['january','february','march','april','may','june',
+                  'july','august','september','october','november','december'];
+  const monthName = MONTHS[now.getMonth()];
+  const currentWeekNum = Math.ceil(now.getDate() / 7); // 1–4 (approx)
+
+  if (heading) heading.textContent = 'goals for: ' + monthName;
+
+  const WEEKS = ['Week 1','Week 2','Week 3','Week 4'];
+  const FOCUS_STATUS_CLASS = {
+    'in progress':   'in-progress',
+    'completed':     'completed',
+    'at risk':       'at-risk',
+    'hold / blocked':'hold-blocked',
+    'hold/blocked':  'hold-blocked',
+    '':              'not-set'
+  };
+  const FOCUS_STATUS_LABEL = {
+    'in-progress':   'in progress',
+    'completed':     'completed',
+    'at-risk':       'at risk',
+    'hold-blocked':  'hold / blocked',
+    'not-set':       ''
+  };
+
+  weeksEl.innerHTML = '';
+  WEEKS.forEach((week, idx) => {
+    const weekNum = idx + 1;
+    const weekItems = rows.filter(r => {
+      const v = (r['Pinned']||'').trim();
+      return v === week;
+    });
+
+    let labelClass = 'future-week';
+    let weekLabel  = week.toLowerCase();
+    if (weekNum < currentWeekNum)       { labelClass = 'past-week'; weekLabel += ' ↩'; }
+    else if (weekNum === currentWeekNum) { labelClass = 'current-week'; weekLabel += ' ← now'; }
+
+    const col = document.createElement('div');
+    col.className = 'gt-focus-week-col';
+
+    const labelEl = document.createElement('div');
+    labelEl.className = 'gt-focus-week-label ' + labelClass;
+    labelEl.textContent = weekLabel;
+    col.appendChild(labelEl);
+
+    if (!weekItems.length) {
+      const empty = document.createElement('div');
+      empty.className = 'gt-focus-empty';
+      empty.style.fontSize = '0.78rem';
+      empty.style.marginTop = '6px';
+      empty.textContent = 'nothing pinned';
+      col.appendChild(empty);
+    } else {
+      weekItems.forEach(r => {
+        const pm = GT_PILLARS_META.find(p => p.key === (r['Pillar']||'').trim()) || GT_PILLARS_META[0];
+        const rawStatus = (r['Focus Status']||'').trim().toLowerCase();
+        const statusClass = FOCUS_STATUS_CLASS[rawStatus] ?? 'not-set';
+        const statusLabel = FOCUS_STATUS_LABEL[statusClass] || '';
+
+        const card = document.createElement('div');
+        card.className = 'gt-focus-card';
+        card.style.marginBottom = '8px';
+        card.innerHTML =
+          `<span class="gt-ptag">${pm.label}</span>` +
+          escGt(r['Action item']||'') +
+          (statusLabel ? `<br><span class="gt-focus-pill ${statusClass}">${statusLabel}</span>` : '');
+        col.appendChild(card);
+      });
+    }
+    weeksEl.appendChild(col);
   });
 }
 
@@ -3116,7 +3186,7 @@ function renderGtPillars(rows) {
     visible.forEach((r, idx) => {
       const rowId = pm.key + '_' + idx;
       const status = gtNormStatus(r['Status']);
-      const pinnedVal = (r['Pinned']||'').trim().toLowerCase(); const isPinned = pinnedVal === 'yes' || pinnedVal === 'this week' || pinnedVal === 'next week';
+      const pinnedVal = (r['Pinned']||'').trim(); const isPinned = /^Week [1-4]$/.test(pinnedVal);
       const risk  = (r['Key risk']||'').trim();
       const owner = (r['Owner']||'').trim();
       const due   = (r['Due date']||'').trim();
@@ -3135,7 +3205,7 @@ function renderGtPillars(rows) {
             <span class="gt-chevron" id="gtchev-${rowId}">${isExpanded ? '▲' : '▾'}</span>
           </span>
         </div>
-        ${isPinned ? `<span class="gt-pin-badge">${(r['Pinned']||'').trim().toLowerCase()==='next week'?'focus next week':'focus this week'}</span>` : ''}
+        ${isPinned ? `<span class="gt-pin-badge">${(r['Pinned']||'').trim().toLowerCase()}</span>` : ''}
         <div id="gtmeta-${rowId}" style="display:${isExpanded?'block':'none'}">
           <div class="gt-meta">
             <div class="gt-meta-item">
