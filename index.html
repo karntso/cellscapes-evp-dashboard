@@ -1260,26 +1260,6 @@
     </div>
   </div>
 
-  <!-- EVP Priorities (Action Items) -->
-  <div class="section-card">
-    <div class="section-header open" onclick="toggleCollapse('priorities')" id="priorities-header">
-      <h2 class="section-title">EVP action items</h2>
-      <span class="collapsible-toggle open" id="priorities-toggle">+</span>
-    </div>
-    <div class="collapsible-content open" id="priorities-content">
-      <div class="section-body">
-        <div class="ep-status-note" id="ep-status">Loading priorities…</div>
-        <div class="ep-scroll" id="ep-scroll">
-          <div class="ep-list" id="ep-list"></div>
-        </div>
-        <div style="margin-top:8px;text-align:right;">
-          <a href="https://docs.google.com/spreadsheets/d/1-aHqGhwAgzkD34qugZEINJbhYfqwQ32g/edit?usp=sharing&ouid=111752552908735098726&rtpof=true&sd=true#gid=59098061" target="_blank" style="font-size:0.82rem;color:var(--link-accent);text-decoration:none;">
-            open sheet to edit →
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- Ru's Calendar (2-month view) -->
   <div class="section-card">
@@ -1346,6 +1326,29 @@
     <div class="collapsible-content" id="travel-content">
       <div class="section-body" id="travel-body">
         <div class="calendar-error">Loading travel details…</div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- EVP Priorities (Action Items) -->
+  <div class="section-card">
+    <div class="section-header open" onclick="toggleCollapse('priorities')" id="priorities-header">
+      <h2 class="section-title">EVP action items</h2>
+      <span class="collapsible-toggle open" id="priorities-toggle">+</span>
+    </div>
+    <div class="collapsible-content open" id="priorities-content">
+      <div class="section-body">
+        <div class="ep-status-note" id="ep-status">Loading priorities…</div>
+        <div class="ep-scroll" id="ep-scroll">
+          <div class="ep-list" id="ep-list"></div>
+        </div>
+        <div style="margin-top:8px;text-align:right;">
+          <a href="https://docs.google.com/spreadsheets/d/1-aHqGhwAgzkD34qugZEINJbhYfqwQ32g/edit?usp=sharing&ouid=111752552908735098726&rtpof=true&sd=true#gid=59098061" target="_blank" style="font-size:0.82rem;color:var(--link-accent);text-decoration:none;">
+            open sheet to edit →
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -2331,7 +2334,10 @@ async function loadGoalUpdates() {
         <div class="goal-update-block">
           <div class="goal-update-label">Updates</div>
           <div class="goal-update-scroll">${entriesHtml}</div>
-        </div>
+        
+
+
+</div>
       `;
     });
   } catch (err) {
