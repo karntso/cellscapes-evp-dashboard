@@ -3306,45 +3306,65 @@ function renderGtFocus(rows) {
   const now = new Date();
   const MONTHS = ['january','february','march','april','may','june',
                   'july','august','september','october','november','december'];
-  const monthName      = MONTHS[now.getMonth()];
   const currentWeekNum = Math.ceil(now.getDate() / 7);
-  if (heading) heading.textContent = 'goals for: ' + monthName;
-
-  // Monthly rhythm — always shown at top of banner
-  const monthlyItems = rows.filter(r => gf(r,'Cadence').toLowerCase() === 'monthly');
+  if (heading) heading.textContent = 'goals for: ' + MONTHS[now.getMonth()];
 
   weeksEl.innerHTML = '';
 
-  // Monthly rhythm strip
+  // ── Monthly rhythm: one card per pillar ──────────────────────
+  const monthlyItems = rows.filter(r => gf(r,'Cadence').toLowerCase() === 'monthly');
+
   if (monthlyItems.length) {
-    const monthlyCol = document.createElement('div');
-    monthlyCol.style.cssText = 'grid-column:1/-1;border-bottom:1px solid rgba(100,100,255,0.12);padding-bottom:14px;margin-bottom:14px;';
-    const monthlyLbl = document.createElement('div');
-    monthlyLbl.className = 'gt-focus-week-label current-week';
-    monthlyLbl.style.cssText = 'margin-bottom:10px;font-size:0.65rem;';
-    monthlyLbl.textContent = 'monthly rhythm';
-    monthlyCol.appendChild(monthlyLbl);
-    const grid = document.createElement('div');
-    grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;';
-    monthlyItems.forEach(r => {
-      const pm = GT_PILLARS_META.find(p => p.key === gf(r,'Pillar')) || GT_PILLARS_META[0];
-      const status = gtNormStatus(gf(r,'Status'));
+    const strip = document.createElement('div');
+    strip.style.cssText = 'margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid var(--border);';
+
+    const stripLabel = document.createElement('div');
+    stripLabel.style.cssText = 'font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gt-focus-text);margin-bottom:12px;';
+    stripLabel.textContent = 'monthly rhythm';
+    strip.appendChild(stripLabel);
+
+    const pillarGrid = document.createElement('div');
+    pillarGrid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;';
+
+    GT_PILLARS_META.forEach(pm => {
+      const pillarItems = monthlyItems.filter(r => gf(r,'Pillar') === pm.key);
+      if (!pillarItems.length) return;
+
       const card = document.createElement('div');
-      card.className = 'gt-focus-card';
-      card.innerHTML =
-        `<span class="gt-ptag">${pm.label}</span>` +
-        `<span style="float:right"><span class="gt-pill ${status}" style="font-size:0.6rem;padding:1px 6px;">${STATUS_ICON[status]} ${STATUS_LABEL[status]}</span></span>` +
-        escGt(gf(r,'Action item','Action Item','action item'));
-      grid.appendChild(card);
+      card.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;border-top:2px solid ' + pm.color + ';';
+
+      const cardTitle = document.createElement('div');
+      cardTitle.style.cssText = 'font-size:0.72rem;font-weight:700;color:' + pm.color + ';text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;';
+      cardTitle.textContent = pm.label.replace(/&amp;/g,'&');
+      card.appendChild(cardTitle);
+
+      pillarItems.forEach(r => {
+        const status = gtNormStatus(gf(r,'Status'));
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid var(--surface-2);font-size:0.82rem;line-height:1.4;';
+        row.innerHTML =
+          `<span style="flex:1;color:var(--text-primary)">${escGt(gf(r,'Action item','Action Item','action item'))}</span>` +
+          `<span class="gt-pill ${status}" style="font-size:0.6rem;padding:1px 6px;white-space:nowrap;flex-shrink:0;">${STATUS_ICON[status]} ${STATUS_LABEL[status]}</span>`;
+        card.appendChild(row);
+      });
+      // remove last border
+      if (card.lastChild) card.lastChild.style.borderBottom = 'none';
+
+      pillarGrid.appendChild(card);
     });
-    monthlyCol.appendChild(grid);
-    weeksEl.appendChild(monthlyCol);
+
+    strip.appendChild(pillarGrid);
+    weeksEl.appendChild(strip);
   }
 
-  // Weekly pinned columns
+  // ── Weekly pinned columns ────────────────────────────────────
+  const weekSection = document.createElement('div');
+  weekSection.style.cssText = 'overflow-x:auto;';
+
   const weekGrid = document.createElement('div');
-  weekGrid.style.cssText = 'display:grid;grid-template-columns:repeat(5,1fr);gap:0;width:100%;';
-  weeksEl.appendChild(weekGrid);
+  weekGrid.style.cssText = 'display:grid;grid-template-columns:repeat(5,minmax(160px,1fr));gap:12px;min-width:700px;';
+  weekSection.appendChild(weekGrid);
+  weeksEl.appendChild(weekSection);
 
   ['Week 1','Week 2','Week 3','Week 4','Week 5'].forEach((week, idx) => {
     const weekNum  = idx + 1;
@@ -3355,24 +3375,24 @@ function renderGtFocus(rows) {
     else if (weekNum === currentWeekNum) { labelClass = 'current-week'; weekLabel += ' ← now'; }
 
     const col = document.createElement('div');
-    col.className = 'gt-focus-week-col';
+
     const lbl = document.createElement('div');
     lbl.className = 'gt-focus-week-label ' + labelClass;
+    lbl.style.marginBottom = '8px';
     lbl.textContent = weekLabel;
     col.appendChild(lbl);
 
     if (!items.length) {
       const empty = document.createElement('div');
-      empty.className = 'gt-focus-empty';
-      empty.style.cssText = 'font-size:.75rem;margin-top:6px';
+      empty.style.cssText = 'font-size:0.78rem;color:var(--text-secondary);font-style:italic;';
       empty.textContent = 'nothing pinned';
       col.appendChild(empty);
     } else {
       items.forEach(r => {
-        const pm = GT_PILLARS_META.find(p => p.key === gf(r,'Pillar')) || GT_PILLARS_META[0];
+        const pm     = GT_PILLARS_META.find(p => p.key === gf(r,'Pillar')) || GT_PILLARS_META[0];
         const status = gtNormStatus(gf(r,'Status'));
-        const due = gf(r,'Due date','Due Date','due date');
-        const card = document.createElement('div');
+        const due    = gf(r,'Due date','Due Date','due date');
+        const card   = document.createElement('div');
         card.className = 'gt-focus-card';
         card.style.marginBottom = '8px';
         card.innerHTML =
