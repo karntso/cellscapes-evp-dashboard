@@ -2677,6 +2677,12 @@ window.onload = function() {
 .gt-pdrill-field.full{grid-column:1/-1;}
 .gt-pdrill-close{float:right;background:none;border:none;cursor:pointer;font-size:1rem;color:var(--text-secondary);line-height:1;}
 .gt-pdrill-close:hover{color:var(--text-primary);}
+.gt-agenda{margin-bottom:14px;}
+.gt-agenda-lbl{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-secondary);margin-bottom:6px;}
+.gt-agenda-item{display:flex;align-items:baseline;gap:6px;padding:5px 0;border-bottom:1px solid var(--surface-2);font-size:.82rem;}
+.gt-agenda-item:last-child{border-bottom:none;}
+.gt-agenda-cad{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary);background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:1px 6px;white-space:nowrap;flex-shrink:0;}
+.gt-agenda-text{color:var(--text-primary);line-height:1.4;}
 .gt-status-msg{font-size:.82rem;color:var(--text-secondary);padding:6px 0;}
 .gt-select{font-family:Arial,sans-serif;font-size:.78rem;color:var(--text-primary);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;cursor:pointer;}
 .gt-select:focus{outline:none;border-color:var(--gt-c1);}
@@ -2712,10 +2718,14 @@ window.onload = function() {
 
     <!-- people rhythm strip -->
     <div class="gt-people-section" id="gt-people-section">
-      <div class="gt-sec-lbl">people rhythm · monthly check-ins</div>
+      <div class="gt-sec-lbl" style="margin-bottom:6px">people rhythm · monthly check-ins</div>
+      <div style="font-size:.68rem;color:var(--text-secondary);margin-bottom:8px;">click any name to see meeting history and agenda items</div>
 
-      <div class="gt-people-strip" id="gt-people-strip"></div>
-      <div style="font-size:.72rem;color:var(--text-secondary);font-style:italic;margin-bottom:12px;">click any name to see history · "other outreach" opens the CRM</div>
+      <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary);margin-bottom:6px;">key contacts</div>
+      <div class="gt-people-strip" id="gt-people-strip-contacts"></div>
+
+      <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary);margin:10px 0 6px;">direct reports</div>
+      <div class="gt-people-strip" id="gt-people-strip-reports"></div>
     </div>
 
     <!-- people drill panel -->
@@ -2922,15 +2932,68 @@ function gtCloseDrill() {
 // ── People rhythm ───────────────────────────────────────────
 const PEOPLE_CONTACTS = [
   "Jen Davis","Julie Harris","Kirsten Smith","Michael Elowitz",
-  "Prisca Liberali","Raeka Aiyar","Sarah Caddick"
+  "Prisca Liberali","Raeka Aiyar","Sarah Caddick","Accelerator EVPs"
 ];
+
+const DIRECT_REPORTS = [
+  "Dan Toloudis","Ehssan Nazockdast","Graham Johnson","Irina Mueller",
+  "Kate White","Matheus Viana","Matt Kutys","Ops/Partnerships Director"
+];
+
+// Agenda items shown in the drill-down for each person
+const PERSON_AGENDA = {
+  "Accelerator EVPs": [
+    {cad:"monthly", text:"coordinate priorities with other EVPs"},
+    {cad:"monthly", text:"surface and correct culture/values gaps"},
+  ],
+  "Kirsten Smith": [
+    {cad:"monthly", text:"review leadership coaching and development progress"},
+  ],
+  "Sarah Caddick": [
+    {cad:"monthly", text:"review leadership coaching and development progress"},
+  ],
+  "Dan Toloudis": [
+    {cad:"monthly",   text:"check-in on data / SWE / tool progress and support needed"},
+    {cad:"quarterly", text:"align goals to scientific milestones; check-in on leadership development and accountability"},
+  ],
+  "Ehssan Nazockdast": [
+    {cad:"monthly",   text:"check-in on scientific progress and support needed"},
+    {cad:"quarterly", text:"align goals to scientific milestones; check-in on leadership development and accountability"},
+  ],
+  "Graham Johnson": [
+    {cad:"monthly",   text:"check-in on data / dissemination / tool progress and support needed; review partnership roadmap and alignment with dissemination strategy"},
+    {cad:"quarterly", text:"align goals to scientific milestones; check-in on leadership development and accountability"},
+  ],
+  "Irina Mueller": [
+    {cad:"bi-weekly", text:"align on science-operations integration"},
+    {cad:"monthly",   text:"surface and correct culture gaps"},
+    {cad:"quarterly", text:"align goals to scientific milestones; check-in on leadership development and accountability"},
+  ],
+  "Kate White": [
+    {cad:"monthly",   text:"check-in on scientific progress and support needed"},
+    {cad:"quarterly", text:"align goals to scientific milestones; check-in on leadership development and accountability"},
+  ],
+  "Matheus Viana": [
+    {cad:"monthly",   text:"check-in on scientific progress and support needed"},
+    {cad:"quarterly", text:"align goals to scientific milestones; check-in on leadership development and accountability"},
+  ],
+  "Matt Kutys": [
+    {cad:"monthly",   text:"check-in on scientific progress and support needed"},
+    {cad:"quarterly", text:"align goals to scientific milestones; check-in on leadership development and accountability"},
+  ],
+  "Ops/Partnerships Director": [
+    {cad:"bi-weekly", text:"align on science-operations integration"},
+    {cad:"monthly",   text:"surface and correct culture gaps; review partnership roadmap and alignment with dissemination strategy"},
+    {cad:"quarterly", text:"align goals to scientific milestones; check-in on leadership development and accountability"},
+  ],
+};
+
 let gtPeopleLog = [];
 
 async function loadGtPeople() {
   try {
     const res  = await fetch(GT_PEOPLE_CSV_URL);
     const text = await res.text();
-    // detect row offset: if first cell is blank or "name", skip accordingly
     const parsed = Papa.parse(text, {header:false, skipEmptyLines:false}).data;
     let headers, dataRows;
     const firstCell = ((parsed[0]||[])[0]||'').trim().toLowerCase();
@@ -2951,10 +3014,9 @@ async function loadGtPeople() {
 }
 
 function getPersonLastMeeting(name) {
-  const entries = gtPeopleLog
+  return gtPeopleLog
     .filter(r => gf(r,'Name','name').toLowerCase() === name.toLowerCase())
-    .sort((a,b) => new Date(gf(b,'Date','date')) - new Date(gf(a,'Date','date')));
-  return entries[0] || null;
+    .sort((a,b) => new Date(gf(b,'Date','date')) - new Date(gf(a,'Date','date')))[0] || null;
 }
 
 function getPersonHistory(name) {
@@ -2970,106 +3032,94 @@ function daysSince(dateStr) {
   return Math.floor((new Date() - d) / 864e5);
 }
 
-function initials(name) {
-  return name.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase();
-}
-
 function chipClass(days) {
   if (days >= 60) return 'pr-over';
   if (days >= 30) return 'pr-soon';
   return 'pr-ok';
 }
-function avClass(days) {
-  if (days >= 60) return 'av-over';
-  if (days >= 30) return 'av-soon';
-  return 'av-ok';
-}
-function daysLabel(days) {
-  if (days >= 999) return 'never logged';
-  if (days === 0)  return 'today';
-  if (days === 1)  return '1 day ago';
-  return days + ' days ago';
-}
 
 let activePerson = null;
 
+function makeChip(name) {
+  const last = getPersonLastMeeting(name);
+  const days = last ? daysSince(gf(last,'Date','date')) : 999;
+  const cls  = chipClass(days);
+  const chip = document.createElement('div');
+  chip.className = 'gt-chip ' + cls;
+  chip.innerHTML = '<span class="gt-chip-name">' + escGt(name) + '</span>';
+  chip.onclick = () => gtOpenPerson(name);
+  return chip;
+}
+
 function renderGtPeople() {
-  const section = document.getElementById('gt-people-section');
-  if (!section) return;
-  const strip = document.getElementById('gt-people-strip');
-  strip.innerHTML = '';
+  const contactsStrip = document.getElementById('gt-people-strip-contacts');
+  const reportsStrip  = document.getElementById('gt-people-strip-reports');
+  if (!contactsStrip || !reportsStrip) return;
 
-  PEOPLE_CONTACTS.forEach(name => {
-    const last = getPersonLastMeeting(name);
-    const days = last ? daysSince(gf(last,'Date','date')) : 999;
-    const cls  = chipClass(days);
-    const avcl = avClass(days);
-    const chip = document.createElement('div');
-    chip.className = 'gt-chip ' + cls;
-    chip.innerHTML =
-      `<div class="gt-chip-av ${avcl}">${initials(name)}</div>` +
-      `<span class="gt-chip-name">${escGt(name)}</span>`;
-    chip.onclick = () => gtOpenPerson(name, chip);
-    strip.appendChild(chip);
-  });
+  contactsStrip.innerHTML = '';
+  reportsStrip.innerHTML  = '';
 
+  // Row 1: key contacts
+  PEOPLE_CONTACTS.forEach(name => contactsStrip.appendChild(makeChip(name)));
   // Other outreach chip
   const extChip = document.createElement('div');
   extChip.className = 'gt-chip pr-ext';
   extChip.innerHTML = '<div class="gt-chip-av" style="background:var(--bg-accent);color:var(--text-accent);font-size:11px;">↗</div><span class="gt-chip-name" style="color:var(--text-accent)">other outreach</span>';
   extChip.onclick = () => window.open(GT_CRM_URL, '_blank');
-  strip.appendChild(extChip);
+  contactsStrip.appendChild(extChip);
+
+  // Row 2: direct reports
+  DIRECT_REPORTS.forEach(name => reportsStrip.appendChild(makeChip(name)));
 }
 
-function gtOpenPerson(name, chipEl) {
+function gtOpenPerson(name) {
   if (activePerson === name) {
     activePerson = null;
     document.getElementById('gt-pdrill').style.display = 'none';
     return;
   }
   activePerson = name;
-  const last    = getPersonLastMeeting(name);
   const history = getPersonHistory(name);
-  const days    = last ? daysSince(gf(last,'Date','date')) : 999;
-  const cls     = chipClass(days);
-  const avcl    = avClass(days);
-  const avColors = {
-    'pr-ok':  'background:#E6F1FB;color:#185FA5',
-    'pr-soon':'background:#FAEEDA;color:#854F0B',
-    'pr-over':'background:#FCEBEB;color:#A32D2D',
-  };
-  const drill = document.getElementById('gt-pdrill');
-  const statusText = days >= 999 ? 'no meetings logged yet'
-    : days >= 60 ? `overdue · ${days} days since last meeting`
-    : days >= 30 ? `due soon · ${days} days since last meeting`
-    : `on track · ${days} days since last meeting`;
-  const statusColor = days >= 60 ? 'color:#A32D2D' : days >= 30 ? 'color:#B8860B' : 'color:var(--text-secondary)';
+  const agenda  = PERSON_AGENDA[name] || [];
+  const drill   = document.getElementById('gt-pdrill');
 
+  // Agenda section
+  let agendaHtml = '';
+  if (agenda.length) {
+    const items = agenda.map(a =>
+      '<div class="gt-agenda-item">' +
+        '<span class="gt-agenda-cad">' + escGt(a.cad) + '</span>' +
+        '<span class="gt-agenda-text">' + escGt(a.text) + '</span>' +
+      '</div>'
+    ).join('');
+    agendaHtml = '<div class="gt-agenda"><div class="gt-agenda-lbl">standing agenda</div>' + items + '</div>';
+  }
+
+  // History section
   let historyHtml = '';
   if (!history.length) {
     historyHtml = '<div class="gt-history-empty">no meetings logged yet.</div>';
   } else {
     historyHtml = history.map(e => {
-      const note = gf(e,'Notes','notes');
+      const note     = gf(e,'Notes','notes');
       const nextStep = gf(e,'Next step','next step','Next Step');
-      return `<div class="gt-history-item" style="border-left-color:var(--gt-c1);margin-bottom:8px;">
-        <div class="gt-history-date">${formatDate(gf(e,'Date','date'))}</div>
-        ${note ? `<div class="gt-history-note">${escGt(note)}</div>` : ''}
-        ${nextStep ? `<div style="font-size:.78rem;color:var(--text-secondary);margin-top:3px;">next: ${escGt(nextStep)}</div>` : ''}
-      </div>`;
+      return '<div class="gt-history-item" style="border-left-color:var(--gt-c1);margin-bottom:8px;">' +
+        '<div class="gt-history-date">' + formatDate(gf(e,'Date','date')) + '</div>' +
+        (note     ? '<div class="gt-history-note">' + escGt(note) + '</div>' : '') +
+        (nextStep ? '<div style="font-size:.78rem;color:var(--text-secondary);margin-top:3px;">next: ' + escGt(nextStep) + '</div>' : '') +
+      '</div>';
     }).join('');
   }
 
-  drill.innerHTML = `
-    <button class="gt-pdrill-close" onclick="gtClosePerson()">×</button>
-    <div class="gt-pdrill-head">
-      <div class="gt-pdrill-av" style="${avColors[avcl]||avColors['pr-ok']}">${initials(name)}</div>
-      <div>
-        <div class="gt-pdrill-name">${escGt(name)}</div>
-      </div>
-    </div>
-    <div class="gt-sec-lbl" style="margin-bottom:8px">meeting history</div>
-    ${historyHtml}`;
+  drill.innerHTML =
+    '<button class="gt-pdrill-close" onclick="gtClosePerson()">×</button>' +
+    '<div class="gt-pdrill-head">' +
+      '<div><div class="gt-pdrill-name">' + escGt(name) + '</div></div>' +
+    '</div>' +
+    agendaHtml +
+    '<div class="gt-sec-lbl" style="margin-bottom:8px">meeting history</div>' +
+    historyHtml;
+
   drill.style.display = '';
   drill.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
