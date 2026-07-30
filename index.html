@@ -2643,6 +2643,9 @@ window.onload = function() {
 .gt-accom-empty{padding:16px 20px;font-size:.82rem;color:var(--text-secondary);font-style:italic;}
 /* generic */
 .gt-empty{padding:14px 0;font-size:.82rem;color:var(--text-secondary);font-style:italic;}
+/* section boxes */
+.gt-section-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px;box-shadow:var(--shadow);}
+
 /* people rhythm strip */
 .gt-people-section{margin-bottom:20px;}
 .gt-people-strip{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px;}
@@ -2695,10 +2698,11 @@ window.onload = function() {
 
   <!-- view toggle + sheet bar in one row -->
   <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:20px;">
-    <div class="gt-view-toggle" style="margin-bottom:0;flex:1;">
+    <div class="gt-view-toggle" style="margin-bottom:0;flex:1;grid-template-columns:repeat(4,1fr);">
     <button class="gt-view-btn active" onclick="gtShowView('month',this)">this month</button>
     <button class="gt-view-btn" onclick="gtShowView('week',this)">this week</button>
       <button class="gt-view-btn" onclick="gtShowView('quarter',this)">this quarter</button>
+    <button class="gt-view-btn" onclick="gtShowView('accomplishments',this)">accomplishments</button>
     </div>
     <div style="text-align:right;flex-shrink:0;">
       <span class="gt-sheet-note" id="gt-status-msg" style="font-size:.75rem;display:block;">loading goals tracker…</span>
@@ -2722,6 +2726,7 @@ window.onload = function() {
   <div class="gt-view-pane active" id="gt-pane-month">
 
     <!-- people rhythm strip -->
+    <div class="gt-section-box">
     <div class="gt-people-section" id="gt-people-section">
       <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">
         <span class="gt-sec-lbl" style="margin-bottom:0;">people rhythm · monthly check-ins</span>
@@ -2737,13 +2742,19 @@ window.onload = function() {
 
     <!-- people drill panel -->
     <div class="gt-pdrill" id="gt-pdrill" style="display:none;"></div>
+    </div><!-- end people section box -->
 
+    <div class="gt-section-box">
     <div class="gt-sec-lbl" id="gt-month-heading">monthly rhythm</div>
     <div class="gt-pillar-grid" id="gt-month-pillars"></div>
+    </div><!-- end monthly rhythm box -->
+
+    <div class="gt-section-box">
     <div class="gt-sec-lbl">deadlines this month</div>
     <div class="gt-deadline-list">
       <div id="gt-month-deadlines"></div>
     </div>
+    </div><!-- end deadlines box -->
   </div>
 
   <!-- ── THIS WEEK ── -->
@@ -2778,14 +2789,19 @@ window.onload = function() {
     <div id="gt-quarter-body"></div>
   </div>
 
-  <!-- accomplishments -->
-  <div class="gt-accom-section" id="gt-accom-section" style="display:none;margin-top:32px;">
-    <div class="gt-accom-header">
-      <div class="gt-accom-title">accomplishments</div>
-      <div class="gt-accom-subtitle">auto-grouped by month · add rows to the Accomplishments tab in the sheet</div>
+  <!-- accomplishments tab pane -->
+  <div class="gt-view-pane" id="gt-pane-accomplishments">
+    <div class="gt-accom-section" id="gt-accom-section" style="display:block;">
+      <div class="gt-accom-header">
+        <div class="gt-accom-title">accomplishments</div>
+        <div class="gt-accom-subtitle">auto-grouped by month · add rows to the Accomplishments tab in the sheet</div>
+      </div>
+      <div id="gt-accom-body"><div class="gt-accom-empty">loading accomplishments…</div></div>
     </div>
-    <div id="gt-accom-body"></div>
   </div>
+
+  <!-- (end of goals tracker tab) -->
+
 
 </div>
 
@@ -2919,6 +2935,7 @@ function gtShowView(name, btn) {
   document.getElementById('gt-pane-'+name).classList.add('active');
   btn.classList.add('active');
   gtCloseDrill();
+  if (name === 'accomplishments') loadGtAccomplishments();
 }
 
 // ── Drill-down ───────────────────────────────────────────────
@@ -3530,7 +3547,7 @@ function renderGtQuarter() {
 async function loadGtAccomplishments() {
   const section = document.getElementById('gt-accom-section');
   const bodyEl  = document.getElementById('gt-accom-body');
-  section.style.display = '';
+  if (!section || !bodyEl) return;
   if (GT_ACCOM_CSV_URL.startsWith('REPLACE_WITH')) {
     bodyEl.innerHTML = '<div class="gt-accom-empty">accomplishments sheet not connected yet.</div>';
     return;
