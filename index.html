@@ -2701,7 +2701,7 @@ window.onload = function() {
   <div class="gt-view-toggle">
     <button class="gt-view-btn active" onclick="gtShowView('month',this)">this month</button>
     <button class="gt-view-btn" onclick="gtShowView('week',this)">this week</button>
-    <button class="gt-view-btn" onclick="gtShowView('quarter',this)">quarter</button>
+    <button class="gt-view-btn" onclick="gtShowView('quarter',this)">this quarter</button>
   </div>
 
   <!-- drill-down panel (shared across views) -->
@@ -2750,6 +2750,22 @@ window.onload = function() {
 
   <!-- ── QUARTER ── -->
   <div class="gt-view-pane" id="gt-pane-quarter">
+
+    <!-- quarterly people rhythm -->
+    <div class="gt-people-section" style="margin-bottom:20px;">
+      <div class="gt-sec-lbl" style="margin-bottom:6px;">people rhythm · quarterly check-ins</div>
+      <div style="font-size:.68rem;color:var(--text-secondary);margin-bottom:10px;">click any name to see quarterly agenda items and meeting history</div>
+
+      <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary);margin-bottom:6px;">all staff</div>
+      <div class="gt-people-strip" id="gt-qtr-strip-staff"></div>
+
+      <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary);margin:10px 0 6px;">direct reports</div>
+      <div class="gt-people-strip" id="gt-qtr-strip-reports"></div>
+    </div>
+
+    <!-- people drill panel for quarter view -->
+    <div class="gt-pdrill" id="gt-pdrill-qtr" style="display:none;"></div>
+
     <div id="gt-quarter-body"></div>
   </div>
 
@@ -2932,7 +2948,7 @@ function gtCloseDrill() {
 // ── People rhythm ───────────────────────────────────────────
 const PEOPLE_CONTACTS = [
   "Jen Davis","Julie Harris","Kirsten Smith","Michael Elowitz",
-  "Prisca Liberali","Raeka Aiyar","Sarah Caddick","Accelerator EVPs"
+  "Prisca Liberali","Raeka Aiyar","Sarah Caddick","Accelerator EVPs","All Staff"
 ];
 
 const DIRECT_REPORTS = [
@@ -2941,7 +2957,12 @@ const DIRECT_REPORTS = [
 ];
 
 // Agenda items shown in the drill-down for each person
+// Monthly agenda items (shown in monthly people rhythm)
 const PERSON_AGENDA = {
+  "All Staff": [
+    {cad:"monthly", text:"communication on priorities, progress, and culture"},
+    {cad:"monthly", text:"share messaging updates"},
+  ],
   "Accelerator EVPs": [
     {cad:"monthly", text:"coordinate priorities with other EVPs"},
     {cad:"monthly", text:"surface and correct culture/values gaps"},
@@ -2953,38 +2974,70 @@ const PERSON_AGENDA = {
     {cad:"monthly", text:"review leadership coaching and development progress"},
   ],
   "Dan Toloudis": [
-    {cad:"monthly",   text:"check-in on data / SWE / tool progress and support needed"},
-    {cad:"quarterly", text:"align goals to scientific milestones; check-in on leadership development and accountability"},
+    {cad:"monthly", text:"check-in on data / SWE / tool progress and support needed"},
   ],
   "Ehssan Nazockdast": [
-    {cad:"monthly",   text:"check-in on scientific progress and support needed"},
-    {cad:"quarterly", text:"align goals to scientific milestones; check-in on leadership development and accountability"},
+    {cad:"monthly", text:"check-in on scientific progress and support needed"},
   ],
   "Graham Johnson": [
-    {cad:"monthly",   text:"check-in on data / dissemination / tool progress and support needed; review partnership roadmap and alignment with dissemination strategy"},
-    {cad:"quarterly", text:"align goals to scientific milestones; check-in on leadership development and accountability"},
+    {cad:"monthly", text:"check-in on data / dissemination / tool progress and support needed; review partnership roadmap and alignment with dissemination strategy"},
   ],
   "Irina Mueller": [
     {cad:"bi-weekly", text:"align on science-operations integration"},
     {cad:"monthly",   text:"surface and correct culture gaps"},
-    {cad:"quarterly", text:"align goals to scientific milestones; check-in on leadership development and accountability"},
   ],
   "Kate White": [
-    {cad:"monthly",   text:"check-in on scientific progress and support needed"},
-    {cad:"quarterly", text:"align goals to scientific milestones; check-in on leadership development and accountability"},
+    {cad:"monthly", text:"check-in on scientific progress and support needed"},
   ],
   "Matheus Viana": [
-    {cad:"monthly",   text:"check-in on scientific progress and support needed"},
-    {cad:"quarterly", text:"align goals to scientific milestones; check-in on leadership development and accountability"},
+    {cad:"monthly", text:"check-in on scientific progress and support needed"},
   ],
   "Matt Kutys": [
-    {cad:"monthly",   text:"check-in on scientific progress and support needed"},
-    {cad:"quarterly", text:"align goals to scientific milestones; check-in on leadership development and accountability"},
+    {cad:"monthly", text:"check-in on scientific progress and support needed"},
   ],
   "Ops/Partnerships Director": [
     {cad:"bi-weekly", text:"align on science-operations integration"},
     {cad:"monthly",   text:"surface and correct culture gaps; review partnership roadmap and alignment with dissemination strategy"},
-    {cad:"quarterly", text:"align goals to scientific milestones; check-in on leadership development and accountability"},
+  ],
+};
+
+// Quarterly agenda items (shown in quarterly people rhythm)
+const PERSON_QUARTERLY_AGENDA = {
+  "All Staff": [
+    {text:"communication on priorities, progress, and culture"},
+    {text:"share messaging updates with staff"},
+  ],
+  "Dan Toloudis": [
+    {text:"align goals to scientific milestones"},
+    {text:"performance check-in (including leadership development and accountability)"},
+  ],
+  "Ehssan Nazockdast": [
+    {text:"align goals to scientific milestones"},
+    {text:"performance check-in (including leadership development and accountability)"},
+  ],
+  "Graham Johnson": [
+    {text:"align goals to scientific milestones"},
+    {text:"performance check-in (including leadership development and accountability)"},
+  ],
+  "Irina Mueller": [
+    {text:"align goals to operational milestones"},
+    {text:"performance check-in (including leadership development and accountability)"},
+  ],
+  "Kate White": [
+    {text:"align goals to scientific milestones"},
+    {text:"performance check-in (including leadership development and accountability)"},
+  ],
+  "Matheus Viana": [
+    {text:"align goals to scientific milestones"},
+    {text:"performance check-in (including leadership development and accountability)"},
+  ],
+  "Matt Kutys": [
+    {text:"align goals to scientific milestones"},
+    {text:"performance check-in (including leadership development and accountability)"},
+  ],
+  "Ops/Partnerships Director": [
+    {text:"align goals to operational and scientific milestones"},
+    {text:"performance check-in (including leadership development and accountability)"},
   ],
 };
 
@@ -3129,6 +3182,85 @@ function gtClosePerson() {
   document.getElementById('gt-pdrill').style.display = 'none';
 }
 
+// ── Quarterly people rhythm ──────────────────────────────────
+let activePersonQtr = null;
+
+function renderGtQuarterlyPeople() {
+  const staffStrip   = document.getElementById('gt-qtr-strip-staff');
+  const reportsStrip = document.getElementById('gt-qtr-strip-reports');
+  if (!staffStrip || !reportsStrip) return;
+  staffStrip.innerHTML = '';
+  reportsStrip.innerHTML = '';
+
+  // All staff chip
+  const allStaffChip = document.createElement('div');
+  allStaffChip.className = 'gt-chip pr-ok';
+  allStaffChip.innerHTML = '<span class="gt-chip-name">All Staff</span>';
+  allStaffChip.onclick = () => gtOpenPersonQtr('All Staff');
+  staffStrip.appendChild(allStaffChip);
+
+  // Direct reports
+  DIRECT_REPORTS.forEach(name => {
+    const chip = document.createElement('div');
+    chip.className = 'gt-chip pr-ok';
+    chip.innerHTML = '<span class="gt-chip-name">' + escGt(name) + '</span>';
+    chip.onclick = () => gtOpenPersonQtr(name);
+    reportsStrip.appendChild(chip);
+  });
+}
+
+function gtOpenPersonQtr(name) {
+  if (activePersonQtr === name) {
+    activePersonQtr = null;
+    document.getElementById('gt-pdrill-qtr').style.display = 'none';
+    return;
+  }
+  activePersonQtr = name;
+  const agenda  = PERSON_QUARTERLY_AGENDA[name] || [];
+  const history = getPersonHistory(name);
+  const drill   = document.getElementById('gt-pdrill-qtr');
+
+  let agendaHtml = '';
+  if (agenda.length) {
+    const items = agenda.map(a =>
+      '<div class="gt-agenda-item">' +
+        '<span class="gt-agenda-text">' + escGt(a.text) + '</span>' +
+      '</div>'
+    ).join('');
+    agendaHtml = '<div class="gt-agenda"><div class="gt-agenda-lbl">quarterly agenda</div>' + items + '</div>';
+  }
+
+  let historyHtml = '';
+  if (!history.length) {
+    historyHtml = '<div class="gt-history-empty">no meetings logged yet.</div>';
+  } else {
+    historyHtml = history.map(e => {
+      const note     = gf(e,'Notes','notes');
+      const nextStep = gf(e,'Next step','next step','Next Step');
+      return '<div class="gt-history-item" style="border-left-color:var(--gt-c1);margin-bottom:8px;">' +
+        '<div class="gt-history-date">' + formatDate(gf(e,'Date','date')) + '</div>' +
+        (note     ? '<div class="gt-history-note">' + escGt(note) + '</div>' : '') +
+        (nextStep ? '<div style="font-size:.78rem;color:var(--text-secondary);margin-top:3px;">next: ' + escGt(nextStep) + '</div>' : '') +
+      '</div>';
+    }).join('');
+  }
+
+  drill.innerHTML =
+    '<button class="gt-pdrill-close" onclick="gtClosePersonQtr()">×</button>' +
+    '<div class="gt-pdrill-head"><div><div class="gt-pdrill-name">' + escGt(name) + '</div></div></div>' +
+    agendaHtml +
+    '<div class="gt-sec-lbl" style="margin-bottom:8px">meeting history</div>' +
+    historyHtml;
+
+  drill.style.display = '';
+  drill.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function gtClosePersonQtr() {
+  activePersonQtr = null;
+  document.getElementById('gt-pdrill-qtr').style.display = 'none';
+}
+
 function renderGtMonth() {
   document.getElementById('gt-month-heading').textContent = 'monthly rhythm · '+currentMonthLabel();
   const pillarGrid = document.getElementById('gt-month-pillars');
@@ -3265,6 +3397,7 @@ function renderGtWeek() {
 
 // ── Render: quarter ──────────────────────────────────────────
 function renderGtQuarter() {
+  renderGtQuarterlyPeople();
   const body = document.getElementById('gt-quarter-body');
   body.innerHTML = '';
   const now = new Date();
