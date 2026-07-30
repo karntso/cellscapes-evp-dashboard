@@ -1205,6 +1205,24 @@
       color: var(--link-accent);
       text-decoration: none;
     }
+
+    /* leadership talks strip */
+    .tt-strip-scroll { display:flex; gap:10px; overflow-x:auto; padding-bottom:6px; }
+    .tt-strip-scroll::-webkit-scrollbar { height:4px; }
+    .tt-strip-scroll::-webkit-scrollbar-track { background:transparent; }
+    .tt-strip-scroll::-webkit-scrollbar-thumb { background:#DED9D1; border-radius:2px; }
+    .tt-card { flex-shrink:0; width:210px; background:#fff; border:1px solid #e8e4dc; border-radius:10px; padding:12px 13px; display:flex; flex-direction:column; gap:8px; }
+    .tt-card-meeting { font-size:0.86rem; font-weight:600; color:#1A1A1A; line-height:1.3; height:3.9em; overflow:hidden; }
+    .tt-card-person-row { display:flex; align-items:center; justify-content:space-between; gap:6px; }
+    .tt-card-name { font-size:0.78rem; color:#555; }
+    .tt-card-divider { height:1px; background:#f0ece4; }
+    .tt-card-meta { display:flex; flex-direction:column; gap:3px; min-height:2.4em; }
+    .tt-card-meta-row { font-size:0.74rem; color:#737373; }
+    .tt-card-badge { display:inline-block; font-size:0.65rem; font-weight:600; padding:2px 7px; border-radius:999px; white-space:nowrap; flex-shrink:0; text-transform:lowercase; background:#F1EFE8; color:#5F5E5A; }
+    .tt-material-btn { display:block; font-size:0.72rem; font-weight:600; color:var(--accent); background:var(--accent-light); padding:6px 13px; border-radius:999px; text-decoration:none; transition:background 0.12s, color 0.12s; white-space:nowrap; text-align:center; margin-top:auto; }
+    .tt-material-btn:hover { background:var(--accent); color:#fff; }
+    .tt-empty { font-size:0.84rem; color:#888; font-style:italic; padding:4px 0; }
+    .tt-hint { font-size:0.72rem; color:#AAA39F; margin-top:4px; }
   </style>
 </head>
 <body>
@@ -1272,6 +1290,24 @@
     <div class="collapsible-content open" id="rucalendar-content">
       <div class="section-body" id="rucalendar-body">
         <div class="calendar-error">Loading calendar…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leadership Talks -->
+  <div class="section-card">
+    <div class="section-header" onclick="toggleCollapse('leadershiptalks')" id="leadershiptalks-header">
+      <h2 class="section-title">leadership talks</h2>
+      <span class="collapsible-toggle" id="leadershiptalks-toggle">+</span>
+    </div>
+    <div class="collapsible-content" id="leadershiptalks-content">
+      <div class="section-body">
+        <div id="tt-status" class="tt-empty">Loading leadership talks…</div>
+        <div class="tt-strip-scroll" id="tt-strip"></div>
+        <div class="tt-hint" id="tt-hint" style="display:none;">showing presentations only · travel-only entries not displayed · scroll to see all →</div>
+        <div class="embed-footer">
+          <a href="https://docs.google.com/spreadsheets/d/1H1cN97CCsAe9WrHzNTbNwQbGc3FIcndd/edit#gid=1228322803" target="_blank">open talks &amp; travel sheet →</a>
+        </div>
       </div>
     </div>
   </div>
@@ -2366,6 +2402,103 @@ async function loadMeasuresStatus() {
 // ══════════════════════════════════════════════════════════════
 // INITIALIZE ON PAGE LOAD
 // ══════════════════════════════════════════════════════════════
+// ── Leadership Talks ────────────────────────────────────────
+const TT_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsb5OHT8jU_Ka17CUCkiL03smuHg0yXZwmEJR72UTFszwiuO6k5e4gBt_Kx6TIGA/pub?gid=1228322803&single=true&output=csv";
+
+const TT_PEOPLE_COLORS = {
+  "Daniel Toloudis":   {bg:"#E6F1FB",color:"#0C447C"},
+  "Ehssan Nazockdast": {bg:"#EAF3DE",color:"#27500A"},
+  "Graham Johnson":    {bg:"#EDE5F9",color:"#3C3489"},
+  "Irina Mueller":     {bg:"#FBEAF0",color:"#72243E"},
+  "Kate White":        {bg:"#E1F5EE",color:"#085041"},
+  "Matheus Viana":     {bg:"#FAEEDA",color:"#633806"},
+  "Matt Kutys":        {bg:"#FCEBEB",color:"#791F1F"},
+  "Ru Gunawardane":    {bg:"#EDEDFF",color:"#26215C"},
+};
+
+function ttInitials(name) {
+  return (name||'').split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase();
+}
+function ttFormatDate(start, end) {
+  if (!start) return '';
+  const s = new Date(start), e = end ? new Date(end) : null;
+  if (isNaN(s)) return start;
+  const opts = {month:'short', day:'numeric'};
+  const sy = s.getFullYear(), ey = e ? e.getFullYear() : sy;
+  const sf = s.toLocaleDateString('en-US', opts);
+  if (!e || s.toDateString() === e.toDateString()) return sf + ', ' + sy;
+  const ef = e.toLocaleDateString('en-US', opts);
+  return sf + ' – ' + ef + ', ' + ey;
+}
+function ttEsc(str) {
+  const d = document.createElement('div');
+  d.textContent = str; return d.innerHTML;
+}
+
+function renderTalksTravel(rows) {
+  const strip  = document.getElementById('tt-strip');
+  const status = document.getElementById('tt-status');
+  const hint   = document.getElementById('tt-hint');
+  if (!strip) return;
+  strip.innerHTML = '';
+  const withLink = rows.filter(r => {
+    const link = (r['Link']||r['link']||r['URL']||'').trim();
+    return link && link.length > 4;
+  });
+  withLink.sort((a,b) => {
+    const da = new Date(a['Meeting Start Date']||a['Start date']||a['Start']||'');
+    const db = new Date(b['Meeting Start Date']||b['Start date']||b['Start']||'');
+    return db - da;
+  });
+  if (!withLink.length) {
+    status.textContent = 'No talks or presentations with links found yet.';
+    status.style.display = '';
+    return;
+  }
+  status.style.display = 'none';
+  if (hint) hint.style.display = '';
+  withLink.forEach(r => {
+    const name    = (r['Attendee Name']||r['Attendee name']||r['Name']||'').trim();
+    const meeting = (r['Meeting Name']||r['Meeting name']||r['Meeting']||'').trim();
+    const startD  = (r['Meeting Start Date']||r['Start date']||r['Start']||'').trim();
+    const endD    = (r['Meeting End Date']||r['End date']||r['End']||'').trim();
+    const loc     = (r['Location']||r['location']||'').trim();
+    const type    = (r['Type (Talk, Poster)']||r['Type']||r['type']||'').trim();
+    const link    = (r['Link']||r['link']||r['URL']||'').trim();
+    const locHtml = loc ? '<div class="tt-card-meta-row">' + ttEsc(loc) + '</div>' : '';
+    const card = document.createElement('div');
+    card.className = 'tt-card';
+    card.innerHTML =
+      '<div class="tt-card-meeting">' + ttEsc(meeting) + '</div>' +
+      '<div class="tt-card-person-row">' +
+        '<span class="tt-card-name">' + ttEsc(name) + '</span>' +
+        '<span class="tt-card-badge">' + (ttEsc(type)||'talk').toLowerCase() + '</span>' +
+      '</div>' +
+      '<div class="tt-card-divider"></div>' +
+      '<div class="tt-card-meta">' +
+        '<div class="tt-card-meta-row">' + ttFormatDate(startD, endD) + '</div>' +
+        locHtml +
+      '</div>' +
+      '<a href="' + ttEsc(link) + '" target="_blank" class="tt-material-btn">view materials</a>';
+    strip.appendChild(card);
+  });
+}
+
+async function loadTalksTravel() {
+  const status = document.getElementById('tt-status');
+  if (!status) return;
+  try {
+    const res = await fetch(TT_CSV_URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const parsed = Papa.parse(text, {header:true, skipEmptyLines:true});
+    renderTalksTravel(parsed.data);
+  } catch(err) {
+    if (status) status.textContent = 'Could not load leadership talks — check the sheet is published as CSV.';
+    console.error('TT load error:', err);
+  }
+}
+
 window.onload = function() {
   let alreadyAuthed = false;
   try {
@@ -2384,6 +2517,7 @@ window.onload = function() {
   loadGoalUpdates();
   loadMeasuresStatus();
   loadGoalsTracker();
+  loadTalksTravel();
 };
 </script>
 
