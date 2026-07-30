@@ -1207,7 +1207,7 @@
     }
 
     /* leadership talks strip */
-    .tt-strip-scroll { display:flex; gap:10px; overflow-x:auto; padding-bottom:6px; }
+    .tt-strip-scroll { display:flex; gap:10px; overflow-x:auto; padding-bottom:6px; font-size:14px; }
     .tt-strip-scroll::-webkit-scrollbar { height:4px; }
     .tt-strip-scroll::-webkit-scrollbar-track { background:transparent; }
     .tt-strip-scroll::-webkit-scrollbar-thumb { background:#DED9D1; border-radius:2px; }
@@ -1221,8 +1221,8 @@
     .tt-card-badge { display:inline-block; font-size:0.65rem; font-weight:600; padding:2px 7px; border-radius:999px; white-space:nowrap; flex-shrink:0; text-transform:lowercase; background:#F1EFE8; color:#5F5E5A; }
     .tt-material-btn { display:block; font-size:0.72rem; font-weight:600; color:var(--accent); background:var(--accent-light); padding:6px 13px; border-radius:999px; text-decoration:none; transition:background 0.12s, color 0.12s; white-space:nowrap; text-align:center; margin-top:auto; }
     .tt-material-btn:hover { background:var(--accent); color:#fff; }
-    .tt-empty { font-size:0.84rem; color:#888; font-style:italic; padding:4px 0; }
-    .tt-hint { font-size:0.72rem; color:#AAA39F; margin-top:4px; }
+    .tt-empty { font-size:0.78rem; color:#888; font-style:italic; padding:4px 0; font-weight:400; }
+    .tt-hint { font-size:0.72rem; color:#AAA39F; margin-top:4px; font-weight:400; }
   </style>
 </head>
 <body>
@@ -1296,17 +1296,17 @@
 
   <!-- Leadership Talks -->
   <div class="section-card">
-    <div class="section-header" onclick="toggleCollapse('leadershiptalks')" id="leadershiptalks-header">
+    <div class="section-header open" onclick="toggleCollapse('leadershiptalks')" id="leadershiptalks-header">
       <h2 class="section-title">leadership talks</h2>
-      <span class="collapsible-toggle" id="leadershiptalks-toggle">+</span>
+      <span class="collapsible-toggle open" id="leadershiptalks-toggle">+</span>
     </div>
-    <div class="collapsible-content" id="leadershiptalks-content">
+    <div class="collapsible-content open" id="leadershiptalks-content">
       <div class="section-body">
         <div id="tt-status" class="tt-empty">Loading leadership talks…</div>
         <div class="tt-strip-scroll" id="tt-strip"></div>
-        <div class="tt-hint" id="tt-hint" style="display:none;">showing presentations only · travel-only entries not displayed · scroll to see all →</div>
+        <div class="tt-hint" id="tt-hint" style="display:none;font-size:0.72rem;color:#AAA39F;font-weight:400;">showing presentations only · travel-only entries not displayed · scroll to see all →</div>
         <div class="embed-footer">
-          <a href="https://docs.google.com/spreadsheets/d/1H1cN97CCsAe9WrHzNTbNwQbGc3FIcndd/edit#gid=1228322803" target="_blank">open talks &amp; travel sheet →</a>
+          <a href="https://docs.google.com/spreadsheets/d/1H1cN97CCsAe9WrHzNTbNwQbGc3FIcndd/edit#gid=1228322803" target="_blank" style="font-size:0.82rem;font-weight:400;">open talks &amp; travel sheet →</a>
         </div>
       </div>
     </div>
