@@ -2646,7 +2646,7 @@ window.onload = function() {
 /* people rhythm strip */
 .gt-people-section{margin-bottom:20px;}
 .gt-people-strip{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px;}
-.gt-chip{display:flex;align-items:center;gap:7px;padding:6px 12px 6px 8px;border-radius:999px;border:0.5px solid var(--border);background:var(--surface);cursor:pointer;transition:border-color .15s;}
+.gt-chip{display:flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;border:0.5px solid var(--border);background:var(--surface);cursor:pointer;transition:border-color .15s;min-height:34px;}
 .gt-chip:hover{border-color:var(--border-strong);}
 .gt-chip.pr-ok{border-color:var(--border);}
 .gt-chip.pr-soon{border-color:#BA7517;background:#FAEEDA;}
@@ -2679,7 +2679,7 @@ window.onload = function() {
 .gt-pdrill-close:hover{color:var(--text-primary);}
 .gt-agenda{margin-bottom:14px;}
 .gt-agenda-lbl{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-secondary);margin-bottom:6px;}
-.gt-agenda-item{display:flex;align-items:baseline;gap:6px;padding:5px 0;border-bottom:1px solid var(--surface-2);font-size:.82rem;}
+.gt-agenda-item{display:flex;align-items:baseline;gap:6px;padding:5px 0;border-bottom:1px solid var(--surface-2);font-size:.82rem;flex-wrap:wrap;}
 .gt-agenda-item:last-child{border-bottom:none;}
 .gt-agenda-cad{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary);background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:1px 6px;white-space:nowrap;flex-shrink:0;}
 .gt-agenda-text{color:var(--text-primary);line-height:1.4;}
@@ -2957,20 +2957,19 @@ function gtCloseDrill() {
 // ── People rhythm ───────────────────────────────────────────
 const PEOPLE_CONTACTS = [
   "Jen Davis","Julie Harris","Kirsten Smith","Michael Elowitz",
-  "Prisca Liberali","Raeka Aiyar","Sarah Caddick","Accelerator EVPs","All Staff"
+  "Prisca Liberali","Raeka Aiyar","Sarah Caddick","Accelerator EVPs"
 ];
 
 const DIRECT_REPORTS = [
-  "Dan Toloudis","Ehssan Nazockdast","Graham Johnson","Irina Mueller",
+  "Leadership","Dan Toloudis","Ehssan Nazockdast","Graham Johnson","Irina Mueller",
   "Kate White","Matheus Viana","Matt Kutys","Ops/Partnerships Director"
 ];
 
 // Agenda items shown in the drill-down for each person
 // Monthly agenda items (shown in monthly people rhythm)
 const PERSON_AGENDA = {
-  "All Staff": [
-    {cad:"monthly", text:"communication on priorities, progress, and culture"},
-    {cad:"monthly", text:"share messaging updates"},
+  "Leadership": [
+    {cad:"monthly", text:"ops: review leadership effectiveness, org health, culture"},
   ],
   "Accelerator EVPs": [
     {cad:"monthly", text:"coordinate priorities with other EVPs"},
@@ -3015,6 +3014,9 @@ const PERSON_QUARTERLY_AGENDA = {
   "All Staff": [
     {text:"communication on priorities, progress, and culture"},
     {text:"share messaging updates with staff"},
+  ],
+  "Leadership": [
+    {text:"assess scientific progress against annual goals and adjust priorities as needed"},
   ],
   "Dan Toloudis": [
     {text:"align goals to scientific milestones"},
@@ -3152,8 +3154,8 @@ function gtOpenPerson(name) {
     const items = agenda.map(a =>
       '<div class="gt-agenda-item' + (multi ? ' gt-agenda-item--bulleted' : '') + '">' +
         (multi ? '<span class="gt-agenda-bullet">·</span>' : '') +
-        '<span class="gt-agenda-cad">' + escGt(a.cad) + '</span>' +
         '<span class="gt-agenda-text">' + escGt(a.text) + '</span>' +
+        '<span class="gt-agenda-cad">' + escGt(a.cad) + '</span>' +
       '</div>'
     ).join('');
     agendaHtml = '<div class="gt-agenda"><div class="gt-agenda-lbl">standing agenda</div>' + items + '</div>';
@@ -3238,6 +3240,7 @@ function gtOpenPersonQtr(name) {
       '<div class="gt-agenda-item' + (multiQ ? ' gt-agenda-item--bulleted' : '') + '">' +
         (multiQ ? '<span class="gt-agenda-bullet">·</span>' : '') +
         '<span class="gt-agenda-text">' + escGt(a.text) + '</span>' +
+        '<span class="gt-agenda-cad">quarterly</span>' +
       '</div>'
     ).join('');
     agendaHtml = '<div class="gt-agenda"><div class="gt-agenda-lbl">quarterly agenda</div>' + items + '</div>';
