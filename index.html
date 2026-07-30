@@ -3019,6 +3019,7 @@ const PERSON_QUARTERLY_AGENDA = {
   "Leadership": [
     {text:"assess scientific progress against annual goals and adjust priorities as needed"},
     {text:"review publication pipeline, scientific portfolio, and resource allocation"},
+    {text:"review organizational metrics; adjust execution plans as needed"},
   ],
   "Dan Toloudis": [
     {text:"align goals to scientific milestones"},
@@ -3161,10 +3162,9 @@ function gtOpenPerson(name) {
     const cadOrder = ['bi-weekly','monthly','quarterly'];
     const groupsHtml = cadOrder.filter(c => cadGroups[c]).map(cad => {
       const texts = cadGroups[cad];
-      const multi = texts.length > 1;
       const rows = texts.map(t =>
-        '<div class="gt-agenda-item' + (multi ? ' gt-agenda-item--bulleted' : '') + '">' +
-          (multi ? '<span class="gt-agenda-bullet">·</span>' : '') +
+        '<div class="gt-agenda-item gt-agenda-item--bulleted">' +
+          '<span class="gt-agenda-bullet">·</span>' +
           '<span class="gt-agenda-text">' + escGt(t) + '</span>' +
         '</div>'
       ).join('');
@@ -3249,10 +3249,9 @@ function gtOpenPersonQtr(name) {
 
   let agendaHtml = '';
   if (agenda.length) {
-    const multiQ = agenda.length > 1;
     const qtrItems = agenda.map(a =>
-      '<div class="gt-agenda-item' + (multiQ ? ' gt-agenda-item--bulleted' : '') + '">' +
-        (multiQ ? '<span class="gt-agenda-bullet">·</span>' : '') +
+      '<div class="gt-agenda-item gt-agenda-item--bulleted">' +
+        '<span class="gt-agenda-bullet">·</span>' +
         '<span class="gt-agenda-text">' + escGt(a.text) + '</span>' +
       '</div>'
     ).join('');
