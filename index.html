@@ -2970,6 +2970,7 @@ const DIRECT_REPORTS = [
 const PERSON_AGENDA = {
   "Leadership": [
     {cad:"monthly", text:"ops: review leadership effectiveness, org health, culture"},
+    {cad:"monthly", text:"review advisor / partnership / collaboration engagement and progress"},
   ],
   "Accelerator EVPs": [
     {cad:"monthly", text:"coordinate priorities with other EVPs"},
@@ -3020,6 +3021,8 @@ const PERSON_QUARTERLY_AGENDA = {
     {text:"assess scientific progress against annual goals and adjust priorities as needed"},
     {text:"review publication pipeline, scientific portfolio, and resource allocation"},
     {text:"review organizational metrics; adjust execution plans as needed"},
+    {cad:"mid-year", text:"assess organizational effectiveness, leadership growth, and execution"},
+    {cad:"mid-year", text:"evaluate culture shift"},
   ],
   "Dan Toloudis": [
     {text:"align goals to scientific milestones"},
@@ -3249,15 +3252,26 @@ function gtOpenPersonQtr(name) {
 
   let agendaHtml = '';
   if (agenda.length) {
-    const qtrItems = agenda.map(a =>
-      '<div class="gt-agenda-item gt-agenda-item--bulleted">' +
-        '<span class="gt-agenda-bullet">·</span>' +
-        '<span class="gt-agenda-text">' + escGt(a.text) + '</span>' +
-      '</div>'
-    ).join('');
-    agendaHtml = '<div class="gt-agenda"><div class="gt-agenda-lbl">quarterly agenda</div>' +
-      '<span class="gt-agenda-cad" style="margin-bottom:4px;display:inline-block;">quarterly</span>' +
-      qtrItems + '</div>';
+    // Group quarterly items: items without cad = quarterly, items with cad = their own group
+    const qtrGroups = {};
+    agenda.forEach(a => {
+      const g = a.cad || 'quarterly';
+      if (!qtrGroups[g]) qtrGroups[g] = [];
+      qtrGroups[g].push(a.text);
+    });
+    const qtrGroupOrder = ['quarterly','mid-year'];
+    const qtrGroupsHtml = qtrGroupOrder.filter(g => qtrGroups[g]).map(grp => {
+      const rows = qtrGroups[grp].map(t =>
+        '<div class="gt-agenda-item gt-agenda-item--bulleted">' +
+          '<span class="gt-agenda-bullet">·</span>' +
+          '<span class="gt-agenda-text">' + escGt(t) + '</span>' +
+        '</div>'
+      ).join('');
+      return '<div style="margin-bottom:8px;">' +
+        '<span class="gt-agenda-cad" style="margin-bottom:4px;display:inline-block;">' + escGt(grp) + '</span>' +
+        rows + '</div>';
+    }).join('');
+    agendaHtml = '<div class="gt-agenda"><div class="gt-agenda-lbl">quarterly agenda</div>' + qtrGroupsHtml + '</div>';
   }
 
   let historyHtml = '';
