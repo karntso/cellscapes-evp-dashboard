@@ -2683,6 +2683,8 @@ window.onload = function() {
 .gt-agenda-item:last-child{border-bottom:none;}
 .gt-agenda-cad{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary);background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:1px 6px;white-space:nowrap;flex-shrink:0;}
 .gt-agenda-text{color:var(--text-primary);line-height:1.4;}
+.gt-agenda-item--bulleted{padding-left:8px;}
+.gt-agenda-bullet{color:var(--text-secondary);margin-right:5px;flex-shrink:0;font-size:.8rem;}
 .gt-status-msg{font-size:.82rem;color:var(--text-secondary);padding:6px 0;}
 .gt-select{font-family:Arial,sans-serif;font-size:.78rem;color:var(--text-primary);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;cursor:pointer;}
 .gt-select:focus{outline:none;border-color:var(--gt-c1);}
@@ -2691,17 +2693,20 @@ window.onload = function() {
 <!-- Goals Tracker Tab -->
 <div id="tab-goals-tracker" class="tab-content">
 
-  <div class="gt-sheet-bar">
-    <span class="gt-sheet-note" id="gt-status-msg">loading goals tracker…</span>
-    <a id="gt-sheet-link" href="#" target="_blank" class="gt-sheet-link" style="display:none;">open sheet to edit →</a>
-    <span class="gt-last-updated" id="gt-last-updated"></span>
-  </div>
-
-  <!-- view toggle -->
-  <div class="gt-view-toggle">
+  <!-- view toggle + sheet bar in one row -->
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:20px;">
+    <div class="gt-view-toggle" style="margin-bottom:0;flex:1;">
     <button class="gt-view-btn active" onclick="gtShowView('month',this)">this month</button>
     <button class="gt-view-btn" onclick="gtShowView('week',this)">this week</button>
-    <button class="gt-view-btn" onclick="gtShowView('quarter',this)">this quarter</button>
+      <button class="gt-view-btn" onclick="gtShowView('quarter',this)">this quarter</button>
+    </div>
+    <div style="text-align:right;flex-shrink:0;">
+      <span class="gt-sheet-note" id="gt-status-msg" style="font-size:.75rem;display:block;">loading goals tracker…</span>
+      <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end;margin-top:2px;">
+        <a id="gt-sheet-link" href="#" target="_blank" class="gt-sheet-link" style="display:none;font-size:.75rem;">open sheet to edit →</a>
+        <span class="gt-last-updated" id="gt-last-updated" style="font-size:.72rem;"></span>
+      </div>
+    </div>
   </div>
 
   <!-- drill-down panel (shared across views) -->
@@ -2718,8 +2723,10 @@ window.onload = function() {
 
     <!-- people rhythm strip -->
     <div class="gt-people-section" id="gt-people-section">
-      <div class="gt-sec-lbl" style="margin-bottom:6px">people rhythm · monthly check-ins</div>
-      <div style="font-size:.68rem;color:var(--text-secondary);margin-bottom:8px;">click any name to see meeting history and agenda items</div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">
+        <span class="gt-sec-lbl" style="margin-bottom:0;">people rhythm · monthly check-ins</span>
+        <span style="font-size:.68rem;color:var(--text-secondary);font-weight:400;">· click any name to see history and agenda items</span>
+      </div>
 
       <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary);margin-bottom:6px;">key contacts</div>
       <div class="gt-people-strip" id="gt-people-strip-contacts"></div>
@@ -2753,8 +2760,10 @@ window.onload = function() {
 
     <!-- quarterly people rhythm -->
     <div class="gt-people-section" style="margin-bottom:20px;">
-      <div class="gt-sec-lbl" style="margin-bottom:6px;">people rhythm · quarterly check-ins</div>
-      <div style="font-size:.68rem;color:var(--text-secondary);margin-bottom:10px;">click any name to see quarterly agenda items and meeting history</div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px;">
+        <span class="gt-sec-lbl" style="margin-bottom:0;">people rhythm · quarterly check-ins</span>
+        <span style="font-size:.68rem;color:var(--text-secondary);font-weight:400;">· click any name to see history and agenda items</span>
+      </div>
 
       <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary);margin-bottom:6px;">all staff</div>
       <div class="gt-people-strip" id="gt-qtr-strip-staff"></div>
@@ -2770,7 +2779,7 @@ window.onload = function() {
   </div>
 
   <!-- accomplishments -->
-  <div class="gt-accom-section" id="gt-accom-section" style="display:none;">
+  <div class="gt-accom-section" id="gt-accom-section" style="display:none;margin-top:32px;">
     <div class="gt-accom-header">
       <div class="gt-accom-title">accomplishments</div>
       <div class="gt-accom-subtitle">auto-grouped by month · add rows to the Accomplishments tab in the sheet</div>
@@ -3139,8 +3148,10 @@ function gtOpenPerson(name) {
   // Agenda section
   let agendaHtml = '';
   if (agenda.length) {
+    const multi = agenda.length > 1;
     const items = agenda.map(a =>
-      '<div class="gt-agenda-item">' +
+      '<div class="gt-agenda-item' + (multi ? ' gt-agenda-item--bulleted' : '') + '">' +
+        (multi ? '<span class="gt-agenda-bullet">·</span>' : '') +
         '<span class="gt-agenda-cad">' + escGt(a.cad) + '</span>' +
         '<span class="gt-agenda-text">' + escGt(a.text) + '</span>' +
       '</div>'
@@ -3222,8 +3233,10 @@ function gtOpenPersonQtr(name) {
 
   let agendaHtml = '';
   if (agenda.length) {
+    const multiQ = agenda.length > 1;
     const items = agenda.map(a =>
-      '<div class="gt-agenda-item">' +
+      '<div class="gt-agenda-item' + (multiQ ? ' gt-agenda-item--bulleted' : '') + '">' +
+        (multiQ ? '<span class="gt-agenda-bullet">·</span>' : '') +
         '<span class="gt-agenda-text">' + escGt(a.text) + '</span>' +
       '</div>'
     ).join('');
