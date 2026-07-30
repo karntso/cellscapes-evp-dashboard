@@ -1255,6 +1255,7 @@
 <div class="tabs">
   <button class="tab-btn active" onclick="switchTab('priorities', event)">priorities &amp; calendar</button>
   <button class="tab-btn" onclick="switchTab('goals-tracker', event)">goals tracker</button>
+  <button class="tab-btn" onclick="switchTab('accomplishments', event)">accomplishments</button>
 </div>
 
 <!-- Tab 1: Ru's Priorities -->
@@ -1404,6 +1405,7 @@ function switchTab(tabName, evt) {
   document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
   document.getElementById('tab-' + tabName).classList.add('active');
   if (evt && evt.target) evt.target.classList.add('active');
+  if (tabName === 'accomplishments') loadTopLevelAccomplishments();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -2698,11 +2700,11 @@ window.onload = function() {
 
   <!-- view toggle + sheet bar in one row -->
   <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:20px;">
-    <div class="gt-view-toggle" style="margin-bottom:0;flex:1;grid-template-columns:repeat(4,1fr);">
+    <div class="gt-view-toggle" style="margin-bottom:0;flex:1;grid-template-columns:repeat(3,1fr);">
     <button class="gt-view-btn active" onclick="gtShowView('month',this)">this month</button>
     <button class="gt-view-btn" onclick="gtShowView('week',this)">this week</button>
       <button class="gt-view-btn" onclick="gtShowView('quarter',this)">this quarter</button>
-    <button class="gt-view-btn" onclick="gtShowView('accomplishments',this)">accomplishments</button>
+
     </div>
     <div style="text-align:right;flex-shrink:0;">
       <span class="gt-sheet-note" id="gt-status-msg" style="font-size:.75rem;display:block;">loading goals tracker…</span>
@@ -2789,20 +2791,20 @@ window.onload = function() {
     <div id="gt-quarter-body"></div>
   </div>
 
-  <!-- accomplishments tab pane -->
-  <div class="gt-view-pane" id="gt-pane-accomplishments">
-    <div class="gt-accom-section" id="gt-accom-section" style="display:block;">
-      <div class="gt-accom-header">
-        <div class="gt-accom-title">accomplishments</div>
-        <div class="gt-accom-subtitle">auto-grouped by month · add rows to the Accomplishments tab in the sheet</div>
-      </div>
-      <div id="gt-accom-body"><div class="gt-accom-empty">loading accomplishments…</div></div>
-    </div>
-  </div>
-
   <!-- (end of goals tracker tab) -->
 
 
+</div>
+
+<!-- Tab 3: Accomplishments -->
+<div id="tab-accomplishments" class="tab-content">
+  <div class="gt-accom-section" id="gt-accom-section-main" style="display:block;margin-top:0;">
+    <div class="gt-accom-header">
+      <div class="gt-accom-title">accomplishments</div>
+      <div class="gt-accom-subtitle">auto-grouped by month · add rows to the Accomplishments tab in the sheet</div>
+    </div>
+    <div id="gt-accom-body-main"><div class="gt-accom-empty">loading accomplishments…</div></div>
+  </div>
 </div>
 
 <script>
@@ -3544,6 +3546,50 @@ function renderGtQuarter() {
 }
 
 // ── Render: accomplishments ──────────────────────────────────
+async function loadTopLevelAccomplishments() {
+  const bodyEl = document.getElementById('gt-accom-body-main');
+  if (!bodyEl || bodyEl.dataset.loaded) return;
+  bodyEl.dataset.loaded = 'true';
+  const MONTHS_LONG = ["january","february","march","april","may","june","july","august","september","october","november","december"];
+  try {
+    const res  = await fetch(GT_ACCOM_CSV_URL);
+    const text = await res.text();
+    const rows = parseCSV(text, 0);
+    if (!rows.length) { bodyEl.innerHTML = '<div class="gt-accom-empty">no accomplishments logged yet.</div>'; return; }
+    const months = {};
+    rows.forEach(r => {
+      const ds = gf(r,'Date','date');
+      let key = 'undated', label = 'undated';
+      if (ds) { const d = new Date(ds); if (!isNaN(d)) { key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); label = MONTHS_LONG[d.getMonth()]+' '+d.getFullYear(); } }
+      if (!months[key]) months[key] = {label, rows:[]};
+      months[key].rows.push(r);
+    });
+    const keys = Object.keys(months).filter(k=>k!=='undated').sort().reverse();
+    if (months.undated) keys.push('undated');
+    bodyEl.innerHTML = '';
+    keys.forEach(key => {
+      const {label, rows: mRows} = months[key];
+      const div = document.createElement('div');
+      div.className = 'gt-accom-month';
+      div.innerHTML = '<div class="gt-accom-month-label">'+label+'</div>';
+      mRows.forEach(r => {
+        const pm   = GT_PILLARS.find(p => p.key === gf(r,'Pillar','pillar'));
+        const dot  = pm ? pm.color : 'var(--text-secondary)';
+        const note = gf(r,'Notes','notes');
+        const row  = document.createElement('div');
+        row.className = 'gt-accom-row';
+        row.innerHTML = '<span class="gt-accom-pillar-dot" style="background:'+dot+'"></span>' +
+          '<span class="gt-accom-text">'+escGt(gf(r,'Accomplishment','accomplishment'))+'</span>' +
+          (note ? '<span class="gt-accom-note">'+escGt(note)+'</span>' : '');
+        div.appendChild(row);
+      });
+      bodyEl.appendChild(div);
+    });
+  } catch(e) {
+    bodyEl.innerHTML = '<div class="gt-accom-empty">could not load accomplishments.</div>';
+  }
+}
+
 async function loadGtAccomplishments() {
   const section = document.getElementById('gt-accom-section');
   const bodyEl  = document.getElementById('gt-accom-body');
