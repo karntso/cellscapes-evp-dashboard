@@ -2583,11 +2583,7 @@ window.onload = function() {
     <!-- people rhythm strip -->
     <div class="gt-people-section" id="gt-people-section">
       <div class="gt-sec-lbl">people rhythm · monthly check-ins</div>
-      <div class="gt-people-legend">
-        <div class="gt-pl-item"><div class="gt-pl-dot" style="background:#185FA5"></div>on track (&lt;30 days)</div>
-        <div class="gt-pl-item"><div class="gt-pl-dot" style="background:#BA7517"></div>due soon (30–59 days)</div>
-        <div class="gt-pl-item"><div class="gt-pl-dot" style="background:#E24B4A"></div>overdue (60+ days)</div>
-      </div>
+
       <div class="gt-people-strip" id="gt-people-strip"></div>
       <div style="font-size:.72rem;color:var(--text-secondary);font-style:italic;margin-bottom:12px;">click any name to see history · "other outreach" opens the CRM</div>
     </div>
@@ -2882,8 +2878,7 @@ function renderGtPeople() {
     chip.className = 'gt-chip ' + cls;
     chip.innerHTML =
       `<div class="gt-chip-av ${avcl}">${initials(name)}</div>` +
-      `<div><div class="gt-chip-name">${escGt(name)}</div>` +
-      `<div class="gt-chip-since">${daysLabel(days)}</div></div>`;
+      `<span class="gt-chip-name">${escGt(name)}</span>`;
     chip.onclick = () => gtOpenPerson(name, chip);
     strip.appendChild(chip);
   });
@@ -2891,7 +2886,7 @@ function renderGtPeople() {
   // Other outreach chip
   const extChip = document.createElement('div');
   extChip.className = 'gt-chip pr-ext';
-  extChip.innerHTML = '<i class="ti ti-external-link" aria-hidden="true" style="font-size:15px"></i><span class="gt-chip-name">other outreach →</span>';
+  extChip.innerHTML = '<div class="gt-chip-av" style="background:var(--bg-accent);color:var(--text-accent);font-size:11px;">↗</div><span class="gt-chip-name" style="color:var(--text-accent)">other outreach</span>';
   extChip.onclick = () => window.open(GT_CRM_URL, '_blank');
   strip.appendChild(extChip);
 }
@@ -2941,7 +2936,6 @@ function gtOpenPerson(name, chipEl) {
       <div class="gt-pdrill-av" style="${avColors[avcl]||avColors['pr-ok']}">${initials(name)}</div>
       <div>
         <div class="gt-pdrill-name">${escGt(name)}</div>
-        <div class="gt-pdrill-status" style="${statusColor}">${statusText}</div>
       </div>
     </div>
     <div class="gt-sec-lbl" style="margin-bottom:8px">meeting history</div>
