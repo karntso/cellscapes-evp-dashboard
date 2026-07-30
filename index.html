@@ -496,7 +496,8 @@
       padding-top: 3px;
       min-height: 30px;
     }
-    .calendar-week-focus {
+    .calendar-week-focus { display:none !important; }
+    .calendar-week-focus-DISABLED {
       grid-column: 1 / -1;
       background: #F5F5FF;
       border-radius: 8px;
@@ -1250,11 +1251,12 @@
     <div class="collapsible-content" id="quicklinks-content">
       <div class="section-body">
         <div class="quick-links-grid">
+          <a href="https://alleninstitute-my.sharepoint.com/:w:/r/personal/kristine_arntson_alleninstitute_org/Documents/2026%20CellScapes/Leadership%20Meetings/Leadership%20documents/2026%20leadership%20strategic%20planning/Execution%20plan/CellScapes_Execution_Plan_DRAFT_v3.docx?d=w573e1dba17234cf19f4ead6c7cdeb2db&csf=1&web=1&e=Ar4hiJ" target="_blank" class="quick-link-btn">execution plan</a>
+          <a href="https://alleninstitute-my.sharepoint.com/:x:/r/personal/kristine_arntson_alleninstitute_org/Documents/2026%20CellScapes/leadership%20team%20documents/2026%20Cell%20Science%20staff%20roster.xlsx?d=wad418cc01f1e4fc2a6cce9244e247fc5&csf=1&web=1&e=KfX9HV" target="_blank" class="quick-link-btn">staff roster</a>
+          <a href="https://alleninstitute-my.sharepoint.com/:p:/r/personal/kristine_arntson_alleninstitute_org/Documents/2026%20CellScapes/leadership%20team%20documents/2026%20Cell%20Science%20org%20chart.pptx?d=wbfa513195b19466f9a36af30016fb984&csf=1&web=1&e=4CBIkG" target="_blank" class="quick-link-btn">org chart</a>
           <a href="https://alleninstitute.sharepoint.com/:f:/s/AICSPrograms/IgB8sUQtpwd0SLiWBI67xBSUAbygBxLsKOjYXhS4yKyu8Ko?e=PTx1r1" target="_blank" class="quick-link-btn">SAC presentations</a>
           <a href="https://alleninstitute.sharepoint.com/:f:/s/AICSPrograms/IgAARZCTXep1SaGLtZk-YMdhAXqYoWvA8Dp0oPcyystuZpU?e=gOjiAe" target="_blank" class="quick-link-btn">conference presentations</a>
           <a href="https://github.com/orgs/AllenCell/projects/20/views/1" target="_blank" class="quick-link-btn">dissemination progress board</a>
-          <a href="https://alleninstitute-my.sharepoint.com/:x:/r/personal/kristine_arntson_alleninstitute_org/Documents/2026%20CellScapes/leadership%20team%20documents/2026%20Cell%20Science%20staff%20roster.xlsx?d=wad418cc01f1e4fc2a6cce9244e247fc5&csf=1&web=1&e=KfX9HV" target="_blank" class="quick-link-btn">staff roster</a>
-          <a href="https://alleninstitute-my.sharepoint.com/:p:/r/personal/kristine_arntson_alleninstitute_org/Documents/2026%20CellScapes/leadership%20team%20documents/2026%20Cell%20Science%20org%20chart.pptx?d=wbfa513195b19466f9a36af30016fb984&csf=1&web=1&e=4CBIkG" target="_blank" class="quick-link-btn">org chart</a>
         </div>
       </div>
     </div>
@@ -1596,10 +1598,7 @@ function buildMonthGrid(monthDate, dayIndex, today) {
   let weekStartDate = null;
 
   function appendWeekFocusSlot() {
-    const slot = document.createElement('div');
-    slot.className = 'calendar-week-focus';
-    slot.id = 'week-focus-' + dateKeyRu(weekStartDate);
-    grid.appendChild(slot);
+    // goal focus removed — now lives in Goals Tracker tab
   }
 
   for (let day = 1; day <= daysInMonth; day++) {
@@ -2035,10 +2034,7 @@ function renderCalendarWeekFocus(rows) {
 
     const bullets = matches.slice(0, 3).map(m => `<li>${escapeHtmlEP(m.Action)} <span style="color:var(--text-secondary);">(${escapeHtmlEP(m.Category)})</span></li>`).join('');
     const more = matches.length > 3 ? `<li style="color:var(--text-secondary);">+${matches.length - 3} more</li>` : '';
-    slot.innerHTML = `
-      <div class="cwf-label">Goal focus this week</div>
-      <ul class="cwf-bullets">${bullets}${more}</ul>
-    `;
+    slot.innerHTML = '';
   });
 }
 
@@ -2423,10 +2419,10 @@ window.onload = function() {
 .gt-sheet-link:hover{text-decoration:underline;}
 .gt-last-updated{font-size:.78rem;color:var(--text-secondary);font-style:italic;}
 /* view toggle */
-.gt-view-toggle{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px;}
-.gt-view-btn{padding:8px 18px;font-family:Arial,sans-serif;font-size:.82rem;font-weight:600;color:var(--text-secondary);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:color .15s,border-color .15s;}
-.gt-view-btn:hover{color:var(--text-primary);}
-.gt-view-btn.active{color:var(--text-primary);border-bottom-color:var(--gt-c1);}
+.gt-view-toggle{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px;}
+.gt-view-btn{padding:7px 12px;font-family:Arial,sans-serif;font-size:.82rem;font-weight:600;color:var(--text-secondary);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;white-space:nowrap;text-align:center;transition:background .15s,color .15s,border-color .15s;}
+.gt-view-btn:hover{background:var(--surface-1);color:var(--text-primary);border-color:var(--border-strong);}
+.gt-view-btn.active{background:var(--gt-c1);color:#fff;border-color:var(--gt-c1);}
 .gt-view-pane{display:none;}
 .gt-view-pane.active{display:block;}
 /* section label */
