@@ -817,8 +817,9 @@
     }
     .ee-table-header {
       display: grid;
-      grid-template-columns: 56px 170px 1fr 1fr 80px 14px;
-      gap: 10px;
+      grid-template-columns: 56px 180px 1fr 1fr 88px 14px;
+      gap: 0;
+      column-gap: 0;
       align-items: center;
       padding: 7px 14px;
       background: var(--surface-2);
@@ -832,8 +833,9 @@
     }
     .ee-row {
       display: grid;
-      grid-template-columns: 56px 170px 1fr 1fr 80px 14px;
-      gap: 10px;
+      grid-template-columns: 56px 180px 1fr 1fr 88px 14px;
+      gap: 0;
+      column-gap: 0;
       align-items: center;
       padding: 9px 14px;
       border-top: 1px solid #EFEBE3;
@@ -854,6 +856,7 @@
       font-size: 0.76rem;
       color: var(--text-secondary);
       white-space: nowrap;
+      padding-right: 14px;
     }
     .ee-date.no-date {
       font-style: italic;
@@ -864,6 +867,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      padding-right: 14px;
     }
     .ee-contact-email {
       display: block;
@@ -1120,6 +1124,13 @@
     }
 
     /* ── Travel Cards ────────────────────────────── */
+    .travel-status-badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
     .travel-preview-note {
       font-size: 0.78rem;
       color: var(--text-secondary);
@@ -1764,6 +1775,19 @@ async function loadEvpTravel() {
   }
 }
 
+const TRAVEL_STATUS_COLORS = {
+  "Completed":    "#E8F5E9",
+  "Canceled":     "#F1EFE8",
+  "To Reschedule":"#FFF8E1",
+  "To Confirm":   "#EDEDFF",
+};
+const TRAVEL_STATUS_TEXT = {
+  "Completed":    "#2E7B34",
+  "Canceled":     "#737373",
+  "To Reschedule":"#B8860B",
+  "To Confirm":   "#4040CC",
+};
+
 function renderTravelCards(rows, isPreview) {
   const body = document.getElementById('travel-body');
   body.innerHTML = '';
@@ -1801,7 +1825,10 @@ function renderTravelCards(rows, isPreview) {
     item.innerHTML = `
       <div class="travel-item-top">
         <div class="travel-item-title">${escapeHtml(row['Trip'] || '')}</div>
-        <div class="travel-item-dates">${formatDateRange(row['Start Date'], row['End Date'])}</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="travel-item-dates">${formatDateRange(row['Start Date'], row['End Date'])}</div>
+          ${row['Status'] ? `<span class="travel-status-badge" style="background:${TRAVEL_STATUS_COLORS[row['Status']]||'#F1EFE8'};color:${TRAVEL_STATUS_TEXT[row['Status']]||'#737373'}">${escapeHtml(row['Status'])}</span>` : ''}
+        </div>
       </div>
       <div class="travel-item-dest">${escapeHtml(row['Destination'] || '')}</div>
       <div class="travel-checks">
@@ -2785,6 +2812,23 @@ window.onload = function() {
 <!-- Tab 4: Travel & Outreach -->
 <div id="tab-travel-outreach" class="tab-content">
 
+<!-- EVP Travel -->
+  <div class="section-card">
+    <div class="section-header open" onclick="toggleCollapse('travel')" id="travel-header">
+      <h2 class="section-title">EVP travel</h2>
+      <span class="collapsible-toggle open" id="travel-toggle">+</span>
+    </div>
+    <div class="collapsible-content open" id="travel-content">
+      <div class="section-body" id="travel-body">
+        <div class="calendar-error">Loading travel details…</div>
+      </div>
+    </div>
+  </div>
+
+
+
+</div>
+
 <!-- EVP External Engagement -->
   <div class="section-card">
     <div class="section-header open" onclick="toggleCollapse('external')" id="external-header">
@@ -2806,22 +2850,6 @@ window.onload = function() {
     </div>
   </div>
 
-<!-- EVP Travel -->
-  <div class="section-card">
-    <div class="section-header open" onclick="toggleCollapse('travel')" id="travel-header">
-      <h2 class="section-title">EVP travel</h2>
-      <span class="collapsible-toggle open" id="travel-toggle">+</span>
-    </div>
-    <div class="collapsible-content open" id="travel-content">
-      <div class="section-body" id="travel-body">
-        <div class="calendar-error">Loading travel details…</div>
-      </div>
-    </div>
-  </div>
-
-
-
-</div>
 
 <script>
 // ══════════════════════════════════════════════════════════════
