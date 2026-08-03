@@ -1139,39 +1139,56 @@
       padding: 8px 12px;
       margin-bottom: 14px;
     }
+    /* horizontal scroll strip */
     .travel-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      display: flex;
       gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 6px;
     }
+    .travel-grid::-webkit-scrollbar { height: 4px; }
+    .travel-grid::-webkit-scrollbar-track { background: transparent; }
+    .travel-grid::-webkit-scrollbar-thumb { background: #DED9D1; border-radius: 2px; }
     .travel-item {
+      flex-shrink: 0;
+      width: 200px;
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
     }
+    /* title row: name left, date pinned right */
     .travel-item-top {
       display: flex;
       justify-content: space-between;
-      align-items: baseline;
+      align-items: flex-start;
       gap: 8px;
-      margin-bottom: 2px;
+      margin-bottom: 4px;
     }
     .travel-item-title {
       font-weight: 700;
       font-size: 0.86rem;
       color: var(--text-primary);
+      line-height: 1.3;
+      flex: 1;
+    }
+    .travel-item-dates {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--accent);
+      white-space: nowrap;
+      flex-shrink: 0;
+      text-align: right;
+    }
+    /* status badge sits below title */
+    .travel-item-status-row {
+      margin-bottom: 4px;
     }
     .travel-item-dest {
       font-size: 0.76rem;
       color: var(--text-secondary);
       margin-bottom: 8px;
-    }
-    .travel-item-dates {
-      font-size: 0.74rem;
-      font-weight: 600;
-      color: var(--accent);
-      white-space: nowrap;
-      flex-shrink: 0;
     }
     .travel-checks {
       display: flex;
@@ -1819,27 +1836,21 @@ function renderTravelCards(rows, isPreview) {
     const item = document.createElement('div');
     item.className = 'travel-item';
 
-    const flightDone = parseBool(row['Flight Booked']);
-    const hotelDone = parseBool(row['Hotel Booked']);
+    const flightRaw = (row['Flight Booked'] || '').trim();
+    const hotelRaw  = (row['Hotel Booked'] || '').trim();
+    const flightDone = flightRaw === '' ? null : parseBool(flightRaw);
+    const hotelDone  = hotelRaw  === '' ? null : parseBool(hotelRaw);
 
     item.innerHTML = `
       <div class="travel-item-top">
         <div class="travel-item-title">${escapeHtml(row['Trip'] || '')}</div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div class="travel-item-dates">${formatDateRange(row['Start Date'], row['End Date'])}</div>
-          ${row['Status'] ? `<span class="travel-status-badge" style="background:${TRAVEL_STATUS_COLORS[row['Status']]||'#F1EFE8'};color:${TRAVEL_STATUS_TEXT[row['Status']]||'#737373'}">${escapeHtml(row['Status'])}</span>` : ''}
-        </div>
+        <div class="travel-item-dates">${formatDateRange(row['Start Date'], row['End Date'])}</div>
       </div>
+      ${row['Status'] ? `<div class="travel-item-status-row"><span class="travel-status-badge" style="background:${TRAVEL_STATUS_COLORS[row['Status']]||'#F1EFE8'};color:${TRAVEL_STATUS_TEXT[row['Status']]||'#737373'}">${escapeHtml(row['Status'])}</span></div>` : ''}
       <div class="travel-item-dest">${escapeHtml(row['Destination'] || '')}</div>
       <div class="travel-checks">
-        <div class="travel-check">
-          <span class="check-icon ${flightDone ? 'done' : 'pending'}">${flightDone ? '✓' : ''}</span>
-          Flight booked
-        </div>
-        <div class="travel-check">
-          <span class="check-icon ${hotelDone ? 'done' : 'pending'}">${hotelDone ? '✓' : ''}</span>
-          Hotel booked
-        </div>
+        ${flightDone === true ? `<div class="travel-check"><span class="check-icon done">✓</span>Flight booked</div>` : ''}
+        ${hotelDone === true ? `<div class="travel-check"><span class="check-icon done">✓</span>Hotel booked</div>` : ''}
       </div>
       ${row['Notes'] ? `<div class="travel-item-notes">${escapeHtml(row['Notes'])}</div>` : ''}
     `;
