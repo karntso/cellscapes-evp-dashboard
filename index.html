@@ -2111,10 +2111,12 @@ function renderEvpPriorities(rows) {
 const EXTERNAL_ENGAGEMENT_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7GNwyEpfvL-RiTwo9xQSdiLf4wpjcTNrE13MD0zGFct5imiG3ah2ETYe_HEF96Q/pub?gid=184175031&single=true&output=csv";
 
 const EE_STATUS_COLORS = {
-  "Scheduled": "#0EA5E9",
-  "Completed": "#1B8A5A",
-  "Cancelled": "#AAA39F"
+  "Scheduled":    "#0EA5E9",
+  "Action Req'd": "#CD0F55",
+  "Completed":    "#1B8A5A",
+  "Cancelled":    "#AAA39F"
 };
+const EE_PRIORITY_STATUSES = ["Scheduled", "Action Req'd"];
 
 function escapeHtmlEE(str) {
   const div = document.createElement('div');
@@ -2182,9 +2184,12 @@ function renderExternalEngagement(rows) {
   const list = document.getElementById('ee-list');
   list.innerHTML = '';
 
-  const sorted = rows
-    .map(r => ({ ...r, _date: parseLocalDate(r.StartDate) }))
-    .sort((a, b) => (a._date ? a._date.getTime() : Infinity) - (b._date ? b._date.getTime() : Infinity));
+  const withDates = rows.map(r => ({ ...r, _date: parseLocalDate(r.StartDate) }));
+  const isPriority = r => EE_PRIORITY_STATUSES.includes(r.Status);
+  const chronoSort = (a, b) => (a._date ? a._date.getTime() : Infinity) - (b._date ? b._date.getTime() : Infinity);
+  const priority = withDates.filter(isPriority).sort(chronoSort);
+  const rest     = withDates.filter(r => !isPriority(r)).sort(chronoSort);
+  const sorted   = [...priority, ...rest];
 
   if (sorted.length === 0) {
     list.innerHTML = '<div style="padding:14px 16px;color:var(--text-secondary);">No engagements logged yet.</div>';
