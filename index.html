@@ -1255,8 +1255,8 @@
 <div class="tabs">
   <button class="tab-btn active" onclick="switchTab('priorities', event)">calendar</button>
   <button class="tab-btn" onclick="switchTab('goals-tracker', event)">goals &amp; action items</button>
-  <button class="tab-btn" onclick="switchTab('accomplishments', event)">accomplishments</button>
   <button class="tab-btn" onclick="switchTab('travel-outreach', event)">travel &amp; outreach</button>
+  <button class="tab-btn" onclick="switchTab('accomplishments', event)">accomplishments</button>
 </div>
 
 <!-- Tab 1: Ru's Priorities -->
@@ -2615,12 +2615,12 @@ window.onload = function() {
 /* people rhythm strip */
 .gt-people-section{margin-bottom:20px;}
 .gt-people-strip{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px;}
-.gt-chip{display:flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;border:0.5px solid var(--border);background:var(--surface);cursor:pointer;transition:border-color .15s;min-height:34px;}
-.gt-chip:hover{border-color:var(--border-strong);}
-.gt-chip.pr-ok{border-color:var(--border);}
+.gt-chip{display:flex;align-items:center;gap:7px;padding:6px 16px;border-radius:999px;border:none;background:#EDEDFF;color:#6464FF;cursor:pointer;transition:background .15s,color .15s;min-height:34px;font-weight:600;font-size:.82rem;}
+.gt-chip:hover{background:#6464FF;color:#fff;}
+.gt-chip.pr-ok{background:#EDEDFF;color:#6464FF;}
 
 
-.gt-chip.pr-ext{border:0.5px dashed var(--border-strong);color:var(--text-accent);}
+.gt-chip.pr-ext{background:#F3EEF9;color:#8246E1;border:none;}.gt-chip.pr-ext:hover{background:#8246E1;color:#fff;}
 .gt-chip-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
 .av-ok{background:#E6F1FB;color:#185FA5;}
 .av-soon{background:#FAEEDA;color:#854F0B;}
@@ -3145,7 +3145,7 @@ function makeChip(name) {
   const cls  = chipClass(days);
   const chip = document.createElement('div');
   chip.className = 'gt-chip ' + cls;
-  chip.innerHTML = '<span class="gt-chip-name">' + escGt(name) + '</span>';
+  chip.innerHTML = escGt(name);
   chip.onclick = () => gtOpenPerson(name);
   return chip;
 }
@@ -3163,7 +3163,7 @@ function renderGtPeople() {
   // Other outreach chip
   const extChip = document.createElement('div');
   extChip.className = 'gt-chip pr-ext';
-  extChip.innerHTML = '<div class="gt-chip-av" style="background:var(--bg-accent);color:var(--text-accent);font-size:11px;">↗</div><span class="gt-chip-name" style="color:var(--text-accent)">other outreach</span>';
+  extChip.innerHTML = 'other outreach ↗';
   extChip.onclick = () => window.open(GT_CRM_URL, '_blank');
   contactsStrip.appendChild(extChip);
 
@@ -3253,16 +3253,16 @@ function renderGtQuarterlyPeople() {
 
   // All staff chip
   const allStaffChip = document.createElement('div');
-  allStaffChip.className = 'gt-chip pr-ok';
-  allStaffChip.innerHTML = '<span class="gt-chip-name">All Staff</span>';
+  allStaffChip.className = 'gt-chip';
+  allStaffChip.innerHTML = 'All Staff';
   allStaffChip.onclick = () => gtOpenPersonQtr('All Staff');
   staffStrip.appendChild(allStaffChip);
 
   // Direct reports
   DIRECT_REPORTS.forEach(name => {
     const chip = document.createElement('div');
-    chip.className = 'gt-chip pr-ok';
-    chip.innerHTML = '<span class="gt-chip-name">' + escGt(name) + '</span>';
+    chip.className = 'gt-chip';
+    chip.innerHTML = escGt(name);
     chip.onclick = () => gtOpenPersonQtr(name);
     reportsStrip.appendChild(chip);
   });
