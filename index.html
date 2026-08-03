@@ -1253,9 +1253,10 @@
 
 <!-- Tab bar -->
 <div class="tabs">
-  <button class="tab-btn active" onclick="switchTab('priorities', event)">priorities &amp; calendar</button>
-  <button class="tab-btn" onclick="switchTab('goals-tracker', event)">goals tracker</button>
+  <button class="tab-btn active" onclick="switchTab('priorities', event)">calendar</button>
+  <button class="tab-btn" onclick="switchTab('goals-tracker', event)">goals &amp; action items</button>
   <button class="tab-btn" onclick="switchTab('accomplishments', event)">accomplishments</button>
+  <button class="tab-btn" onclick="switchTab('travel-outreach', event)">travel &amp; outreach</button>
 </div>
 
 <!-- Tab 1: Ru's Priorities -->
@@ -1333,43 +1334,6 @@
       </div>
     </div>
   </div>
-
-  <!-- EVP External Engagement -->
-  <div class="section-card">
-    <div class="section-header" onclick="toggleCollapse('external')" id="external-header">
-      <h2 class="section-title">EVP external engagement</h2>
-      <span class="collapsible-toggle" id="external-toggle">+</span>
-    </div>
-    <div class="collapsible-content" id="external-content">
-      <div class="section-body">
-        <div class="ee-status-note" id="ee-status">Loading engagements…</div>
-        <div class="ee-scroll" id="ee-scroll">
-          <div class="ee-list" id="ee-list"></div>
-        </div>
-        <div style="margin-top:8px;text-align:right;">
-          <a href="https://docs.google.com/spreadsheets/d/1RcHAe8kzQIoMKFjjCbqVQQyWjOlomrFe/edit?usp=sharing&ouid=111752552908735098726&rtpof=true&sd=true#gid=184175031" target="_blank" style="font-size:0.82rem;color:var(--link-accent);text-decoration:none;">
-            open sheet to edit →
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- EVP Travel -->
-  <div class="section-card">
-    <div class="section-header" onclick="toggleCollapse('travel')" id="travel-header">
-      <h2 class="section-title">EVP travel</h2>
-      <span class="collapsible-toggle" id="travel-toggle">+</span>
-    </div>
-    <div class="collapsible-content" id="travel-content">
-      <div class="section-body" id="travel-body">
-        <div class="calendar-error">Loading travel details…</div>
-      </div>
-    </div>
-  </div>
-
-
 
   <!-- EVP Priorities (Action Items) -->
   <div class="section-card">
@@ -2811,6 +2775,46 @@ window.onload = function() {
     </div>
     <div id="gt-accom-body-main"><div class="gt-accom-empty">loading accomplishments…</div></div>
   </div>
+
+<!-- Tab 4: Travel & Outreach -->
+<div id="tab-travel-outreach" class="tab-content">
+
+<!-- EVP External Engagement -->
+  <div class="section-card">
+    <div class="section-header" onclick="toggleCollapse('external')" id="external-header">
+      <h2 class="section-title">EVP external engagement</h2>
+      <span class="collapsible-toggle" id="external-toggle">+</span>
+    </div>
+    <div class="collapsible-content" id="external-content">
+      <div class="section-body">
+        <div class="ee-status-note" id="ee-status">Loading engagements…</div>
+        <div class="ee-scroll" id="ee-scroll">
+          <div class="ee-list" id="ee-list"></div>
+        </div>
+        <div style="margin-top:8px;text-align:right;">
+          <a href="https://docs.google.com/spreadsheets/d/1RcHAe8kzQIoMKFjjCbqVQQyWjOlomrFe/edit?usp=sharing&ouid=111752552908735098726&rtpof=true&sd=true#gid=184175031" target="_blank" style="font-size:0.82rem;color:var(--link-accent);text-decoration:none;">
+            open sheet to edit →
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- EVP Travel -->
+  <div class="section-card">
+    <div class="section-header" onclick="toggleCollapse('travel')" id="travel-header">
+      <h2 class="section-title">EVP travel</h2>
+      <span class="collapsible-toggle" id="travel-toggle">+</span>
+    </div>
+    <div class="collapsible-content" id="travel-content">
+      <div class="section-body" id="travel-body">
+        <div class="calendar-error">Loading travel details…</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
 </div>
 
 <script>
