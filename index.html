@@ -2654,19 +2654,19 @@ window.onload = function() {
 .gt-chip{display:flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;border:0.5px solid var(--border);background:var(--surface);cursor:pointer;transition:border-color .15s;min-height:34px;}
 .gt-chip:hover{border-color:var(--border-strong);}
 .gt-chip.pr-ok{border-color:var(--border);}
-.gt-chip.pr-soon{border-color:#BA7517;background:#FAEEDA;}
-.gt-chip.pr-over{border-color:#E24B4A;background:#FCEBEB;}
+
+
 .gt-chip.pr-ext{border:0.5px dashed var(--border-strong);color:var(--text-accent);}
 .gt-chip-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
 .av-ok{background:#E6F1FB;color:#185FA5;}
 .av-soon{background:#FAEEDA;color:#854F0B;}
 .av-over{background:#FCEBEB;color:#A32D2D;}
 .gt-chip-name{font-size:.82rem;color:var(--text-primary);white-space:nowrap;}
-.gt-chip.pr-soon .gt-chip-name{color:#854F0B;}
-.gt-chip.pr-over .gt-chip-name{color:#A32D2D;}
+
+
 .gt-chip-since{font-size:.7rem;color:var(--text-secondary);white-space:nowrap;}
-.gt-chip.pr-soon .gt-chip-since{color:#B8860B;}
-.gt-chip.pr-over .gt-chip-since{color:#C0392B;}
+
+
 .gt-people-legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px;}
 .gt-pl-item{display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--text-secondary);}
 .gt-pl-dot{width:7px;height:7px;border-radius:50%;}
@@ -2761,10 +2761,12 @@ window.onload = function() {
 
   <!-- ── THIS WEEK ── -->
   <div class="gt-view-pane" id="gt-pane-week">
-    <div class="gt-sec-lbl" id="gt-week-heading">rolling 5-week window</div>
-    <div class="gt-week-grid" id="gt-week-grid"></div>
-    <div style="font-size:.78rem;color:var(--text-secondary);background:var(--surface-2);border-radius:var(--radius);padding:10px 14px;line-height:1.6;">
-      items are placed automatically from their cadence and due date — no manual pinning needed. past week shown in grey; incomplete items carry a status from the activity log.
+    <div class="gt-section-box">
+      <div class="gt-sec-lbl" id="gt-week-heading" style="margin-bottom:12px;">rolling 5-week window</div>
+      <div class="gt-week-grid" id="gt-week-grid"></div>
+      <div style="font-size:.75rem;color:var(--text-secondary);margin-top:10px;line-height:1.6;">
+        items placed automatically from cadence and due date — no manual pinning needed. past week shown faded; incomplete items carry status from the activity log.
+      </div>
     </div>
   </div>
 
@@ -2772,7 +2774,8 @@ window.onload = function() {
   <div class="gt-view-pane" id="gt-pane-quarter">
 
     <!-- quarterly people rhythm -->
-    <div class="gt-people-section" style="margin-bottom:20px;">
+    <div class="gt-section-box" style="margin-bottom:16px;">
+    <div class="gt-people-section" style="margin-bottom:0;">
       <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px;">
         <span class="gt-sec-lbl" style="margin-bottom:0;">people rhythm · quarterly check-ins</span>
         <span style="font-size:.68rem;color:var(--text-secondary);font-weight:400;">· click any name to see history and agenda items</span>
@@ -2787,8 +2790,11 @@ window.onload = function() {
 
     <!-- people drill panel for quarter view -->
     <div class="gt-pdrill" id="gt-pdrill-qtr" style="display:none;"></div>
+    </div><!-- end quarterly people section box -->
 
+    <div class="gt-section-box">
     <div id="gt-quarter-body"></div>
+    </div>
   </div>
 
   <!-- (end of goals tracker tab) -->
@@ -2975,7 +2981,7 @@ function gtCloseDrill() {
 // ── Render: this month ───────────────────────────────────────
 // ── People rhythm ───────────────────────────────────────────
 const PEOPLE_CONTACTS = [
-  "Jen Davis","Julie Harris","Kirsten Smith","Michael Elowitz",
+  "Jen Davis","Julie Harris","Julie Theriot","Kirsten Smith","Michael Elowitz",
   "Prisca Liberali","Raeka Aiyar","Sarah Caddick","Accelerator EVPs"
 ];
 
@@ -3122,8 +3128,6 @@ function daysSince(dateStr) {
 }
 
 function chipClass(days) {
-  if (days >= 60) return 'pr-over';
-  if (days >= 30) return 'pr-soon';
   return 'pr-ok';
 }
 
@@ -3219,7 +3223,7 @@ function gtOpenPerson(name) {
       '<div><div class="gt-pdrill-name">' + escGt(name) + '</div></div>' +
     '</div>' +
     agendaHtml +
-    '<div class="gt-sec-lbl" style="margin-bottom:8px">meeting history</div>' +
+    '<div class="gt-sec-lbl" style="margin-bottom:8px">meeting history / notes</div>' +
     historyHtml;
 
   drill.style.display = '';
@@ -3312,7 +3316,7 @@ function gtOpenPersonQtr(name) {
     '<button class="gt-pdrill-close" onclick="gtClosePersonQtr()">×</button>' +
     '<div class="gt-pdrill-head"><div><div class="gt-pdrill-name">' + escGt(name) + '</div></div></div>' +
     agendaHtml +
-    '<div class="gt-sec-lbl" style="margin-bottom:8px">meeting history</div>' +
+    '<div class="gt-sec-lbl" style="margin-bottom:8px">meeting history / notes</div>' +
     historyHtml;
 
   drill.style.display = '';
