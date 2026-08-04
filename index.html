@@ -1265,6 +1265,12 @@
     .mn-section-divider { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-secondary); margin:14px 0 8px; padding:4px 8px; background:var(--surface-2); border-radius:4px; display:inline-block; }
     .mn-check { color:#2E7B34; font-size:0.72rem; margin-right:4px; }
     .mn-bullet { color:var(--text-secondary); margin-right:6px; flex-shrink:0; font-size:0.8rem; }
+    .mn-entry.mn-expandable { cursor:pointer; }
+    .mn-entry.mn-expandable:hover { background:var(--surface-2); border-radius:var(--radius); }
+    .mn-chevron { font-size:0.65rem; color:var(--text-secondary); margin-left:6px; flex-shrink:0; transition:transform .15s; display:inline-block; }
+    .mn-chevron.open { transform:rotate(90deg); }
+    .mn-updates { display:none; font-size:0.8rem; color:var(--text-secondary); line-height:1.5; padding:5px 0 3px 14px; border-left:2px solid var(--border); margin-top:5px; margin-left:2px; }
+    .mn-updates.open { display:block; }
     .mn-indented { padding-left:8px; }
     .mn-text { font-size:0.84rem; color:var(--text-primary); line-height:1.5; }
     .mn-empty { font-size:0.82rem; color:var(--text-secondary); font-style:italic; padding:8px 0; }
@@ -2551,6 +2557,15 @@ let mnLoaded = false;
 
 const MN_TAG_ORDER = ["action req'd","reminder","decision","details needed","follow-up","fyi",""];
 
+function mnToggle(uid) {
+  const upd  = document.getElementById('upd-' + uid);
+  const chev = document.getElementById('chev-' + uid);
+  if (!upd) return;
+  const isOpen = upd.classList.contains('open');
+  upd.classList.toggle('open', !isOpen);
+  if (chev) chev.classList.toggle('open', !isOpen);
+}
+
 function mnTagClass(tag) {
   const t = (tag||'').toLowerCase().trim();
   if (t.includes('action'))   return 'mn-tag mn-tag-action';
@@ -2629,13 +2644,24 @@ function renderMnColumn(containerId, entries) {
         mnTagSortKey(a['Tag']||a['tag']) - mnTagSortKey(b['Tag']||b['tag'])
       );
       const multi = sorted.length > 1;
-      const rows = sorted.map(e => {
-        const tag = (e['Tag']||e['tag']||'').trim();
-        const note = e['Note']||e['note']||e['Notes']||e['notes']||'';
+      const rows = sorted.map((e, ei) => {
+        const tag     = (e['Tag']||e['tag']||'').trim();
+        const note    = e['Note']||e['note']||e['Notes']||e['notes']||'';
+        const updates = (e['Updates / Comments']||e['Updates/Comments']||e['Updates']||e['Comments']||'').trim();
         const tagHtml = tag ? `<span class="${mnTagClass(tag)}">${mnEsc(tag)}</span>` : '';
-        const bullet = multi ? '<span class="mn-bullet">·</span>' : '';
-        return `<div class="mn-entry ${extraClass}${multi?' mn-indented':''}">
-          <div class="mn-entry-top">${bullet}${icon}<span style="flex:1" class="mn-text">${mnEsc(note)}</span>${tagHtml}</div>
+        const bullet  = multi ? '<span class="mn-bullet">·</span>' : '';
+        const uid     = containerId + '-' + Date.now() + '-' + ei;
+        const hasUpd  = updates.length > 0;
+        const chevron = hasUpd ? `<span class="mn-chevron" id="chev-${uid}">▶</span>` : '';
+        const updHtml = hasUpd
+          ? `<div class="mn-updates" id="upd-${uid}">${mnEsc(updates)}</div>`
+          : '';
+        const clickAttr = hasUpd
+          ? `onclick="mnToggle('${uid}')" role="button" tabindex="0"`
+          : '';
+        return `<div class="mn-entry ${extraClass}${multi?' mn-indented':''}${hasUpd?' mn-expandable':''}" ${clickAttr}>
+          <div class="mn-entry-top">${bullet}${icon}<span style="flex:1" class="mn-text">${mnEsc(note)}</span>${tagHtml}${chevron}</div>
+          ${updHtml}
         </div>`;
       }).join('');
       return `<div class="mn-date-group">
