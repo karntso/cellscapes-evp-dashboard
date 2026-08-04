@@ -1234,6 +1234,27 @@
       text-decoration: none;
     }
 
+    /* meeting notes tab */
+    .mn-layout { display:grid; grid-template-columns:1fr 1fr; gap:0; min-height:400px; }
+    .mn-col { padding:20px 24px; border-right:0.5px solid var(--border); }
+    .mn-col:last-child { border-right:none; }
+    .mn-col-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+    .mn-col-title { font-size:1rem; font-weight:700; color:var(--text-primary); }
+    .mn-sheet-link { font-size:0.75rem; color:var(--link-accent); text-decoration:none; font-weight:500; }
+    .mn-sheet-link:hover { text-decoration:underline; }
+    .mn-entry { padding:10px 0; border-bottom:0.5px solid var(--surface-2); }
+    .mn-entry:last-child { border-bottom:none; }
+    .mn-entry-top { display:flex; align-items:baseline; gap:8px; margin-bottom:4px; }
+    .mn-date { font-size:0.72rem; color:var(--text-secondary); white-space:nowrap; flex-shrink:0; }
+    .mn-tag { font-size:0.65rem; font-weight:700; padding:1px 7px; border-radius:999px; white-space:nowrap; flex-shrink:0; }
+    .mn-tag-action { background:#FCE8F0; color:#9A0A3E; }
+    .mn-tag-followup { background:#FFF8E1; color:#B8860B; }
+    .mn-tag-decision { background:#EDEDFF; color:#4040CC; }
+    .mn-tag-default { background:var(--surface-2); color:var(--text-secondary); border:0.5px solid var(--border); }
+    .mn-text { font-size:0.84rem; color:var(--text-primary); line-height:1.5; }
+    .mn-empty { font-size:0.82rem; color:var(--text-secondary); font-style:italic; padding:8px 0; }
+    .mn-loading { font-size:0.82rem; color:var(--text-secondary); padding:8px 0; }
+
     /* leadership talks strip */
     .tt-strip-scroll { display:flex; gap:10px; overflow-x:auto; padding-bottom:6px; font-size:14px; }
     .tt-strip-scroll::-webkit-scrollbar { height:4px; }
@@ -1285,6 +1306,7 @@
   <button class="tab-btn" onclick="switchTab('goals-tracker', event)">goals &amp; action items</button>
   <button class="tab-btn" onclick="switchTab('travel-outreach', event)">travel &amp; outreach</button>
   <button class="tab-btn" onclick="switchTab('accomplishments', event)">accomplishments</button>
+  <button class="tab-btn" onclick="switchTab('meeting-notes', event)">meeting notes</button>
 </div>
 
 <!-- Tab 1: Ru's Priorities -->
@@ -1398,6 +1420,7 @@ function switchTab(tabName, evt) {
   document.getElementById('tab-' + tabName).classList.add('active');
   if (evt && evt.target) evt.target.classList.add('active');
   if (tabName === 'accomplishments') loadTopLevelAccomplishments();
+  if (tabName === 'meeting-notes') loadMeetingNotes();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -2508,6 +2531,99 @@ async function loadTalksTravel() {
   }
 }
 
+// ── Meeting Notes ───────────────────────────────────────────
+let mnLoaded = false;
+
+function mnTagClass(tag) {
+  const t = (tag||'').toLowerCase().trim();
+  if (t.includes('action'))   return 'mn-tag mn-tag-action';
+  if (t.includes('follow'))   return 'mn-tag mn-tag-followup';
+  if (t.includes('decision')) return 'mn-tag mn-tag-decision';
+  if (t)                       return 'mn-tag mn-tag-default';
+  return '';
+}
+
+function mnFormatDate(str) {
+  if (!str) return '';
+  const d = new Date(str);
+  if (isNaN(d)) return str;
+  return d.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+}
+
+function mnEsc(str) {
+  const d = document.createElement('div');
+  d.textContent = str; return d.innerHTML;
+}
+
+function renderMnColumn(containerId, entries) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (!entries.length) {
+    el.innerHTML = '<div class="mn-empty">no notes yet.</div>';
+    return;
+  }
+  el.innerHTML = entries.map(e => {
+    const tag = (e['Tag']||e['tag']||'').trim();
+    const tagHtml = tag ? `<span class="${mnTagClass(tag)}">${mnEsc(tag)}</span>` : '';
+    return `<div class="mn-entry">
+      <div class="mn-entry-top">
+        <span class="mn-date">${mnFormatDate(e['Date']||e['date']||'')}</span>
+        ${tagHtml}
+      </div>
+      <div class="mn-text">${mnEsc(e['Note']||e['note']||e['Notes']||e['notes']||'')}</div>
+    </div>`;
+  }).join('');
+}
+
+async function loadMeetingNotes() {
+  if (mnLoaded) return;
+  mnLoaded = true;
+
+  const linkEl = document.getElementById('mn-sheet-link');
+  if (linkEl && !NOTES_SHEET_URL.startsWith('REPLACE_WITH')) {
+    linkEl.href = NOTES_SHEET_URL;
+    linkEl.style.display = '';
+  }
+
+  if (NOTES_CSV_URL.startsWith('REPLACE_WITH')) {
+    document.getElementById('mn-kristine').innerHTML = '<div class="mn-empty">sheet not connected yet — publish the Meeting Notes tab as CSV and paste the URL into NOTES_CSV_URL.</div>';
+    document.getElementById('mn-ru').innerHTML = '';
+    return;
+  }
+
+  try {
+    const res  = await fetch(NOTES_CSV_URL);
+    const text = await res.text();
+    // Auto-detect row offset (row 1 may be blank or header)
+    const parsed = Papa.parse(text, {header:false, skipEmptyLines:false}).data;
+    const firstCell = ((parsed[0]||[])[0]||'').trim().toLowerCase();
+    let headers, dataRows;
+    if (firstCell === 'person' || firstCell === 'date') {
+      headers = parsed[0]; dataRows = parsed.slice(1);
+    } else {
+      headers = parsed[1] || []; dataRows = parsed.slice(2);
+    }
+    const rows = dataRows
+      .map(r => { const o={}; headers.forEach((h,i)=>{o[h]=(r[i]||'').trim();}); return o; })
+      .filter(r => Object.values(r).some(v=>v));
+
+    const personKey = headers.find(h => h.toLowerCase()==='person') || 'Person';
+    const kristine = rows
+      .filter(r => (r[personKey]||'').toLowerCase().includes('kristine'))
+      .sort((a,b) => new Date(b['Date']||b['date']||0) - new Date(a['Date']||a['date']||0));
+    const ru = rows
+      .filter(r => (r[personKey]||'').toLowerCase().includes('ru') || (r[personKey]||'').toLowerCase().includes('ru '))
+      .sort((a,b) => new Date(b['Date']||b['date']||0) - new Date(a['Date']||a['date']||0));
+
+    renderMnColumn('mn-kristine', kristine);
+    renderMnColumn('mn-ru', ru);
+  } catch(err) {
+    document.getElementById('mn-kristine').innerHTML = '<div class="mn-empty">could not load notes — check the sheet is published as CSV.</div>';
+    document.getElementById('mn-ru').innerHTML = '';
+    console.error('Meeting notes error:', err);
+  }
+}
+
 window.onload = function() {
   let alreadyAuthed = false;
   try {
@@ -2820,6 +2936,34 @@ window.onload = function() {
 
 </div>
 
+<!-- Tab 5: Meeting Notes -->
+<div id="tab-meeting-notes" class="tab-content">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="padding:14px 24px 12px;border-bottom:1px solid var(--border);display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <div>
+        <span style="font-size:1rem;font-weight:700;color:var(--text-primary);">meeting notes</span>
+        <span style="font-size:0.76rem;color:var(--text-secondary);margin-left:10px;">newest first · add rows to the Meeting Notes tab in the sheet</span>
+      </div>
+      <a id="mn-sheet-link" href="#" target="_blank" class="mn-sheet-link" style="display:none;">open sheet to edit →</a>
+    </div>
+    <div class="mn-layout">
+      <div class="mn-col">
+        <div class="mn-col-head">
+          <span class="mn-col-title">kristine</span>
+        </div>
+        <div id="mn-kristine"><div class="mn-loading">loading…</div></div>
+      </div>
+      <div class="mn-col">
+        <div class="mn-col-head">
+          <span class="mn-col-title">ru</span>
+        </div>
+        <div id="mn-ru"><div class="mn-loading">loading…</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <!-- Tab 4: Travel & Outreach -->
 <div id="tab-travel-outreach" class="tab-content">
 
@@ -2869,6 +3013,8 @@ window.onload = function() {
 
 const GT_ACTIONS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vStZOAlsjjT6QatC2oqxNqUnTxT6Rdd_m0lCsAGDvfarzp2P2V3C0O4Qmv_OXVgQeLaEU16_8CC0d-0/pub?gid=510931153&single=true&output=csv";
 const GT_LOG_CSV_URL     = "https://docs.google.com/spreadsheets/d/e/2PACX-1vStZOAlsjjT6QatC2oqxNqUnTxT6Rdd_m0lCsAGDvfarzp2P2V3C0O4Qmv_OXVgQeLaEU16_8CC0d-0/pub?gid=2090445654&single=true&output=csv";
+const NOTES_CSV_URL      = "https://docs.google.com/spreadsheets/d/e/2PACX-1vStZOAlsjjT6QatC2oqxNqUnTxT6Rdd_m0lCsAGDvfarzp2P2V3C0O4Qmv_OXVgQeLaEU16_8CC0d-0/pub?gid=312318978&single=true&output=csv";
+const NOTES_SHEET_URL    = "https://docs.google.com/spreadsheets/d/1KjbY2McYMPK6sYDIiQEQ2Z84espLJ0E3ry45qSsCARA/edit#gid=312318978";
 const GT_ACCOM_CSV_URL   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vStZOAlsjjT6QatC2oqxNqUnTxT6Rdd_m0lCsAGDvfarzp2P2V3C0O4Qmv_OXVgQeLaEU16_8CC0d-0/pub?gid=895196455&single=true&output=csv";
 const GT_PEOPLE_CSV_URL  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7GNwyEpfvL-RiTwo9xQSdiLf4wpjcTNrE13MD0zGFct5imiG3ah2ETYe_HEF96Q/pub?gid=755730701&single=true&output=csv";
 const GT_CRM_URL         = "https://docs.google.com/spreadsheets/d/1RcHAe8kzQIoMKFjjCbqVQQyWjOlomrFe/edit";
