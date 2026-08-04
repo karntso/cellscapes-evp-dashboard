@@ -2554,6 +2554,7 @@ async function loadTalksTravel() {
 
 // ── Meeting Notes ───────────────────────────────────────────
 let mnLoaded = false;
+let mnEntryCounter = 0;
 
 const MN_TAG_ORDER = ["action req'd","reminder","decision","details needed","follow-up","fyi",""];
 
@@ -2649,8 +2650,8 @@ function renderMnColumn(containerId, entries) {
         const note    = e['Note']||e['note']||e['Notes']||e['notes']||'';
         const updates = (e['Updates / Comments']||e['Updates/Comments']||e['Updates']||e['Comments']||'').trim();
         const tagHtml = tag ? `<span class="${mnTagClass(tag)}">${mnEsc(tag)}</span>` : '';
-        const bullet  = multi ? '<span class="mn-bullet">·</span>' : '';
-        const uid     = containerId + '-' + Date.now() + '-' + ei;
+        const bullet  = '<span class="mn-bullet">·</span>';
+        const uid     = containerId + '-' + (++mnEntryCounter) + '-' + ei;
         const hasUpd  = updates.length > 0;
         const chevron = hasUpd ? `<span class="mn-chevron" id="chev-${uid}">▶</span>` : '';
         const updHtml = hasUpd
@@ -2659,7 +2660,7 @@ function renderMnColumn(containerId, entries) {
         const clickAttr = hasUpd
           ? `onclick="mnToggle('${uid}')" role="button" tabindex="0"`
           : '';
-        return `<div class="mn-entry ${extraClass}${multi?' mn-indented':''}${hasUpd?' mn-expandable':''}" ${clickAttr}>
+        return `<div class="mn-entry ${extraClass}mn-indented${hasUpd?' mn-expandable':''}" ${clickAttr}>
           <div class="mn-entry-top">${bullet}${icon}<span style="flex:1" class="mn-text">${mnEsc(note)}</span>${tagHtml}${chevron}</div>
           ${updHtml}
         </div>`;
