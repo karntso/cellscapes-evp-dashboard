@@ -1247,10 +1247,23 @@
     .mn-entry-top { display:flex; align-items:baseline; gap:8px; margin-bottom:4px; }
     .mn-date { font-size:0.72rem; color:var(--text-secondary); white-space:nowrap; flex-shrink:0; }
     .mn-tag { font-size:0.65rem; font-weight:700; padding:1px 7px; border-radius:999px; white-space:nowrap; flex-shrink:0; }
-    .mn-tag-action { background:#FCE8F0; color:#9A0A3E; }
-    .mn-tag-followup { background:#FFF8E1; color:#B8860B; }
+    .mn-tag-action   { background:#FCE8F0; color:#9A0A3E; }
     .mn-tag-decision { background:#EDEDFF; color:#4040CC; }
-    .mn-tag-default { background:var(--surface-2); color:var(--text-secondary); border:0.5px solid var(--border); }
+    .mn-tag-details  { background:#FFF8E1; color:#B8860B; }
+    .mn-tag-followup { background:#E0F4F3; color:#007A72; }
+    .mn-tag-fyi      { background:#F1EFE8; color:#5F5E5A; border:0.5px solid var(--border); }
+    .mn-tag-reminder { background:#EDE5F9; color:#5C2E9E; }
+    .mn-tag-default  { background:var(--surface-2); color:var(--text-secondary); border:0.5px solid var(--border); }
+    /* status-based item styles */
+    .mn-entry.mn-completed { opacity:.55; }
+    .mn-entry.mn-canceled  { opacity:.4; }
+    .mn-entry.mn-onhold    { opacity:.5; }
+    .mn-entry.mn-canceled .mn-text { text-decoration:line-through; }
+    /* date group */
+    .mn-date-group { margin-bottom:14px; }
+    .mn-date-group-label { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-secondary); padding:6px 0 6px; border-bottom:0.5px solid var(--border); margin-bottom:6px; }
+    .mn-section-divider { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-secondary); margin:14px 0 8px; padding:4px 8px; background:var(--surface-2); border-radius:4px; display:inline-block; }
+    .mn-check { color:#2E7B34; font-size:0.72rem; margin-right:4px; }
     .mn-text { font-size:0.84rem; color:var(--text-primary); line-height:1.5; }
     .mn-empty { font-size:0.82rem; color:var(--text-secondary); font-style:italic; padding:8px 0; }
     .mn-loading { font-size:0.82rem; color:var(--text-secondary); padding:8px 0; }
@@ -2534,11 +2547,16 @@ async function loadTalksTravel() {
 // ── Meeting Notes ───────────────────────────────────────────
 let mnLoaded = false;
 
+const MN_TAG_ORDER = ["action req'd","reminder","decision","details needed","follow-up","fyi",""];
+
 function mnTagClass(tag) {
   const t = (tag||'').toLowerCase().trim();
   if (t.includes('action'))   return 'mn-tag mn-tag-action';
-  if (t.includes('follow'))   return 'mn-tag mn-tag-followup';
   if (t.includes('decision')) return 'mn-tag mn-tag-decision';
+  if (t.includes('details'))  return 'mn-tag mn-tag-details';
+  if (t.includes('follow'))   return 'mn-tag mn-tag-followup';
+  if (t === 'fyi')             return 'mn-tag mn-tag-fyi';
+  if (t.includes('reminder')) return 'mn-tag mn-tag-reminder';
   if (t)                       return 'mn-tag mn-tag-default';
   return '';
 }
@@ -2555,24 +2573,74 @@ function mnEsc(str) {
   d.textContent = str; return d.innerHTML;
 }
 
+function mnTagSortKey(tag) {
+  const t = (tag||'').toLowerCase().trim();
+  if (t.includes('action'))   return 0;
+  if (t.includes('reminder')) return 1;
+  if (t.includes('decision')) return 2;
+  if (t.includes('details'))  return 3;
+  if (t.includes('follow'))   return 4;
+  if (t === 'fyi')             return 5;
+  return 6;
+}
+
 function renderMnColumn(containerId, entries) {
   const el = document.getElementById(containerId);
   if (!el) return;
+
+  const normStatus = e => (e['Status']||e['status']||'').toLowerCase().trim();
+
+  // Split by status
+  const active    = entries.filter(e => !['canceled','completed','on hold'].includes(normStatus(e)));
+  const onHold    = entries.filter(e => normStatus(e) === 'on hold');
+  const completed = entries.filter(e => normStatus(e) === 'completed');
+  const canceled  = entries.filter(e => normStatus(e) === 'canceled');
+
   if (!entries.length) {
     el.innerHTML = '<div class="mn-empty">no notes yet.</div>';
     return;
   }
-  el.innerHTML = entries.map(e => {
-    const tag = (e['Tag']||e['tag']||'').trim();
-    const tagHtml = tag ? `<span class="${mnTagClass(tag)}">${mnEsc(tag)}</span>` : '';
-    return `<div class="mn-entry">
-      <div class="mn-entry-top">
-        <span class="mn-date">${mnFormatDate(e['Date']||e['date']||'')}</span>
-        ${tagHtml}
-      </div>
-      <div class="mn-text">${mnEsc(e['Note']||e['note']||e['Notes']||e['notes']||'')}</div>
-    </div>`;
-  }).join('');
+
+  let html = '';
+
+  // Render a set of entries grouped by date then sorted by tag within each date
+  function renderGroup(items, extraClass, icon) {
+    if (!items.length) return '';
+    // Group by date
+    const byDate = {};
+    items.forEach(e => {
+      const dk = e['Date']||e['date']||'';
+      if (!byDate[dk]) byDate[dk] = [];
+      byDate[dk].push(e);
+    });
+    // Sort dates newest first
+    const dates = Object.keys(byDate).sort((a,b) => new Date(b)-new Date(a));
+    return dates.map(dk => {
+      // Sort items within date by tag priority
+      const sorted = byDate[dk].slice().sort((a,b) =>
+        mnTagSortKey(a['Tag']||a['tag']) - mnTagSortKey(b['Tag']||b['tag'])
+      );
+      const rows = sorted.map(e => {
+        const tag = (e['Tag']||e['tag']||'').trim();
+        const note = e['Note']||e['note']||e['Notes']||e['notes']||'';
+        const tagHtml = tag ? `<span class="${mnTagClass(tag)}">${mnEsc(tag)}</span>` : '';
+        return `<div class="mn-entry ${extraClass}">
+          <div class="mn-entry-top">${icon}<span style="flex:1" class="mn-text">${mnEsc(note)}</span>${tagHtml}</div>
+        </div>`;
+      }).join('');
+      return `<div class="mn-date-group">
+        <div class="mn-date-group-label">${mnFormatDate(dk)||'undated'}</div>
+        ${rows}
+      </div>`;
+    }).join('');
+  }
+
+  html += renderGroup(active, '', '');
+  if (onHold.length)    html += `<div class="mn-section-divider">parking lot</div>` + renderGroup(onHold,    'mn-entry mn-onhold',    '');
+  if (completed.length) html += `<div class="mn-section-divider">completed</div>`   + renderGroup(completed, 'mn-entry mn-completed', '<span class="mn-check">✓</span>');
+  if (canceled.length)  html += `<div class="mn-section-divider">canceled</div>`    + renderGroup(canceled,  'mn-entry mn-canceled',  '');
+
+  el.innerHTML = html;
 }
 
 async function loadMeetingNotes() {
@@ -2586,7 +2654,7 @@ async function loadMeetingNotes() {
   }
 
   if (NOTES_CSV_URL.startsWith('REPLACE_WITH')) {
-    document.getElementById('mn-kristine').innerHTML = '<div class="mn-empty">sheet not connected yet — publish the Meeting Notes tab as CSV and paste the URL into NOTES_CSV_URL.</div>';
+    document.getElementById('mn-kristine').innerHTML = '<div class="mn-empty">sheet not connected yet.</div>';
     document.getElementById('mn-ru').innerHTML = '';
     return;
   }
@@ -2594,31 +2662,29 @@ async function loadMeetingNotes() {
   try {
     const res  = await fetch(NOTES_CSV_URL);
     const text = await res.text();
-    // Auto-detect row offset (row 1 may be blank or header)
     const parsed = Papa.parse(text, {header:false, skipEmptyLines:false}).data;
     const firstCell = ((parsed[0]||[])[0]||'').trim().toLowerCase();
     let headers, dataRows;
     if (firstCell === 'person' || firstCell === 'date') {
       headers = parsed[0]; dataRows = parsed.slice(1);
     } else {
-      headers = parsed[1] || []; dataRows = parsed.slice(2);
+      headers = parsed[1]||[]; dataRows = parsed.slice(2);
     }
     const rows = dataRows
       .map(r => { const o={}; headers.forEach((h,i)=>{o[h]=(r[i]||'').trim();}); return o; })
       .filter(r => Object.values(r).some(v=>v));
 
-    const personKey = headers.find(h => h.toLowerCase()==='person') || 'Person';
-    const kristine = rows
-      .filter(r => (r[personKey]||'').toLowerCase().includes('kristine'))
-      .sort((a,b) => new Date(b['Date']||b['date']||0) - new Date(a['Date']||a['date']||0));
-    const ru = rows
-      .filter(r => (r[personKey]||'').toLowerCase().includes('ru') || (r[personKey]||'').toLowerCase().includes('ru '))
-      .sort((a,b) => new Date(b['Date']||b['date']||0) - new Date(a['Date']||a['date']||0));
+    const personKey = headers.find(h => h && h.toLowerCase()==='person') || 'Person';
+    const kristine  = rows.filter(r => (r[personKey]||'').toLowerCase().includes('kristine'));
+    const ru        = rows.filter(r => {
+      const p = (r[personKey]||'').toLowerCase();
+      return p === 'ru' || p.startsWith('ru ') || p.startsWith('ru,');
+    });
 
     renderMnColumn('mn-kristine', kristine);
     renderMnColumn('mn-ru', ru);
   } catch(err) {
-    document.getElementById('mn-kristine').innerHTML = '<div class="mn-empty">could not load notes — check the sheet is published as CSV.</div>';
+    document.getElementById('mn-kristine').innerHTML = '<div class="mn-empty">could not load notes.</div>';
     document.getElementById('mn-ru').innerHTML = '';
     console.error('Meeting notes error:', err);
   }
@@ -3013,8 +3079,8 @@ window.onload = function() {
 
 const GT_ACTIONS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vStZOAlsjjT6QatC2oqxNqUnTxT6Rdd_m0lCsAGDvfarzp2P2V3C0O4Qmv_OXVgQeLaEU16_8CC0d-0/pub?gid=510931153&single=true&output=csv";
 const GT_LOG_CSV_URL     = "https://docs.google.com/spreadsheets/d/e/2PACX-1vStZOAlsjjT6QatC2oqxNqUnTxT6Rdd_m0lCsAGDvfarzp2P2V3C0O4Qmv_OXVgQeLaEU16_8CC0d-0/pub?gid=2090445654&single=true&output=csv";
-const NOTES_CSV_URL      = "https://docs.google.com/spreadsheets/d/e/2PACX-1vStZOAlsjjT6QatC2oqxNqUnTxT6Rdd_m0lCsAGDvfarzp2P2V3C0O4Qmv_OXVgQeLaEU16_8CC0d-0/pub?gid=312318978&single=true&output=csv";
-const NOTES_SHEET_URL    = "https://docs.google.com/spreadsheets/d/1KjbY2McYMPK6sYDIiQEQ2Z84espLJ0E3ry45qSsCARA/edit#gid=312318978";
+const NOTES_CSV_URL      = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSo7dOybKAfFxMwV5IAA7I4etNhGdnNP0O-OIH45rFg5MJ391ZvZbxehpHJspMcwwNPbL8mjMdytH-9/pub?gid=0&single=true&output=csv";
+const NOTES_SHEET_URL    = "https://docs.google.com/spreadsheets/d/1yLwegDyhRFAfW8mEBKIMldwL8jtnklEOYtlwVy_Tjt0/edit?usp=sharing";
 const GT_ACCOM_CSV_URL   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vStZOAlsjjT6QatC2oqxNqUnTxT6Rdd_m0lCsAGDvfarzp2P2V3C0O4Qmv_OXVgQeLaEU16_8CC0d-0/pub?gid=895196455&single=true&output=csv";
 const GT_PEOPLE_CSV_URL  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7GNwyEpfvL-RiTwo9xQSdiLf4wpjcTNrE13MD0zGFct5imiG3ah2ETYe_HEF96Q/pub?gid=755730701&single=true&output=csv";
 const GT_CRM_URL         = "https://docs.google.com/spreadsheets/d/1RcHAe8kzQIoMKFjjCbqVQQyWjOlomrFe/edit";
