@@ -489,12 +489,13 @@
       color: var(--text-primary);
     }
     .day-badge-slot {
-      min-height: 62px;
+      min-height: 52px;
+      flex-shrink: 0;
     }
     .day-evp-badge-slot {
-      margin-top: auto;
+      min-height: 52px;
+      flex-shrink: 0;
       padding-top: 3px;
-      min-height: 30px;
     }
     .calendar-week-focus { display:none !important; }
     .calendar-week-focus-DISABLED {
@@ -552,6 +553,7 @@
       font-size: 0.64rem;
       line-height: 1.35;
       min-height: 15px;
+      flex-shrink: 0;
       margin-bottom: 1px;
       overflow: hidden;
       white-space: nowrap;
@@ -1559,7 +1561,8 @@ function buildMergedDayIndex(evpEvents, leadershipRows) {
       const entry = ensure(dateKeyRu(cur));
       entry.evpBadges.push({
         title: e.Event || '',
-        color: CALENDAR_CATEGORY_COLORS[e.Category] || CALENDAR_CATEGORY_COLORS['EVP']
+        color: CALENDAR_CATEGORY_COLORS[e.Category] || CALENDAR_CATEGORY_COLORS['EVP'],
+        isMultiDay: end > start
       });
       cur.setDate(cur.getDate() + 1);
     }
@@ -1751,23 +1754,32 @@ function buildMonthGrid(monthDate, dayIndex, today) {
     // Ru's own EVP calendar events sit in a slot pinned to the bottom of the cell,
     // so they're visually distinct from leadership team items above.
     const evpBadges = dayData ? dayData.evpBadges : [];
-    if (evpBadges.length) {
+    {
+      // Always render evpSlot (even empty) so OOO rows stay vertically consistent
       const evpSlot = document.createElement('div');
       evpSlot.className = 'day-evp-badge-slot';
-      evpBadges.slice(0, 2).forEach(b => {
-        const ev = document.createElement('div');
-        ev.className = 'calendar-event';
-        ev.style.background = b.color;
-        ev.textContent = b.title;
-        ev.title = b.title;
-        evpSlot.appendChild(ev);
-      });
-      if (evpBadges.length > 2) {
-        const more = document.createElement('div');
-        more.className = 'calendar-event-more';
-        more.textContent = '+' + (evpBadges.length - 2) + ' more';
-        more.title = evpBadges.slice(2).map(b => b.title).join(', ');
-        evpSlot.appendChild(more);
+      if (evpBadges.length) {
+        // Sort: single-day (one-offs) first, multi-day spanning events at bottom
+        const sortedEvp = evpBadges.slice().sort((a, b) => {
+          const aMulti = a.isMultiDay ? 1 : 0;
+          const bMulti = b.isMultiDay ? 1 : 0;
+          return aMulti - bMulti;
+        });
+        sortedEvp.slice(0, 2).forEach(b => {
+          const ev = document.createElement('div');
+          ev.className = 'calendar-event';
+          ev.style.background = b.color;
+          ev.textContent = b.title;
+          ev.title = b.title;
+          evpSlot.appendChild(ev);
+        });
+        if (sortedEvp.length > 2) {
+          const more = document.createElement('div');
+          more.className = 'calendar-event-more';
+          more.textContent = '+' + (sortedEvp.length - 2) + ' more';
+          more.title = sortedEvp.slice(2).map(b => b.title).join(', ');
+          evpSlot.appendChild(more);
+        }
       }
       cell.appendChild(evpSlot);
     }
