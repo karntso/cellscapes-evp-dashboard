@@ -1182,6 +1182,7 @@
       white-space: nowrap;
       flex-shrink: 0;
       text-align: right;
+      line-height: 1.4;
     }
     /* status badge sits below title */
     .travel-item-status-row {
@@ -1876,6 +1877,22 @@ function formatDateRange(startStr, endStr) {
   return startLabel + ' – ' + endLabel + ', ' + end.getFullYear();
 }
 
+function formatDateSplit(startStr, endStr) {
+  // Returns {date: "Jan 22 – 24", year: "2026"}
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const start = parseLocalDate(startStr);
+  const end   = parseLocalDate(endStr);
+  if (!start) return {date: '', year: ''};
+  const startLabel = monthNames[start.getMonth()] + ' ' + start.getDate();
+  if (!end || end.getTime() === start.getTime()) {
+    return {date: startLabel, year: String(start.getFullYear())};
+  }
+  const sameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
+  const endLabel = sameMonth ? end.getDate() : (monthNames[end.getMonth()] + ' ' + end.getDate());
+  const year = String(end.getFullYear());
+  return {date: startLabel + ' – ' + endLabel, year};
+}
+
 async function loadEvpTravel() {
   const body = document.getElementById('travel-body');
   if (TRAVEL_CSV_URL.indexOf("REPLACE_WITH") === 0) {
@@ -1918,10 +1935,16 @@ function renderTravelCards(rows, isPreview) {
     body.appendChild(note);
   }
 
-  const sorted = rows
+  const today = new Date(); today.setHours(0,0,0,0);
+  const withDates = rows
     .filter(r => r['Trip'] || r['Destination'])
-    .map(r => ({ ...r, _date: parseLocalDate(r['Start Date']) }))
-    .sort((a, b) => (a._date || 0) - (b._date || 0));
+    .map(r => ({ ...r, _date: parseLocalDate(r['Start Date']) }));
+  // Upcoming (today or future) sorted ascending, past sorted descending after
+  const upcoming = withDates.filter(r => !r._date || r._date >= today)
+    .sort((a,b) => (a._date||0) - (b._date||0));
+  const past = withDates.filter(r => r._date && r._date < today)
+    .sort((a,b) => (b._date||0) - (a._date||0));
+  const sorted = [...upcoming, ...past];
 
   if (sorted.length === 0) {
     const empty = document.createElement('div');
@@ -1943,10 +1966,16 @@ function renderTravelCards(rows, isPreview) {
     const flightDone = flightRaw === '' ? null : parseBool(flightRaw);
     const hotelDone  = hotelRaw  === '' ? null : parseBool(hotelRaw);
 
+    const {date: dateStr, year: yearStr} = formatDateSplit(row['Start Date'], row['End Date']);
+    const isCompleted = (row['Status']||'').trim().toLowerCase() === 'completed';
+    if (isCompleted) item.style.opacity = '0.5';
     item.innerHTML = `
       <div class="travel-item-top">
         <div class="travel-item-title">${escapeHtml(row['Trip'] || '')}</div>
-        <div class="travel-item-dates">${formatDateRange(row['Start Date'], row['End Date'])}</div>
+        <div class="travel-item-dates">
+          <div>${escapeHtml(dateStr)}</div>
+          ${yearStr ? `<div style="font-size:0.65rem;color:var(--text-secondary);text-align:right;font-weight:400;">${escapeHtml(yearStr)}</div>` : ''}
+        </div>
       </div>
       ${row['Status'] ? `<div class="travel-item-status-row"><span class="travel-status-badge" style="background:${TRAVEL_STATUS_COLORS[row['Status']]||'#F1EFE8'};color:${TRAVEL_STATUS_TEXT[row['Status']]||'#737373'}">${escapeHtml(row['Status'])}</span></div>` : ''}
       <div class="travel-item-dest">${escapeHtml(row['Destination'] || '')}</div>
