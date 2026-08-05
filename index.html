@@ -1581,7 +1581,8 @@ function buildMergedDayIndex(evpEvents, leadershipRows) {
         entry.leadershipBadges.push({
           title: row['Event Title'] || '',
           color: LEADERSHIP_EVENT_TYPE_COLORS[eventType] || LEADERSHIP_EVENT_TYPE_COLORS['Other'],
-          isHoliday: eventType === 'Holiday'
+          isHoliday: eventType === 'Holiday',
+          isMultiDay: end > start
         });
       } else if (recordType === 'OOO') {
         const oooType = (row['OOO Type'] || '').trim();
@@ -1716,21 +1717,38 @@ function buildMonthGrid(monthDate, dayIndex, today) {
     const badgeSlot = document.createElement('div');
     badgeSlot.className = 'day-badge-slot';
     const leadershipBadges = dayData ? dayData.leadershipBadges : [];
-    const maxShown = 2;
-    leadershipBadges.slice(0, maxShown).forEach(b => {
+    // Same two-track layout: single-day in slot 0, multi-day in slot 1 with spacer if needed
+    const lSingle = leadershipBadges.filter(b => !b.isMultiDay);
+    const lMulti  = leadershipBadges.filter(b =>  b.isMultiDay);
+
+    if (lSingle.length > 0) {
       const ev = document.createElement('div');
       ev.className = 'calendar-event';
-      ev.style.background = b.color;
-      ev.textContent = b.title;
-      ev.title = b.title;
+      ev.style.background = lSingle[0].color;
+      ev.textContent = lSingle[0].title;
+      ev.title = lSingle[0].title;
       badgeSlot.appendChild(ev);
-    });
-    if (leadershipBadges.length > maxShown) {
-      const more = document.createElement('div');
-      more.className = 'calendar-event-more';
-      more.textContent = '+' + (leadershipBadges.length - maxShown) + ' more';
-      more.title = leadershipBadges.slice(maxShown).map(b => b.title).join(', ');
-      badgeSlot.appendChild(more);
+    } else if (lMulti.length > 0) {
+      const spacer = document.createElement('div');
+      spacer.className = 'calendar-event';
+      spacer.style.cssText = 'background:transparent;color:transparent;pointer-events:none;';
+      spacer.textContent = ' ';
+      badgeSlot.appendChild(spacer);
+    }
+    if (lMulti.length > 0) {
+      const ev = document.createElement('div');
+      ev.className = 'calendar-event';
+      ev.style.background = lMulti[0].color;
+      ev.textContent = lMulti[0].title;
+      ev.title = lMulti[0].title;
+      badgeSlot.appendChild(ev);
+      if (lMulti.length > 1) {
+        const more = document.createElement('div');
+        more.className = 'calendar-event-more';
+        more.textContent = '+' + (lMulti.length - 1) + ' more';
+        more.title = lMulti.slice(1).map(b => b.title).join(', ');
+        badgeSlot.appendChild(more);
+      }
     }
     cell.appendChild(badgeSlot);
 
@@ -1755,32 +1773,60 @@ function buildMonthGrid(monthDate, dayIndex, today) {
     // so they're visually distinct from leadership team items above.
     const evpBadges = dayData ? dayData.evpBadges : [];
     {
-      // Always render evpSlot (even empty) so OOO rows stay vertically consistent
+      // Always render evpSlot so OOO rows stay vertically consistent.
+      // Layout rule: multi-day events always occupy the BOTTOM slot (index 1).
+      // Single-day events always occupy the TOP slot (index 0).
+      // If only a multi-day event exists, we insert a transparent spacer in slot 0
+      // so the multi-day badge stays in the same visual row across its whole span.
       const evpSlot = document.createElement('div');
       evpSlot.className = 'day-evp-badge-slot';
-      if (evpBadges.length) {
-        // Sort: single-day (one-offs) first, multi-day spanning events at bottom
-        const sortedEvp = evpBadges.slice().sort((a, b) => {
-          const aMulti = a.isMultiDay ? 1 : 0;
-          const bMulti = b.isMultiDay ? 1 : 0;
-          return aMulti - bMulti;
-        });
-        sortedEvp.slice(0, 2).forEach(b => {
-          const ev = document.createElement('div');
-          ev.className = 'calendar-event';
-          ev.style.background = b.color;
-          ev.textContent = b.title;
-          ev.title = b.title;
-          evpSlot.appendChild(ev);
-        });
-        if (sortedEvp.length > 2) {
+
+      const singleDay = evpBadges.filter(b => !b.isMultiDay);
+      const multiDay  = evpBadges.filter(b =>  b.isMultiDay);
+
+      // Slot 0: single-day event OR transparent spacer
+      if (singleDay.length > 0) {
+        const ev = document.createElement('div');
+        ev.className = 'calendar-event';
+        ev.style.background = singleDay[0].color;
+        ev.textContent = singleDay[0].title;
+        ev.title = singleDay[0].title;
+        evpSlot.appendChild(ev);
+        if (singleDay.length > 1) {
           const more = document.createElement('div');
           more.className = 'calendar-event-more';
-          more.textContent = '+' + (sortedEvp.length - 2) + ' more';
-          more.title = sortedEvp.slice(2).map(b => b.title).join(', ');
+          more.textContent = '+' + (singleDay.length - 1) + ' more';
+          more.title = singleDay.slice(1).map(b => b.title).join(', ');
+          evpSlot.appendChild(more);
+        }
+      } else if (multiDay.length > 0) {
+        // Spacer so multi-day always appears in slot 1 position
+        const spacer = document.createElement('div');
+        spacer.className = 'calendar-event';
+        spacer.style.background = 'transparent';
+        spacer.style.color = 'transparent';
+        spacer.style.pointerEvents = 'none';
+        spacer.textContent = ' ';
+        evpSlot.appendChild(spacer);
+      }
+
+      // Slot 1: multi-day event
+      if (multiDay.length > 0) {
+        const ev = document.createElement('div');
+        ev.className = 'calendar-event';
+        ev.style.background = multiDay[0].color;
+        ev.textContent = multiDay[0].title;
+        ev.title = multiDay[0].title;
+        evpSlot.appendChild(ev);
+        if (multiDay.length > 1) {
+          const more = document.createElement('div');
+          more.className = 'calendar-event-more';
+          more.textContent = '+' + (multiDay.length - 1) + ' more';
+          more.title = multiDay.slice(1).map(b => b.title).join(', ');
           evpSlot.appendChild(more);
         }
       }
+
       cell.appendChild(evpSlot);
     }
 
