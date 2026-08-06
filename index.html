@@ -1327,10 +1327,11 @@
 <!-- Tab bar -->
 <div class="tabs">
   <button class="tab-btn active" onclick="switchTab('priorities', event)">calendar</button>
-  <button class="tab-btn" onclick="switchTab('goals-tracker', event)">goals &amp; action items</button>
+  <button class="tab-btn" onclick="switchTab('goals-priorities', event)">goals &amp; priorities</button>
   <button class="tab-btn" onclick="switchTab('travel-outreach', event)">travel &amp; outreach</button>
   <button class="tab-btn" onclick="switchTab('accomplishments', event)">accomplishments</button>
   <button class="tab-btn" onclick="switchTab('meeting-notes', event)">meeting notes</button>
+  <button class="tab-btn" onclick="switchTab('goals-tracker', event)">goals &amp; action items</button>
 </div>
 
 <!-- Tab 1: Ru's Priorities -->
@@ -1445,6 +1446,7 @@ function switchTab(tabName, evt) {
   if (evt && evt.target) evt.target.classList.add('active');
   if (tabName === 'accomplishments') loadTopLevelAccomplishments();
   if (tabName === 'meeting-notes') loadMeetingNotes();
+  if (tabName === 'goals-priorities') loadMonthPriorities();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -2839,6 +2841,7 @@ window.onload = function() {
   loadMeasuresStatus();
   loadGoalsTracker();
   loadTalksTravel();
+  loadMonthPriorities();
 };
 </script>
 
@@ -2865,6 +2868,7 @@ window.onload = function() {
 .gt-pill.in-progress{background:#EDEDFF;color:#4040CC;}
 .gt-pill.on-track{background:#E0F4F3;color:#007A72;}
 .gt-pill.at-risk{background:#FCE8F0;color:#9A0A3E;}
+.gt-pill.blocked-hold{background:#FCE8F0;color:#9A0A3E;}
 .gt-pill.complete{background:#111;color:#fff;}
 .gt-pill.carried-over{background:#FFF8E1;color:#B8860B;}
 /* sheet bar */
@@ -3011,10 +3015,113 @@ window.onload = function() {
 .gt-status-msg{font-size:.82rem;color:var(--text-secondary);padding:6px 0;}
 .gt-select{font-family:Arial,sans-serif;font-size:.78rem;color:var(--text-primary);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;cursor:pointer;}
 .gt-select:focus{outline:none;border-color:var(--gt-c1);}
+
+/* ── Goals & Priorities tab ────────────────────────────────── */
+.mp-row {
+  display: grid;
+  grid-template-columns: 150px 1fr 90px 130px 14px;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--surface-2);
+  font-size: 0.86rem;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.mp-row:last-child { border-bottom: none; }
+.mp-row:hover { background: var(--surface-2); }
+.mp-row.no-comment { cursor: default; }
+.mp-row.no-comment:hover { background: transparent; }
+.mp-goal-tag {
+  font-size: 0.66rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mp-item-text { color: var(--text-primary); line-height: 1.4; }
+.mp-due { font-size: 0.78rem; color: var(--text-secondary); white-space: nowrap; }
+.mp-chevron {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  transition: transform 0.15s;
+}
+.mp-chevron.open { transform: rotate(90deg); }
+.mp-comment {
+  display: none;
+  padding: 10px 14px 12px 14px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  line-height: 1.5;
+}
+.mp-comment.open { display: block; }
+.mp-empty { padding: 14px 0; font-size: 0.82rem; color: var(--text-secondary); font-style: italic; }
+.mp-list-wrap { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
 </style>
+
+<!-- Goals & Priorities Tab -->
+<div id="tab-goals-priorities" class="tab-content">
+
+  <!-- 2026 EVP Goals -->
+  <div class="section-card">
+    <div class="section-header open" onclick="toggleCollapse('evp2026goals')" id="evp2026goals-header">
+      <h2 class="section-title">2026 EVP goals</h2>
+      <span class="collapsible-toggle open" id="evp2026goals-toggle">+</span>
+    </div>
+    <div class="collapsible-content open" id="evp2026goals-content">
+      <div class="section-body">
+        <div class="gt-pillar-grid">
+          <div class="gt-pillar-card">
+            <div class="gt-pc-head" style="border-top:2px solid var(--gt-c1);">
+              <div class="gt-pc-title" style="color:var(--gt-c1);">1. mission &amp; narrative</div>
+            </div>
+          </div>
+          <div class="gt-pillar-card">
+            <div class="gt-pc-head" style="border-top:2px solid var(--gt-c2);">
+              <div class="gt-pc-title" style="color:var(--gt-c2);">2. scientific progress</div>
+            </div>
+          </div>
+          <div class="gt-pillar-card">
+            <div class="gt-pc-head" style="border-top:2px solid var(--gt-c3);">
+              <div class="gt-pc-title" style="color:var(--gt-c3);">3. culture &amp; organization</div>
+            </div>
+          </div>
+          <div class="gt-pillar-card">
+            <div class="gt-pc-head" style="border-top:2px solid var(--gt-c4);">
+              <div class="gt-pc-title" style="color:var(--gt-c4);">4. community &amp; hub building</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Priorities for [Month] -->
+  <div class="section-card">
+    <div class="section-header open" onclick="toggleCollapse('monthpriorities')" id="monthpriorities-header">
+      <h2 class="section-title" id="monthpriorities-title">priorities for …</h2>
+      <span class="collapsible-toggle open" id="monthpriorities-toggle">+</span>
+    </div>
+    <div class="collapsible-content open" id="monthpriorities-content">
+      <div class="section-body">
+        <div class="gt-status-msg" id="mp-status">loading priorities…</div>
+        <div class="mp-list-wrap" id="mp-list-wrap" style="display:none;">
+          <div id="mp-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
 
 <!-- Goals Tracker Tab -->
 <div id="tab-goals-tracker" class="tab-content">
+
 
   <!-- view toggle + sheet bar in one row -->
   <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:20px;">
@@ -3230,10 +3337,11 @@ const GT_PILLARS = [
 const STATUS_NORM = {
   "not started":"not-started","in progress":"in-progress","on track":"on-track",
   "at risk":"at-risk","complete":"complete","completed":"complete",
-  "carried over":"carried-over"
+  "carried over":"carried-over","blocked / hold":"blocked-hold","blocked/hold":"blocked-hold",
+  "blocked":"blocked-hold","hold":"blocked-hold","on hold":"blocked-hold"
 };
-const STATUS_ICON  = {"not-started":"○","in-progress":"◑","on-track":"●","at-risk":"!","complete":"✓","carried-over":"↩"};
-const STATUS_LABEL = {"not-started":"not started","in-progress":"in progress","on-track":"on track","at-risk":"at risk","complete":"complete","carried-over":"carried over"};
+const STATUS_ICON  = {"not-started":"○","in-progress":"◑","on-track":"●","at-risk":"!","complete":"✓","carried-over":"↩","blocked-hold":"⛔"};
+const STATUS_LABEL = {"not-started":"not started","in-progress":"in progress","on-track":"on track","at-risk":"at risk","complete":"complete","carried-over":"carried over","blocked-hold":"blocked / hold"};
 const MONTHS_LONG  = ["january","february","march","april","may","june","july","august","september","october","november","december"];
 const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
@@ -4066,6 +4174,136 @@ async function loadGoalsTracker() {
   } catch(err) {
     statusEl.textContent = 'could not load goals tracker — check the sheet is published as CSV and the URL is correct.';
     console.error('GT error:', err);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// GOALS & PRIORITIES TAB — "priorities for [Month]"
+// ══════════════════════════════════════════════════════════════
+const MP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vStZOAlsjjT6QatC2oqxNqUnTxT6Rdd_m0lCsAGDvfarzp2P2V3C0O4Qmv_OXVgQeLaEU16_8CC0d-0/pub?gid=1920791932&single=true&output=csv";
+
+const MP_GOALS = [
+  { name: "Mission & Narrative", color: "var(--gt-c1)", bg: "var(--gt-c1-bg)" },
+  { name: "Scientific Progress", color: "var(--gt-c2)", bg: "var(--gt-c2-bg)" },
+  { name: "Culture & Organization", color: "var(--gt-c3)", bg: "var(--gt-c3-bg)" },
+  { name: "Community & Hub Building", color: "var(--gt-c4)", bg: "var(--gt-c4-bg)" },
+  { name: "APR / BOD / SAC", color: "var(--gt-c5)", bg: "var(--gt-c5-bg)" }
+];
+
+// Goal values come formatted as "1 | mission & narrative" — strip the leading
+// number and pipe before matching against the known goal names.
+function mpGoalMeta(name) {
+  let clean = (name || '').trim();
+  const pipeIdx = clean.indexOf('|');
+  if (pipeIdx !== -1) clean = clean.slice(pipeIdx + 1).trim();
+  const found = MP_GOALS.find(g => g.name.toLowerCase() === clean.toLowerCase());
+  return found || { name: clean || 'Other', color: "var(--gt-c5)", bg: "var(--gt-c5-bg)" };
+}
+
+function mpCurrentMonthName() {
+  const label = MONTHS_LONG[new Date().getMonth()];
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+function mpSetTitle() {
+  const titleEl = document.getElementById('monthpriorities-title');
+  if (titleEl) titleEl.textContent = 'priorities for ' + mpCurrentMonthName();
+}
+
+// Determines which month a row belongs to — prefers the Date Due column (gives us
+// the year too), falls back to the explicit Month text column if Date Due is blank.
+function mpItemMonthIndex(row) {
+  const due = gf(row, 'Date Due', 'date due', 'Due Date', 'due date', 'Due', 'due');
+  if (due) {
+    const d = new Date(due);
+    if (!isNaN(d)) return { monthIdx: d.getMonth(), year: d.getFullYear() };
+  }
+  const explicit = gf(row, 'Month', 'month');
+  if (explicit) {
+    const idx = MONTHS_LONG.findIndex(m => explicit.toLowerCase().startsWith(m.slice(0, 3)));
+    if (idx !== -1) return { monthIdx: idx, year: null };
+  }
+  return null;
+}
+
+function renderMonthPriorities(rows) {
+  const list = document.getElementById('mp-list');
+  const wrap = document.getElementById('mp-list-wrap');
+  const status = document.getElementById('mp-status');
+  const now = new Date();
+
+  const filtered = rows.filter(r => {
+    const m = mpItemMonthIndex(r);
+    if (!m) return false;
+    if (m.year !== null && m.year !== now.getFullYear()) return false;
+    return m.monthIdx === now.getMonth();
+  });
+
+  if (!filtered.length) {
+    status.textContent = 'No priorities logged for this month yet.';
+    status.style.display = '';
+    wrap.style.display = 'none';
+    return;
+  }
+
+  status.style.display = 'none';
+  wrap.style.display = '';
+  list.innerHTML = '';
+
+  filtered.forEach((row, idx) => {
+    const goalName = gf(row, 'Goal', 'goal', 'Pillar', 'pillar');
+    const meta = mpGoalMeta(goalName);
+    const itemText = gf(row, 'Item', 'item', 'Action Item', 'action item', 'Priority', 'priority');
+    const due = gf(row, 'Date Due', 'date due', 'Due Date', 'due date', 'Due', 'due');
+    const statusRaw = gf(row, 'Status', 'status');
+    const statusKey = normStatus(statusRaw);
+    const comments = gf(row, 'Comments / Notes', 'comments / notes', 'Comments', 'comments', 'Notes', 'notes');
+    const hasComment = !!comments;
+
+    const rowEl = document.createElement('div');
+    rowEl.className = 'mp-row' + (hasComment ? '' : ' no-comment');
+    rowEl.innerHTML = `
+      <span class="mp-goal-tag" style="background:${meta.bg};color:${meta.color}">${escGt(meta.name)}</span>
+      <span class="mp-item-text">${escGt(itemText)}</span>
+      <span class="mp-due">${due ? formatDate(due) : ''}</span>
+      <span class="gt-pill ${statusKey}" style="font-size:.68rem;">${STATUS_ICON[statusKey]} ${STATUS_LABEL[statusKey]}</span>
+      <span class="mp-chevron" id="mp-chevron-${idx}">${hasComment ? '\u25B8' : ''}</span>
+    `;
+    if (hasComment) {
+      rowEl.onclick = () => {
+        const c = document.getElementById('mp-comment-' + idx);
+        const chev = document.getElementById('mp-chevron-' + idx);
+        if (c) c.classList.toggle('open');
+        if (chev) chev.classList.toggle('open');
+      };
+    }
+    list.appendChild(rowEl);
+
+    if (hasComment) {
+      const commentEl = document.createElement('div');
+      commentEl.className = 'mp-comment';
+      commentEl.id = 'mp-comment-' + idx;
+      commentEl.textContent = comments;
+      list.appendChild(commentEl);
+    }
+  });
+}
+
+let mpLoaded = false;
+async function loadMonthPriorities() {
+  mpSetTitle();
+  if (mpLoaded) return;
+  mpLoaded = true;
+  const status = document.getElementById('mp-status');
+  try {
+    const res = await fetch(MP_CSV_URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const rows = parseCSV(text, 0);
+    renderMonthPriorities(rows);
+  } catch (err) {
+    status.textContent = 'Could not load priorities — check the sheet is published as CSV and the link is correct.';
+    console.error('Month priorities load error:', err);
   }
 }
 </script>
