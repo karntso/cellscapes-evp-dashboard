@@ -4349,20 +4349,20 @@ const MP_GOALS = [
   { name: "Culture & Organization", code: "G3", color: "var(--gt-c3)", bg: "var(--gt-c3-bg)" },
   { name: "Community & Hub Building", code: "G4", color: "var(--gt-c4)", bg: "var(--gt-c4-bg)" },
   { name: "APR / BOD / SAC", color: "var(--gt-c5)", bg: "var(--gt-c5-bg)" },
-  { name: "Other", color: "var(--gt-c5)", bg: "var(--gt-c5-bg)" }
+  { name: "other", color: "var(--gt-c5)", bg: "var(--gt-c5-bg)" }
 ];
 
 // Goal values come formatted as "1 | mission & narrative" and can contain multiple,
 // comma-separated goals per row (from a multi-select dropdown) — split and parse each.
 function mpGoalMetaList(name) {
   const raw = (name || '').trim();
-  if (!raw) return [{ name: 'Other', color: "var(--gt-c5)", bg: "var(--gt-c5-bg)" }];
+  if (!raw) return [{ name: 'other', color: "var(--gt-c5)", bg: "var(--gt-c5-bg)" }];
   return raw.split(',').map(piece => {
     let clean = piece.trim();
     const pipeIdx = clean.indexOf('|');
     if (pipeIdx !== -1) clean = clean.slice(pipeIdx + 1).trim();
     const found = MP_GOALS.find(g => g.name.toLowerCase() === clean.toLowerCase());
-    return found || { name: clean || 'Other', color: "var(--gt-c5)", bg: "var(--gt-c5-bg)" };
+    return found || { name: clean || 'other', color: "var(--gt-c5)", bg: "var(--gt-c5-bg)" };
   }).filter(g => g.name);
 }
 
@@ -4373,11 +4373,28 @@ function mpMonthLabel(monthIdx) {
 
 // Determines which month a row belongs to — prefers the Date Due column (gives us
 // the year too), falls back to the explicit Month text column if Date Due is blank.
+// Parses "YYYY-MM-DD" as a LOCAL date (avoiding the UTC-midnight shift that
+// new Date("YYYY-MM-DD") introduces, which was causing dates to show one day early).
+function mpParseLocalDate(str) {
+  if (!str) return null;
+  const s = String(str).trim();
+  const m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) return new Date(parseInt(m[1]), parseInt(m[2]) - 1, parseInt(m[3]));
+  const d = new Date(s);
+  return isNaN(d) ? null : d;
+}
+function mpFormatDate(str) {
+  const d = mpParseLocalDate(str);
+  if (!d) return str || '';
+  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return monthNames[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+}
+
 function mpItemMonthIndex(row) {
   const due = gf(row, 'Date Due', 'date due', 'Due Date', 'due date', 'Due', 'due');
   if (due) {
-    const d = new Date(due);
-    if (!isNaN(d)) return { monthIdx: d.getMonth(), year: d.getFullYear() };
+    const d = mpParseLocalDate(due);
+    if (d) return { monthIdx: d.getMonth(), year: d.getFullYear() };
   }
   const explicit = gf(row, 'Month', 'month');
   if (explicit) {
@@ -4400,6 +4417,17 @@ function renderMonthPrioritiesInto(rows, targetMonthIdx, targetYear, ids, fadeCo
     if (!m) return false;
     if (m.year !== null && m.year !== targetYear) return false;
     return m.monthIdx === targetMonthIdx;
+  });
+
+  filtered.sort((a, b) => {
+    const aComplete = normStatus(gf(a, 'Status', 'status')) === 'complete' ? 1 : 0;
+    const bComplete = normStatus(gf(b, 'Status', 'status')) === 'complete' ? 1 : 0;
+    if (aComplete !== bComplete) return aComplete - bComplete;
+    const aDate = mpParseLocalDate(gf(a, 'Date Due', 'date due', 'Due Date', 'due date', 'Due', 'due'));
+    const bDate = mpParseLocalDate(gf(b, 'Date Due', 'date due', 'Due Date', 'due date', 'Due', 'due'));
+    const aTime = aDate ? aDate.getTime() : Infinity;
+    const bTime = bDate ? bDate.getTime() : Infinity;
+    return aTime - bTime;
   });
 
   if (!filtered.length) {
@@ -4426,17 +4454,16 @@ function renderMonthPrioritiesInto(rows, targetMonthIdx, targetYear, ids, fadeCo
     const rowIdBase = ids.list + '-' + idx;
 
     const goalCodesHtml = goalMetas.map(meta =>
-      `<span style="color:${meta.color};">${escGt(meta.code || meta.name)}</span>`
+      `<span style="color:${meta.color};font-size:${meta.code ? '0.82rem' : '0.68rem'};">${escGt(meta.code || meta.name)}</span>`
     ).join('<span style="color:var(--text-secondary);"> | </span>');
     const goalFullNames = goalMetas.map(meta => meta.name).join(' | ');
-    const goalBorderColor = goalMetas[0].color;
 
     const rowEl = document.createElement('div');
     rowEl.className = 'mp-row' + (hasComment ? '' : ' no-comment') + (fadeCompleted && isComplete ? ' mp-faded' : '');
     rowEl.innerHTML = `
-      <span class="mp-goal-tag" style="border-color:${goalBorderColor};" title="${escGt(goalFullNames)}">${goalCodesHtml}</span>
+      <span class="mp-goal-tag" title="${escGt(goalFullNames)}">${goalCodesHtml}</span>
       <span class="mp-item-text">${escGt(itemText)}</span>
-      <span class="mp-due">${due ? formatDate(due) : ''}</span>
+      <span class="mp-due">${due ? mpFormatDate(due) : ''}</span>
       <span class="gt-pill ${statusKey}" style="font-size:.68rem;">${STATUS_ICON[statusKey]} ${STATUS_LABEL[statusKey]}</span>
       <span class="mp-chevron" id="chev-${rowIdBase}">${hasComment ? '\u25B8' : ''}</span>
     `;
