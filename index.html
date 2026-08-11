@@ -1439,6 +1439,11 @@
 // ══════════════════════════════════════════════════════════════
 // TAB SWITCHING
 // ══════════════════════════════════════════════════════════════
+function toggleEvpGoalDetail(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
+}
+
 function switchTab(tabName, evt) {
   document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -2891,8 +2896,19 @@ window.onload = function() {
 .gt-pillar-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
 .gt-pc-head{padding:10px 14px 8px;border-bottom:1px solid var(--border);}
 .gt-pc-title{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;}
-.evp-goal-pill-grid{display:flex;flex-wrap:wrap;gap:10px;}
-.evp-goal-pill{flex:1 1 200px;display:flex;align-items:center;justify-content:center;text-align:center;padding:16px 18px;border-radius:999px;color:#fff;font-weight:700;font-size:0.86rem;line-height:1.3;}
+.evp-goal-pill-grid{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
+.evp-goal-pill{flex:1 1 160px;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px 14px;border-radius:999px;color:#fff;font-weight:700;font-size:0.8rem;line-height:1.3;cursor:pointer;user-select:none;transition:filter 0.12s;}
+.evp-goal-pill:hover{filter:brightness(0.93);}
+.evp-goal-detail{display:none;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:12px;overflow:hidden;}
+.evp-goal-detail.open{display:block;}
+.evp-goal-detail-inner{padding:16px 18px 18px;border-left:4px solid transparent;}
+.evp-goal-detail-desc{font-size:0.85rem;color:var(--text-primary);line-height:1.65;margin-bottom:6px;}
+.evp-goal-detail-desc p{margin-bottom:10px;}
+.evp-goal-detail-desc ul{margin:6px 0 10px;padding-left:20px;line-height:1.6;}
+.evp-goal-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-top:16px;margin-bottom:6px;}
+.evp-goal-label:first-of-type{margin-top:0;}
+.evp-goal-bullets{font-size:0.85rem;color:var(--text-primary);line-height:1.65;margin:0;padding-left:20px;}
+.evp-goal-bullets ul{margin-top:4px;padding-left:20px;}
 .gt-pc-item{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding:7px 14px;border-bottom:1px solid var(--surface-2);cursor:pointer;transition:background .1s;}
 .gt-pc-item:last-child{border-bottom:none;}
 .gt-pc-item:hover{background:var(--surface-2);}
@@ -3078,10 +3094,121 @@ window.onload = function() {
     <div class="collapsible-content open" id="evp2026goals-content">
       <div class="section-body">
         <div class="evp-goal-pill-grid">
-          <div class="evp-goal-pill" style="background:var(--gt-c1);">1. mission &amp; narrative</div>
-          <div class="evp-goal-pill" style="background:var(--gt-c2);">2. scientific progress</div>
-          <div class="evp-goal-pill" style="background:var(--gt-c3);">3. culture &amp; organization</div>
-          <div class="evp-goal-pill" style="background:var(--gt-c4);">4. community &amp; hub building</div>
+          <div class="evp-goal-pill" style="background:var(--gt-c1);" onclick="toggleEvpGoalDetail('evp-goal-1')">mission &amp; narrative</div>
+          <div class="evp-goal-pill" style="background:var(--gt-c2);" onclick="toggleEvpGoalDetail('evp-goal-2')">scientific progress</div>
+          <div class="evp-goal-pill" style="background:var(--gt-c3);" onclick="toggleEvpGoalDetail('evp-goal-3')">culture &amp; organization</div>
+          <div class="evp-goal-pill" style="background:var(--gt-c4);" onclick="toggleEvpGoalDetail('evp-goal-4')">community &amp; hub building</div>
+        </div>
+
+        <!-- Goal 1: Mission & Narrative -->
+        <div class="evp-goal-detail" id="evp-goal-1">
+          <div class="evp-goal-detail-inner" style="border-left-color:var(--gt-c1);">
+            <div class="evp-goal-detail-desc">
+              <p>This goal will clearly articulate our scientific vision, roadmap, and milestones. This will help us build the teams and programs to deliver on our scientific goals, share our vision with the broader community, and establish collaborations/partnerships for broad impact.</p>
+            </div>
+            <div class="evp-goal-label" style="color:var(--gt-c1);">Engagement Strategy</div>
+            <ul class="evp-goal-bullets">
+              <li>Articulating the CellScapes mission and objectives will help us execute the science and dissemination by Cell Science leadership and staff, both internally and externally</li>
+              <li>Partnering with external storytelling and scientific communication experts to translate the CellScapes scientific vision into a single, modular, core presentation that can be consistently reused and adapted by staff</li>
+              <li>Using the April 2026 Lake Conference as the first flagship convening to engage the broader scientific community in shaping the vision of CellScapes with the broader scientific community</li>
+              <li>Representing CellScapes externally through targeted talks, panels, and advisory roles that are aligned with the scientific and community building objectives of CellScapes</li>
+            </ul>
+            <div class="evp-goal-label" style="color:var(--gt-c1);">Measures of Success</div>
+            <ul class="evp-goal-bullets">
+              <li>A finalized CellScapes mission statement and scientific roadmap that is actively used to guide leadership decisions and scientific prioritization</li>
+              <li>Adoption of a single, modular CellScapes core presentation, and reused by staff for external engagements</li>
+              <li>Successful execution of 2026 Lake Conference as the first CellScapes-era convening</li>
+              <li>Increased invitations for the EVP and CellScapes leadership to participate in high-impact scientific talks, panels, and advisory roles</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Goal 2: Scientific Progress -->
+        <div class="evp-goal-detail" id="evp-goal-2">
+          <div class="evp-goal-detail-inner" style="border-left-color:var(--gt-c2);">
+            <div class="evp-goal-detail-desc">
+              <p>This goal directly advances our science by ensuring that CellScapes programs deliver concrete, high-quality scientific outputs, including discoveries, tools, frameworks, platforms, and datasets that both demonstrate progress and inform refinement of long-term scientific plans. This goal will also help us establish our "understanding to build" concept to uncover the rules of how cells self-organize and build tissues. For 2026 and 2027, this will be achieved across three complementary programs to achieve a "mini-moonshot" of a programmable lumenoid, and includes the following key objectives/milestones:</p>
+              <ul>
+                <li><strong>Endothelial program:</strong> establishes how cell states and transitions are defined and modeled — and building a mathematical framework (2026)</li>
+                <li><strong>3D lumenoid program:</strong> develop predictive, quantitative frameworks that explain how molecular, sub-cellular, and collective cellular dynamics give rise to multicellular morphology and behavior, using lumenoids as a tractable and generalizable model system (2026–2027)</li>
+                <li><strong>Synthetic lumenoids ("synthoids") program:</strong> engineer and control complex multicellular behaviors using synthetic control systems to enable reproducible patterning, structure, and asymmetry in engineered tissues</li>
+              </ul>
+              <p>These deliverables will remain flexible to accommodate the DY move in 2026, which will require a comprehensive reset of our scientific operations. (2026–2027)</p>
+              <ul>
+                <li>Acquire and/or build the platforms and tools necessary to achieve our scientific goals</li>
+                <li>Disseminate tools and approaches that are useful for the community as part of a focused dissemination roadmap</li>
+              </ul>
+            </div>
+            <div class="evp-goal-label" style="color:var(--gt-c2);">Engagement Strategy</div>
+            <ul class="evp-goal-bullets">
+              <li>Work with scientific and program leadership to align priorities and resourcing across the three programs, empower staff to be creative and deliver, integrate capabilities, modalities, and collaborations across programs towards the common scientific goals</li>
+              <li>Enable focus and momentum by helping leadership make decisions on sunsetting legacy projects, initiating new collaborations, incorporating new methodologies, and protecting time and resources for the most critical scientific milestones</li>
+              <li>Use regular leadership and cross-program discussions to evaluate and integrate advances in the field/technologies to accelerate CellScapes goals, long term objectives, and scientific direction</li>
+            </ul>
+            <div class="evp-goal-label" style="color:var(--gt-c2);">Measures of Success</div>
+            <ul class="evp-goal-bullets">
+              <li>As seamless a move as possible to DY and handling of the inevitable challenges that will come with it</li>
+              <li>Clear progress against near-term milestones within each program:
+                <ul>
+                  <li>Endo: completion and submission of a proof-of-concept manuscript defining dynamic cell state representations</li>
+                  <li>3D lumenoids: demonstrable advances in predictive, multi-scale models of multicellular organization</li>
+                  <li>Synthoids: validated synthetic control systems that enable reproducible multicellular behaviors</li>
+                </ul>
+              </li>
+              <li>Progress towards publications and/or data/tools that answer biological questions and demonstrate CellScapes progress</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Goal 3: Culture & Organization -->
+        <div class="evp-goal-detail" id="evp-goal-3">
+          <div class="evp-goal-detail-inner" style="border-left-color:var(--gt-c3);">
+            <div class="evp-goal-detail-desc">
+              <p>A stable organizational structure and empowered leadership culture are essential for enabling high-impact science. This goal ensures our teams operate with clarity, autonomy, and accountability, while embedding scholarship, focus, and professional growth. Establishing this along with consolidation of the team with the DY move will be a challenge and opportunity.</p>
+            </div>
+            <div class="evp-goal-label" style="color:var(--gt-c3);">Engagement Strategy</div>
+            <ul class="evp-goal-bullets">
+              <li>As a leadership team, ensure we are creating the culture necessary for advancing our science while also taking care of the team by providing opportunities to staff along with accountability and cross-team integration, especially with the DY move</li>
+              <li>Clarify roles, responsibilities, and decision-making authority to allocate resources and be creative while focusing on high-value scientific work; testing out limited term scientist hires to bring new ideas and energy, and testing different models for collaboration and creativity</li>
+              <li>Model and reinforce a culture of scholarship, where staying current with literature, participating in journal clubs and seminars, and engaging critically with external scientists are expected and protected parts of scientific time</li>
+              <li>Engage in and provide leadership growth opportunities as needed (e.g., coaching)</li>
+            </ul>
+            <div class="evp-goal-label" style="color:var(--gt-c3);">Measures of Success</div>
+            <ul class="evp-goal-bullets">
+              <li>Successful integration of new directors into leadership team and programs leading to increased scientific output</li>
+              <li>Clear articulation and adoption of leadership roles, responsibilities, and decision-making authority at all levels</li>
+              <li>Visible and sustained scholarly practices across teams (e.g., journal clubs, seminar, cross-group scientific discussions)</li>
+              <li>Qualitative evidence of staff empowerment, increased scientific literacy, focus, and professional growth among staff and leadership</li>
+              <li>A new team culture in a new physical space with enhanced collaboration with SeaHub and other collaborators</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Goal 4: Community & Hub Building -->
+        <div class="evp-goal-detail" id="evp-goal-4">
+          <div class="evp-goal-detail-inner" style="border-left-color:var(--gt-c4);">
+            <div class="evp-goal-detail-desc">
+              <p>This goal advances our scientific impact by positioning CellScapes as a convening and collaboration hub at the intersection of synthetic biology, modeling and theory, and experimental cell and developmental biology. Bringing these communities together accelerates conceptual integration, enables new experimental-theoretical feedback loops, and strengthens the scientific foundations required to understand and engineer multicellular systems, while also demonstrating a "new way" to do cell biology and answer foundational questions around self-organization from cells to tissues.</p>
+            </div>
+            <div class="evp-goal-label" style="color:var(--gt-c4);">Engagement Strategy</div>
+            <ul class="evp-goal-bullets">
+              <li>Engage collaborators, advisors, and partners early in the program through creative and flexible collaboration across synthetic biology, theory/modeling, and 3D stem cell and developmental biology</li>
+              <li>Strengthen connections to core experimental communities and build strategic partnerships (e.g., UW) to pursue joint grants, shared training opportunities, and collaborative research</li>
+              <li>Host targeted convenings, including the Synthetic Multicellular Biology Workshop and inaugural meeting of AICS/ISSCR/SDB to deepen scientific collaboration through community building and training/education</li>
+            </ul>
+            <div class="evp-goal-label" style="color:var(--gt-c4);">Measures of Success</div>
+            <ul class="evp-goal-bullets">
+              <li>Formalized or strengthened advisory and collaborative frameworks spanning synthetic biology, modeling/theory, and experimental cell and developmental biology</li>
+              <li>Evidence of new or expanded collaborations (e.g., joint grants, postdocs, shared projects) emerging from hub-building efforts</li>
+              <li>Successful execution of:
+                <ul>
+                  <li>The Synthetic Multicellular Biology Workshop, as a focused, hub-building extension of the Lake Conference</li>
+                  <li>The co-hosted AICS/ISSCR/SBD conference bringing together cell biology, stem cell biology, and developmental biology communities around shared CellScapes-relevant questions</li>
+                </ul>
+              </li>
+              <li>Qualitative feedback from collaborators and advisors indicating CellScapes is perceived as a central, integrative scientific hub</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
