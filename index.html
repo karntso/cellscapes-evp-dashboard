@@ -1326,8 +1326,9 @@
 
 <!-- Tab bar -->
 <div class="tabs">
-  <button class="tab-btn active" onclick="switchTab('priorities', event)">calendar</button>
-  <button class="tab-btn" onclick="switchTab('goals-priorities', event)">goals &amp; priorities</button>
+  <button class="tab-btn active" onclick="switchTab('goals-priorities', event)">goals &amp; priorities</button>
+  <button class="tab-btn" onclick="switchTab('priorities', event)">calendar</button>
+  <button class="tab-btn" onclick="switchTab('direct-reports', event)">direct reports &amp; key contacts</button>
   <button class="tab-btn" onclick="switchTab('travel-outreach', event)">travel &amp; outreach</button>
   <button class="tab-btn" onclick="switchTab('accomplishments', event)">accomplishments</button>
   <button class="tab-btn" onclick="switchTab('meeting-notes', event)">meeting notes</button>
@@ -1335,7 +1336,7 @@
 </div>
 
 <!-- Tab 1: Ru's Priorities -->
-<div id="tab-priorities" class="tab-content active">
+<div id="tab-priorities" class="tab-content">
 
   <!-- Quick Links -->
   <div class="section-card">
@@ -1403,27 +1404,6 @@
         </div>
         <div style="margin-top:8px;text-align:right;">
           <a href="https://docs.google.com/spreadsheets/d/1-aHqGhwAgzkD34qugZEINJbhYfqwQ32g/edit?usp=sharing&ouid=111752552908735098726&rtpof=true&sd=true#gid=1561638989" target="_blank" style="font-size:0.82rem;color:var(--link-accent);text-decoration:none;">
-            open sheet to edit →
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- EVP Priorities (Action Items) -->
-  <div class="section-card">
-    <div class="section-header open" onclick="toggleCollapse('priorities')" id="priorities-header">
-      <h2 class="section-title">EVP action items</h2>
-      <span class="collapsible-toggle open" id="priorities-toggle">+</span>
-    </div>
-    <div class="collapsible-content open" id="priorities-content">
-      <div class="section-body">
-        <div class="ep-status-note" id="ep-status">Loading priorities…</div>
-        <div class="ep-scroll" id="ep-scroll">
-          <div class="ep-list" id="ep-list"></div>
-        </div>
-        <div style="margin-top:8px;text-align:right;">
-          <a href="https://docs.google.com/spreadsheets/d/1-aHqGhwAgzkD34qugZEINJbhYfqwQ32g/edit?usp=sharing&ouid=111752552908735098726&rtpof=true&sd=true#gid=59098061" target="_blank" style="font-size:0.82rem;color:var(--link-accent);text-decoration:none;">
             open sheet to edit →
           </a>
         </div>
@@ -2840,7 +2820,6 @@ window.onload = function() {
   loadRuCalendar();
   loadEvpTravel();
   loadRoadmap();
-  loadEvpPriorities();
   loadExternalEngagement();
   loadGoalUpdates();
   loadMeasuresStatus();
@@ -3094,7 +3073,7 @@ window.onload = function() {
 </style>
 
 <!-- Goals & Priorities Tab -->
-<div id="tab-goals-priorities" class="tab-content">
+<div id="tab-goals-priorities" class="tab-content active">
 
   <!-- 2026 EVP Goals -->
   <div class="section-card">
@@ -3405,6 +3384,23 @@ window.onload = function() {
 
 
 <!-- Tab 4: Travel & Outreach -->
+<!-- Direct Reports & Key Contacts Tab -->
+<div id="tab-direct-reports" class="tab-content">
+
+  <div class="section-card">
+    <div class="section-header open" onclick="toggleCollapse('directreports')" id="directreports-header">
+      <h2 class="section-title">direct reports &amp; key contacts</h2>
+      <span class="collapsible-toggle open" id="directreports-toggle">+</span>
+    </div>
+    <div class="collapsible-content open" id="directreports-content">
+      <div class="section-body">
+        <div class="gt-status-msg">This tab is ready for content — let me know what you'd like to add here (e.g. a list of direct reports, key contacts, or a linked sheet) and I'll build it out.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
 <div id="tab-travel-outreach" class="tab-content">
 
 <!-- EVP Travel -->
