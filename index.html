@@ -1331,8 +1331,6 @@
   <button class="tab-btn" onclick="switchTab('direct-reports', event)">direct reports &amp; key contacts</button>
   <button class="tab-btn" onclick="switchTab('travel-outreach', event)">travel &amp; outreach</button>
   <button class="tab-btn" onclick="switchTab('accomplishments', event)">accomplishments</button>
-  <button class="tab-btn" onclick="switchTab('meeting-notes', event)">meeting notes</button>
-  <button class="tab-btn" onclick="switchTab('goals-tracker', event)">goals &amp; action items</button>
 </div>
 
 <!-- Tab 1: Ru's Priorities -->
@@ -1430,7 +1428,6 @@ function switchTab(tabName, evt) {
   document.getElementById('tab-' + tabName).classList.add('active');
   if (evt && evt.target) evt.target.classList.add('active');
   if (tabName === 'accomplishments') loadTopLevelAccomplishments();
-  if (tabName === 'meeting-notes') loadMeetingNotes();
   if (tabName === 'goals-priorities') loadMonthPriorities();
 }
 
@@ -2963,6 +2960,13 @@ window.onload = function() {
 .gt-accom-text{flex:1;color:var(--text-primary);line-height:1.45;}
 .gt-accom-note{font-size:.76rem;color:var(--text-secondary);font-style:italic;white-space:nowrap;flex-shrink:0;}
 .gt-accom-empty{padding:16px 20px;font-size:.82rem;color:var(--text-secondary);font-style:italic;}
+.gt-accom-filter-chip{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:6px 14px;border-radius:14px;font-size:.78rem;font-weight:700;
+  cursor:pointer;user-select:none;transition:all 0.12s;
+  border:1.5px solid var(--border);background:transparent;
+}
+.gt-accom-filter-chip.active{color:#fff;border-color:transparent;}
 /* generic */
 .gt-empty{padding:14px 0;font-size:.82rem;color:var(--text-secondary);font-style:italic;}
 /* section boxes */
@@ -3337,6 +3341,9 @@ window.onload = function() {
       <div class="gt-accom-title">accomplishments</div>
       <div class="gt-accom-subtitle">auto-grouped by month · add rows to the Accomplishments tab in the sheet</div>
     </div>
+    <div style="padding:14px 20px 0;">
+      <div id="gt-accom-filter-row" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px;"></div>
+    </div>
     <div id="gt-accom-body-main"><div class="gt-accom-empty">loading accomplishments…</div></div>
   </div>
 
@@ -3450,31 +3457,7 @@ window.onload = function() {
 
 </div>
 
-<div id="tab-meeting-notes" class="tab-content">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
-    <div style="padding:14px 24px 12px;border-bottom:1px solid var(--border);display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-      <div>
-        <span style="font-size:1rem;font-weight:700;color:var(--text-primary);">meeting notes</span>
-        <span style="font-size:0.76rem;color:var(--text-secondary);margin-left:10px;">newest first · add rows to the Meeting Notes tab in the sheet</span>
-      </div>
-      <a id="mn-sheet-link" href="#" target="_blank" class="mn-sheet-link" style="display:none;">open sheet to edit →</a>
-    </div>
-    <div class="mn-layout">
-      <div class="mn-col">
-        <div class="mn-col-head">
-          <span class="mn-col-title">kristine</span>
-        </div>
-        <div id="mn-kristine"><div class="mn-loading">loading…</div></div>
-      </div>
-      <div class="mn-col">
-        <div class="mn-col-head">
-          <span class="mn-col-title">ru</span>
-        </div>
-        <div id="mn-ru"><div class="mn-loading">loading…</div></div>
-      </div>
-    </div>
-  </div>
-</div>
+
 
 
 
@@ -4218,45 +4201,87 @@ function renderGtQuarter() {
 }
 
 // ── Render: accomplishments ──────────────────────────────────
+let gtAccomAllRows = null;
+let gtAccomActivePillars = new Set(); // empty set = show all
+
+function gtAccomToggleFilter(key) {
+  if (gtAccomActivePillars.has(key)) {
+    gtAccomActivePillars.delete(key);
+  } else {
+    gtAccomActivePillars.add(key);
+  }
+  renderGtAccomFilterChips();
+  renderTopLevelAccomplishments();
+}
+
+function renderGtAccomFilterChips() {
+  const row = document.getElementById('gt-accom-filter-row');
+  if (!row) return;
+  row.innerHTML = GT_PILLARS.map(pm => {
+    const isActive = gtAccomActivePillars.has(pm.key);
+    const style = isActive
+      ? `background:${pm.color};color:#fff;`
+      : `color:${pm.color};border-color:${pm.color};`;
+    return `<span class="gt-accom-filter-chip${isActive ? ' active' : ''}" style="${style}" onclick="gtAccomToggleFilter('${pm.key.replace(/'/g, "\\'")}')">${escGt(pm.label)}</span>`;
+  }).join('');
+}
+
+function renderTopLevelAccomplishments() {
+  const bodyEl = document.getElementById('gt-accom-body-main');
+  if (!bodyEl || !gtAccomAllRows) return;
+  const MONTHS_LONG = ["january","february","march","april","may","june","july","august","september","october","november","december"];
+
+  const rows = gtAccomActivePillars.size === 0
+    ? gtAccomAllRows
+    : gtAccomAllRows.filter(r => gtAccomActivePillars.has(gf(r, 'Pillar', 'pillar')));
+
+  if (!rows.length) {
+    bodyEl.innerHTML = '<div class="gt-accom-empty">no accomplishments match the selected filter.</div>';
+    return;
+  }
+  const months = {};
+  rows.forEach(r => {
+    const ds = gf(r,'Date','date');
+    let key = 'undated', label = 'undated';
+    if (ds) { const d = new Date(ds); if (!isNaN(d)) { key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); label = MONTHS_LONG[d.getMonth()]+' '+d.getFullYear(); } }
+    if (!months[key]) months[key] = {label, rows:[]};
+    months[key].rows.push(r);
+  });
+  const keys = Object.keys(months).filter(k=>k!=='undated').sort().reverse();
+  if (months.undated) keys.push('undated');
+  bodyEl.innerHTML = '';
+  keys.forEach(key => {
+    const {label, rows: mRows} = months[key];
+    const div = document.createElement('div');
+    div.className = 'gt-accom-month';
+    div.innerHTML = '<div class="gt-accom-month-label">'+label+'</div>';
+    mRows.forEach(r => {
+      const pm   = GT_PILLARS.find(p => p.key === gf(r,'Pillar','pillar'));
+      const dot  = pm ? pm.color : 'var(--text-secondary)';
+      const note = gf(r,'Notes','notes');
+      const row  = document.createElement('div');
+      row.className = 'gt-accom-row';
+      row.innerHTML = '<span class="gt-accom-pillar-dot" style="background:'+dot+'"></span>' +
+        '<span class="gt-accom-text">'+escGt(gf(r,'Accomplishment','accomplishment'))+'</span>' +
+        (note ? '<span class="gt-accom-note">'+escGt(note)+'</span>' : '');
+      div.appendChild(row);
+    });
+    bodyEl.appendChild(div);
+  });
+}
+
 async function loadTopLevelAccomplishments() {
   const bodyEl = document.getElementById('gt-accom-body-main');
   if (!bodyEl || bodyEl.dataset.loaded) return;
   bodyEl.dataset.loaded = 'true';
-  const MONTHS_LONG = ["january","february","march","april","may","june","july","august","september","october","november","december"];
+  renderGtAccomFilterChips();
   try {
     const res  = await fetch(GT_ACCOM_CSV_URL);
     const text = await res.text();
     const rows = parseCSV(text, 0);
+    gtAccomAllRows = rows;
     if (!rows.length) { bodyEl.innerHTML = '<div class="gt-accom-empty">no accomplishments logged yet.</div>'; return; }
-    const months = {};
-    rows.forEach(r => {
-      const ds = gf(r,'Date','date');
-      let key = 'undated', label = 'undated';
-      if (ds) { const d = new Date(ds); if (!isNaN(d)) { key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); label = MONTHS_LONG[d.getMonth()]+' '+d.getFullYear(); } }
-      if (!months[key]) months[key] = {label, rows:[]};
-      months[key].rows.push(r);
-    });
-    const keys = Object.keys(months).filter(k=>k!=='undated').sort().reverse();
-    if (months.undated) keys.push('undated');
-    bodyEl.innerHTML = '';
-    keys.forEach(key => {
-      const {label, rows: mRows} = months[key];
-      const div = document.createElement('div');
-      div.className = 'gt-accom-month';
-      div.innerHTML = '<div class="gt-accom-month-label">'+label+'</div>';
-      mRows.forEach(r => {
-        const pm   = GT_PILLARS.find(p => p.key === gf(r,'Pillar','pillar'));
-        const dot  = pm ? pm.color : 'var(--text-secondary)';
-        const note = gf(r,'Notes','notes');
-        const row  = document.createElement('div');
-        row.className = 'gt-accom-row';
-        row.innerHTML = '<span class="gt-accom-pillar-dot" style="background:'+dot+'"></span>' +
-          '<span class="gt-accom-text">'+escGt(gf(r,'Accomplishment','accomplishment'))+'</span>' +
-          (note ? '<span class="gt-accom-note">'+escGt(note)+'</span>' : '');
-        div.appendChild(row);
-      });
-      bodyEl.appendChild(div);
-    });
+    renderTopLevelAccomplishments();
   } catch(e) {
     bodyEl.innerHTML = '<div class="gt-accom-empty">could not load accomplishments.</div>';
   }
