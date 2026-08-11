@@ -3217,6 +3217,7 @@ window.onload = function() {
           <div id="mp-list"></div>
         </div>
         <div style="margin-top:8px;text-align:right;">
+          <span class="gt-last-updated" id="mp-last-updated" style="font-size:.75rem;margin-right:10px;"></span>
           <a href="https://docs.google.com/spreadsheets/d/1-QNrKJ_LL34xH5Vf8HTKkJAYr4pAGHa2y1tOFL4YQks/edit?usp=sharing" target="_blank" style="font-size:0.8rem;color:var(--link-accent);text-decoration:none;">
             open EVP priorities sheet →
           </a>
@@ -3292,25 +3293,6 @@ window.onload = function() {
   <!-- ── THIS MONTH ── -->
   <div class="gt-view-pane active" id="gt-pane-month">
 
-    <!-- people rhythm strip -->
-    <div class="gt-section-box">
-    <div class="gt-people-section" id="gt-people-section">
-      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">
-        <span class="gt-sec-lbl" style="margin-bottom:0;">people rhythm · monthly check-ins</span>
-        <span style="font-size:.68rem;color:var(--text-secondary);font-weight:400;">· click any name to see history and agenda items</span>
-      </div>
-
-      <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary);margin-bottom:6px;">key contacts</div>
-      <div class="gt-people-strip" id="gt-people-strip-contacts"></div>
-
-      <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary);margin:10px 0 6px;">direct reports</div>
-      <div class="gt-people-strip" id="gt-people-strip-reports"></div>
-    </div>
-
-    <!-- people drill panel -->
-    <div class="gt-pdrill" id="gt-pdrill" style="display:none;"></div>
-    </div><!-- end people section box -->
-
     <div class="gt-section-box">
     <div class="gt-sec-lbl" id="gt-month-heading">monthly rhythm</div>
     <div class="gt-pillar-grid" id="gt-month-pillars"></div>
@@ -3337,25 +3319,6 @@ window.onload = function() {
 
   <!-- ── QUARTER ── -->
   <div class="gt-view-pane" id="gt-pane-quarter">
-
-    <!-- quarterly people rhythm -->
-    <div class="gt-section-box" style="margin-bottom:16px;">
-    <div class="gt-people-section" style="margin-bottom:0;">
-      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px;">
-        <span class="gt-sec-lbl" style="margin-bottom:0;">people rhythm · quarterly check-ins</span>
-        <span style="font-size:.68rem;color:var(--text-secondary);font-weight:400;">· click any name to see history and agenda items</span>
-      </div>
-
-      <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary);margin-bottom:6px;">all staff</div>
-      <div class="gt-people-strip" id="gt-qtr-strip-staff"></div>
-
-      <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary);margin:10px 0 6px;">direct reports</div>
-      <div class="gt-people-strip" id="gt-qtr-strip-reports"></div>
-    </div>
-
-    <!-- people drill panel for quarter view -->
-    <div class="gt-pdrill" id="gt-pdrill-qtr" style="display:none;"></div>
-    </div><!-- end quarterly people section box -->
 
     <div class="gt-section-box">
     <div id="gt-quarter-body"></div>
@@ -3394,7 +3357,53 @@ window.onload = function() {
     </div>
     <div class="collapsible-content open" id="directreports-content">
       <div class="section-body">
-        <div class="gt-status-msg">This tab is ready for content — let me know what you'd like to add here (e.g. a list of direct reports, key contacts, or a linked sheet) and I'll build it out.</div>
+
+        <div style="text-align:right;margin-bottom:16px;">
+          <span class="gt-sheet-note" id="gt-status-msg-dr" style="font-size:.75rem;display:block;">loading…</span>
+          <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end;margin-top:2px;">
+            <a id="gt-sheet-link-dr" href="#" target="_blank" class="gt-sheet-link" style="display:none;font-size:.75rem;">open sheet to edit →</a>
+            <span class="gt-last-updated" id="gt-last-updated-dr" style="font-size:.72rem;"></span>
+          </div>
+        </div>
+
+        <!-- monthly people rhythm -->
+        <div class="gt-section-box">
+        <div class="gt-people-section" id="gt-people-section">
+          <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">
+            <span class="gt-sec-lbl" style="margin-bottom:0;">people rhythm · monthly check-ins</span>
+            <span style="font-size:.68rem;color:var(--text-secondary);font-weight:400;">· click any name to see history and agenda items</span>
+          </div>
+
+          <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary);margin-bottom:6px;">key contacts</div>
+          <div class="gt-people-strip" id="gt-people-strip-contacts"></div>
+
+          <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary);margin:10px 0 6px;">direct reports</div>
+          <div class="gt-people-strip" id="gt-people-strip-reports"></div>
+        </div>
+
+        <!-- people drill panel -->
+        <div class="gt-pdrill" id="gt-pdrill" style="display:none;"></div>
+        </div><!-- end monthly people section box -->
+
+        <!-- quarterly people rhythm -->
+        <div class="gt-section-box" style="margin-bottom:0;">
+        <div class="gt-people-section" style="margin-bottom:0;">
+          <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px;">
+            <span class="gt-sec-lbl" style="margin-bottom:0;">people rhythm · quarterly check-ins</span>
+            <span style="font-size:.68rem;color:var(--text-secondary);font-weight:400;">· click any name to see history and agenda items</span>
+          </div>
+
+          <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary);margin-bottom:6px;">all staff</div>
+          <div class="gt-people-strip" id="gt-qtr-strip-staff"></div>
+
+          <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary);margin:10px 0 6px;">direct reports</div>
+          <div class="gt-people-strip" id="gt-qtr-strip-reports"></div>
+        </div>
+
+        <!-- people drill panel for quarter view -->
+        <div class="gt-pdrill" id="gt-pdrill-qtr" style="display:none;"></div>
+        </div><!-- end quarterly people section box -->
+
       </div>
     </div>
   </div>
@@ -4321,8 +4330,17 @@ async function loadGoalsTracker() {
     statusEl.textContent = 'live from Google Sheet · refreshes on page load';
     const linkEl = document.getElementById('gt-sheet-link');
     if (!GT_SHEET_EDIT_URL.startsWith('REPLACE_WITH')) { linkEl.href=GT_SHEET_EDIT_URL; linkEl.style.display=''; }
-    document.getElementById('gt-last-updated').textContent =
-      'last loaded '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    const lastUpdatedText = 'last loaded '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    document.getElementById('gt-last-updated').textContent = lastUpdatedText;
+
+    // Mirror the same status onto the duplicated indicator on the Direct Reports tab
+    const statusElDr = document.getElementById('gt-status-msg-dr');
+    if (statusElDr) statusElDr.textContent = 'live from Google Sheet · refreshes on page load';
+    const linkElDr = document.getElementById('gt-sheet-link-dr');
+    if (linkElDr && !GT_SHEET_EDIT_URL.startsWith('REPLACE_WITH')) { linkElDr.href=GT_SHEET_EDIT_URL; linkElDr.style.display=''; }
+    const lastUpdatedElDr = document.getElementById('gt-last-updated-dr');
+    if (lastUpdatedElDr) lastUpdatedElDr.textContent = lastUpdatedText;
+
     renderGtMonth();
     renderGtWeek();
     renderGtQuarter();
@@ -4521,6 +4539,11 @@ async function loadMonthPriorities() {
 
     renderMonthPrioritiesInto(rows, prevDate.getMonth(), prevDate.getFullYear(),
       { list: 'mp-prev-list', wrap: 'mp-prev-list-wrap', status: 'mp-prev-status' }, true);
+
+    const mpLastUpdatedEl = document.getElementById('mp-last-updated');
+    if (mpLastUpdatedEl) {
+      mpLastUpdatedEl.textContent = 'last loaded ' + new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    }
   } catch (err) {
     statuses.forEach(s => {
       if (s) s.textContent = 'Could not load priorities — check the sheet is published as CSV and the link is correct.';
