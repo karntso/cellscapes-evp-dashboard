@@ -3470,7 +3470,7 @@ const GT_ACTIONS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vStZ
 const GT_LOG_CSV_URL     = "https://docs.google.com/spreadsheets/d/e/2PACX-1vStZOAlsjjT6QatC2oqxNqUnTxT6Rdd_m0lCsAGDvfarzp2P2V3C0O4Qmv_OXVgQeLaEU16_8CC0d-0/pub?gid=2090445654&single=true&output=csv";
 const NOTES_CSV_URL      = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSo7dOybKAfFxMwV5IAA7I4etNhGdnNP0O-OIH45rFg5MJ391ZvZbxehpHJspMcwwNPbL8mjMdytH-9/pub?gid=0&single=true&output=csv";
 const NOTES_SHEET_URL    = "https://docs.google.com/spreadsheets/d/1yLwegDyhRFAfW8mEBKIMldwL8jtnklEOYtlwVy_Tjt0/edit?usp=sharing";
-const GT_ACCOM_CSV_URL   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vStZOAlsjjT6QatC2oqxNqUnTxT6Rdd_m0lCsAGDvfarzp2P2V3C0O4Qmv_OXVgQeLaEU16_8CC0d-0/pub?gid=895196455&single=true&output=csv";
+const GT_ACCOM_CSV_URL   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSbVQ9SVt61laZGWVRBLDrmyenq_6qxHs6Rz-yCN8QMsWAEyiMfHrG8kOnzZWRmZTXhadO5jDZt5evY/pub?gid=2027628346&single=true&output=csv";
 const GT_PEOPLE_CSV_URL  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7GNwyEpfvL-RiTwo9xQSdiLf4wpjcTNrE13MD0zGFct5imiG3ah2ETYe_HEF96Q/pub?gid=755730701&single=true&output=csv";
 const GT_CRM_URL         = "https://docs.google.com/spreadsheets/d/1RcHAe8kzQIoMKFjjCbqVQQyWjOlomrFe/edit";
 const GT_SHEET_EDIT_URL  = "https://docs.google.com/spreadsheets/d/1KjbY2McYMPK6sYDIiQEQ2Z84espLJ0E3ry45qSsCARA/edit#gid=510931153";
@@ -4226,6 +4226,11 @@ function renderGtAccomFilterChips() {
   }).join('');
 }
 
+function gtAccomRowPillarKeys(r) {
+  const raw = gf(r, 'Pillar', 'pillar') || '';
+  return raw.split(',').map(s => s.trim()).filter(s => s);
+}
+
 function renderTopLevelAccomplishments() {
   const bodyEl = document.getElementById('gt-accom-body-main');
   if (!bodyEl || !gtAccomAllRows) return;
@@ -4233,7 +4238,7 @@ function renderTopLevelAccomplishments() {
 
   const rows = gtAccomActivePillars.size === 0
     ? gtAccomAllRows
-    : gtAccomAllRows.filter(r => gtAccomActivePillars.has(gf(r, 'Pillar', 'pillar')));
+    : gtAccomAllRows.filter(r => gtAccomRowPillarKeys(r).some(k => gtAccomActivePillars.has(k)));
 
   if (!rows.length) {
     bodyEl.innerHTML = '<div class="gt-accom-empty">no accomplishments match the selected filter.</div>';
@@ -4256,12 +4261,18 @@ function renderTopLevelAccomplishments() {
     div.className = 'gt-accom-month';
     div.innerHTML = '<div class="gt-accom-month-label">'+label+'</div>';
     mRows.forEach(r => {
-      const pm   = GT_PILLARS.find(p => p.key === gf(r,'Pillar','pillar'));
-      const dot  = pm ? pm.color : 'var(--text-secondary)';
+      const pillarKeys = gtAccomRowPillarKeys(r);
+      const dotsHtml = pillarKeys.length
+        ? pillarKeys.map(k => {
+            const pm = GT_PILLARS.find(p => p.key === k);
+            const color = pm ? pm.color : 'var(--text-secondary)';
+            return '<span class="gt-accom-pillar-dot" style="background:'+color+'"></span>';
+          }).join('')
+        : '<span class="gt-accom-pillar-dot" style="background:var(--text-secondary)"></span>';
       const note = gf(r,'Notes','notes');
       const row  = document.createElement('div');
       row.className = 'gt-accom-row';
-      row.innerHTML = '<span class="gt-accom-pillar-dot" style="background:'+dot+'"></span>' +
+      row.innerHTML = '<span style="display:flex;gap:3px;flex-shrink:0;margin-top:5px;">'+dotsHtml+'</span>' +
         '<span class="gt-accom-text">'+escGt(gf(r,'Accomplishment','accomplishment'))+'</span>' +
         (note ? '<span class="gt-accom-note">'+escGt(note)+'</span>' : '');
       div.appendChild(row);
