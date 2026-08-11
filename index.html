@@ -3080,6 +3080,8 @@ window.onload = function() {
 .mp-comment.open { display: block; }
 .mp-empty { padding: 14px 0; font-size: 0.82rem; color: var(--text-secondary); font-style: italic; }
 .mp-list-wrap { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+.mp-row.mp-faded { opacity: 0.45; }
+.mp-comment.mp-faded { opacity: 0.45; }
 </style>
 
 <!-- Goals & Priorities Tab -->
@@ -3214,7 +3216,7 @@ window.onload = function() {
     </div>
   </div>
 
-  <!-- Priorities for [Month] -->
+  <!-- Priorities for [Current Month] -->
   <div class="section-card">
     <div class="section-header open" onclick="toggleCollapse('monthpriorities')" id="monthpriorities-header">
       <h2 class="section-title" id="monthpriorities-title">priorities for …</h2>
@@ -3225,6 +3227,38 @@ window.onload = function() {
         <div class="gt-status-msg" id="mp-status">loading priorities…</div>
         <div class="mp-list-wrap" id="mp-list-wrap" style="display:none;">
           <div id="mp-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Priorities for [Next Month] -->
+  <div class="section-card">
+    <div class="section-header open" onclick="toggleCollapse('monthprioritiesnext')" id="monthprioritiesnext-header">
+      <h2 class="section-title" id="monthprioritiesnext-title">priorities for …</h2>
+      <span class="collapsible-toggle open" id="monthprioritiesnext-toggle">+</span>
+    </div>
+    <div class="collapsible-content open" id="monthprioritiesnext-content">
+      <div class="section-body">
+        <div class="gt-status-msg" id="mp-next-status">loading priorities…</div>
+        <div class="mp-list-wrap" id="mp-next-list-wrap" style="display:none;">
+          <div id="mp-next-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Priorities for [Prior Month] -->
+  <div class="section-card">
+    <div class="section-header open" onclick="toggleCollapse('monthprioritiesprev')" id="monthprioritiesprev-header">
+      <h2 class="section-title" id="monthprioritiesprev-title">priorities for …</h2>
+      <span class="collapsible-toggle open" id="monthprioritiesprev-toggle">+</span>
+    </div>
+    <div class="collapsible-content open" id="monthprioritiesprev-content">
+      <div class="section-body">
+        <div class="gt-status-msg" id="mp-prev-status">loading priorities…</div>
+        <div class="mp-list-wrap" id="mp-prev-list-wrap" style="display:none;">
+          <div id="mp-prev-list"></div>
         </div>
       </div>
     </div>
@@ -4291,16 +4325,17 @@ async function loadGoalsTracker() {
 }
 
 // ══════════════════════════════════════════════════════════════
-// GOALS & PRIORITIES TAB — "priorities for [Month]"
+// GOALS & PRIORITIES TAB — "priorities for [Month]" (current, next, and prior)
 // ══════════════════════════════════════════════════════════════
-const MP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vStZOAlsjjT6QatC2oqxNqUnTxT6Rdd_m0lCsAGDvfarzp2P2V3C0O4Qmv_OXVgQeLaEU16_8CC0d-0/pub?gid=1920791932&single=true&output=csv";
+const MP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSbVQ9SVt61laZGWVRBLDrmyenq_6qxHs6Rz-yCN8QMsWAEyiMfHrG8kOnzZWRmZTXhadO5jDZt5evY/pub?gid=1920791932&single=true&output=csv";
 
 const MP_GOALS = [
   { name: "Mission & Narrative", color: "var(--gt-c1)", bg: "var(--gt-c1-bg)" },
   { name: "Scientific Progress", color: "var(--gt-c2)", bg: "var(--gt-c2-bg)" },
   { name: "Culture & Organization", color: "var(--gt-c3)", bg: "var(--gt-c3-bg)" },
   { name: "Community & Hub Building", color: "var(--gt-c4)", bg: "var(--gt-c4-bg)" },
-  { name: "APR / BOD / SAC", color: "var(--gt-c5)", bg: "var(--gt-c5-bg)" }
+  { name: "APR / BOD / SAC", color: "var(--gt-c5)", bg: "var(--gt-c5-bg)" },
+  { name: "Other", color: "var(--gt-c5)", bg: "var(--gt-c5-bg)" }
 ];
 
 // Goal values come formatted as "1 | mission & narrative" — strip the leading
@@ -4313,14 +4348,9 @@ function mpGoalMeta(name) {
   return found || { name: clean || 'Other', color: "var(--gt-c5)", bg: "var(--gt-c5-bg)" };
 }
 
-function mpCurrentMonthName() {
-  const label = MONTHS_LONG[new Date().getMonth()];
+function mpMonthLabel(monthIdx) {
+  const label = MONTHS_LONG[monthIdx];
   return label.charAt(0).toUpperCase() + label.slice(1);
-}
-
-function mpSetTitle() {
-  const titleEl = document.getElementById('monthpriorities-title');
-  if (titleEl) titleEl.textContent = 'priorities for ' + mpCurrentMonthName();
 }
 
 // Determines which month a row belongs to — prefers the Date Due column (gives us
@@ -4339,17 +4369,19 @@ function mpItemMonthIndex(row) {
   return null;
 }
 
-function renderMonthPriorities(rows) {
-  const list = document.getElementById('mp-list');
-  const wrap = document.getElementById('mp-list-wrap');
-  const status = document.getElementById('mp-status');
-  const now = new Date();
+// Renders one of the three priority sections (current / next / prior month).
+// targetMonthIdx/targetYear identify which month to filter to; fadeCompleted
+// fades out items already marked complete (used for the prior-month section only).
+function renderMonthPrioritiesInto(rows, targetMonthIdx, targetYear, ids, fadeCompleted) {
+  const list = document.getElementById(ids.list);
+  const wrap = document.getElementById(ids.wrap);
+  const status = document.getElementById(ids.status);
 
   const filtered = rows.filter(r => {
     const m = mpItemMonthIndex(r);
     if (!m) return false;
-    if (m.year !== null && m.year !== now.getFullYear()) return false;
-    return m.monthIdx === now.getMonth();
+    if (m.year !== null && m.year !== targetYear) return false;
+    return m.monthIdx === targetMonthIdx;
   });
 
   if (!filtered.length) {
@@ -4372,20 +4404,22 @@ function renderMonthPriorities(rows) {
     const statusKey = normStatus(statusRaw);
     const comments = gf(row, 'Comments / Notes', 'comments / notes', 'Comments', 'comments', 'Notes', 'notes');
     const hasComment = !!comments;
+    const isComplete = statusKey === 'complete';
+    const rowIdBase = ids.list + '-' + idx;
 
     const rowEl = document.createElement('div');
-    rowEl.className = 'mp-row' + (hasComment ? '' : ' no-comment');
+    rowEl.className = 'mp-row' + (hasComment ? '' : ' no-comment') + (fadeCompleted && isComplete ? ' mp-faded' : '');
     rowEl.innerHTML = `
       <span class="mp-goal-tag" style="background:${meta.bg};color:${meta.color}">${escGt(meta.name)}</span>
       <span class="mp-item-text">${escGt(itemText)}</span>
       <span class="mp-due">${due ? formatDate(due) : ''}</span>
       <span class="gt-pill ${statusKey}" style="font-size:.68rem;">${STATUS_ICON[statusKey]} ${STATUS_LABEL[statusKey]}</span>
-      <span class="mp-chevron" id="mp-chevron-${idx}">${hasComment ? '\u25B8' : ''}</span>
+      <span class="mp-chevron" id="chev-${rowIdBase}">${hasComment ? '\u25B8' : ''}</span>
     `;
     if (hasComment) {
       rowEl.onclick = () => {
-        const c = document.getElementById('mp-comment-' + idx);
-        const chev = document.getElementById('mp-chevron-' + idx);
+        const c = document.getElementById('comment-' + rowIdBase);
+        const chev = document.getElementById('chev-' + rowIdBase);
         if (c) c.classList.toggle('open');
         if (chev) chev.classList.toggle('open');
       };
@@ -4394,8 +4428,8 @@ function renderMonthPriorities(rows) {
 
     if (hasComment) {
       const commentEl = document.createElement('div');
-      commentEl.className = 'mp-comment';
-      commentEl.id = 'mp-comment-' + idx;
+      commentEl.className = 'mp-comment' + (fadeCompleted && isComplete ? ' mp-faded' : '');
+      commentEl.id = 'comment-' + rowIdBase;
       commentEl.textContent = comments;
       list.appendChild(commentEl);
     }
@@ -4404,18 +4438,46 @@ function renderMonthPriorities(rows) {
 
 let mpLoaded = false;
 async function loadMonthPriorities() {
-  mpSetTitle();
+  const now = new Date();
+  const curMonth = now.getMonth();
+  const curYear = now.getFullYear();
+  const nextDate = new Date(curYear, curMonth + 1, 1);
+  const prevDate = new Date(curYear, curMonth - 1, 1);
+
+  const curTitle = document.getElementById('monthpriorities-title');
+  const nextTitle = document.getElementById('monthprioritiesnext-title');
+  const prevTitle = document.getElementById('monthprioritiesprev-title');
+  if (curTitle) curTitle.textContent = 'priorities for ' + mpMonthLabel(curMonth);
+  if (nextTitle) nextTitle.textContent = 'priorities for ' + mpMonthLabel(nextDate.getMonth());
+  if (prevTitle) prevTitle.textContent = 'priorities for ' + mpMonthLabel(prevDate.getMonth());
+
   if (mpLoaded) return;
   mpLoaded = true;
-  const status = document.getElementById('mp-status');
+
+  const statuses = [
+    document.getElementById('mp-status'),
+    document.getElementById('mp-next-status'),
+    document.getElementById('mp-prev-status')
+  ];
+
   try {
     const res = await fetch(MP_CSV_URL);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const text = await res.text();
     const rows = parseCSV(text, 0);
-    renderMonthPriorities(rows);
+
+    renderMonthPrioritiesInto(rows, curMonth, curYear,
+      { list: 'mp-list', wrap: 'mp-list-wrap', status: 'mp-status' }, false);
+
+    renderMonthPrioritiesInto(rows, nextDate.getMonth(), nextDate.getFullYear(),
+      { list: 'mp-next-list', wrap: 'mp-next-list-wrap', status: 'mp-next-status' }, false);
+
+    renderMonthPrioritiesInto(rows, prevDate.getMonth(), prevDate.getFullYear(),
+      { list: 'mp-prev-list', wrap: 'mp-prev-list-wrap', status: 'mp-prev-status' }, true);
   } catch (err) {
-    status.textContent = 'Could not load priorities — check the sheet is published as CSV and the link is correct.';
+    statuses.forEach(s => {
+      if (s) s.textContent = 'Could not load priorities — check the sheet is published as CSV and the link is correct.';
+    });
     console.error('Month priorities load error:', err);
   }
 }
