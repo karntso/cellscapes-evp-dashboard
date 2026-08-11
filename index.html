@@ -3037,7 +3037,7 @@ window.onload = function() {
 /* ── Goals & Priorities tab ────────────────────────────────── */
 .mp-row {
   display: grid;
-  grid-template-columns: 150px 1fr 90px 130px 14px;
+  grid-template-columns: 130px 1fr 90px 100px 14px;
   gap: 10px;
   align-items: center;
   padding: 10px 14px;
@@ -3050,17 +3050,27 @@ window.onload = function() {
 .mp-row:hover { background: var(--surface-2); }
 .mp-row.no-comment { cursor: default; }
 .mp-row.no-comment:hover { background: transparent; }
+.mp-row .gt-pill { justify-self: start; }
 .mp-goal-tag {
-  font-size: 0.66rem;
-  font-weight: 700;
-  padding: 3px 9px;
-  border-radius: 999px;
-  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 30px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid currentColor;
+  font-size: 0.64rem;
+  font-weight: 600;
+  text-transform: lowercase;
+  line-height: 1.25;
   text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-word;
 }
 .mp-item-text { color: var(--text-primary); line-height: 1.4; }
+.mp-goal-tag-col { display: flex; flex-direction: column; gap: 4px; width: 100%; }
 .mp-due { font-size: 0.78rem; color: var(--text-secondary); white-space: nowrap; }
 .mp-chevron {
   font-size: 0.7rem;
@@ -4338,14 +4348,18 @@ const MP_GOALS = [
   { name: "Other", color: "var(--gt-c5)", bg: "var(--gt-c5-bg)" }
 ];
 
-// Goal values come formatted as "1 | mission & narrative" — strip the leading
-// number and pipe before matching against the known goal names.
-function mpGoalMeta(name) {
-  let clean = (name || '').trim();
-  const pipeIdx = clean.indexOf('|');
-  if (pipeIdx !== -1) clean = clean.slice(pipeIdx + 1).trim();
-  const found = MP_GOALS.find(g => g.name.toLowerCase() === clean.toLowerCase());
-  return found || { name: clean || 'Other', color: "var(--gt-c5)", bg: "var(--gt-c5-bg)" };
+// Goal values come formatted as "1 | mission & narrative" and can contain multiple,
+// comma-separated goals per row (from a multi-select dropdown) — split and parse each.
+function mpGoalMetaList(name) {
+  const raw = (name || '').trim();
+  if (!raw) return [{ name: 'Other', color: "var(--gt-c5)", bg: "var(--gt-c5-bg)" }];
+  return raw.split(',').map(piece => {
+    let clean = piece.trim();
+    const pipeIdx = clean.indexOf('|');
+    if (pipeIdx !== -1) clean = clean.slice(pipeIdx + 1).trim();
+    const found = MP_GOALS.find(g => g.name.toLowerCase() === clean.toLowerCase());
+    return found || { name: clean || 'Other', color: "var(--gt-c5)", bg: "var(--gt-c5-bg)" };
+  }).filter(g => g.name);
 }
 
 function mpMonthLabel(monthIdx) {
@@ -4397,7 +4411,7 @@ function renderMonthPrioritiesInto(rows, targetMonthIdx, targetYear, ids, fadeCo
 
   filtered.forEach((row, idx) => {
     const goalName = gf(row, 'Goal', 'goal', 'Pillar', 'pillar');
-    const meta = mpGoalMeta(goalName);
+    const goalMetas = mpGoalMetaList(goalName);
     const itemText = gf(row, 'Item', 'item', 'Action Item', 'action item', 'Priority', 'priority');
     const due = gf(row, 'Date Due', 'date due', 'Due Date', 'due date', 'Due', 'due');
     const statusRaw = gf(row, 'Status', 'status');
@@ -4407,10 +4421,14 @@ function renderMonthPrioritiesInto(rows, targetMonthIdx, targetYear, ids, fadeCo
     const isComplete = statusKey === 'complete';
     const rowIdBase = ids.list + '-' + idx;
 
+    const goalTagsHtml = goalMetas.map(meta =>
+      `<span class="mp-goal-tag" style="color:${meta.color}">${escGt(meta.name)}</span>`
+    ).join('');
+
     const rowEl = document.createElement('div');
     rowEl.className = 'mp-row' + (hasComment ? '' : ' no-comment') + (fadeCompleted && isComplete ? ' mp-faded' : '');
     rowEl.innerHTML = `
-      <span class="mp-goal-tag" style="background:${meta.bg};color:${meta.color}">${escGt(meta.name)}</span>
+      <div class="mp-goal-tag-col">${goalTagsHtml}</div>
       <span class="mp-item-text">${escGt(itemText)}</span>
       <span class="mp-due">${due ? formatDate(due) : ''}</span>
       <span class="gt-pill ${statusKey}" style="font-size:.68rem;">${STATUS_ICON[statusKey]} ${STATUS_LABEL[statusKey]}</span>
