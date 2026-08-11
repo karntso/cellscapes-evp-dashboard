@@ -3056,21 +3056,20 @@ window.onload = function() {
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 30px;
-  padding: 4px 8px;
-  border-radius: 8px;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 14px;
   background: transparent;
-  border: 1px solid currentColor;
-  font-size: 0.64rem;
-  font-weight: 600;
-  text-transform: lowercase;
+  border: 1px solid var(--border);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   line-height: 1.25;
   text-align: center;
-  white-space: normal;
-  word-break: break-word;
+  white-space: nowrap;
+  cursor: default;
 }
 .mp-item-text { color: var(--text-primary); line-height: 1.4; }
-.mp-goal-tag-col { display: flex; flex-direction: column; gap: 4px; width: 100%; }
 .mp-due { font-size: 0.78rem; color: var(--text-secondary); white-space: nowrap; }
 .mp-chevron {
   font-size: 0.7rem;
@@ -3237,6 +3236,11 @@ window.onload = function() {
         <div class="gt-status-msg" id="mp-status">loading priorities…</div>
         <div class="mp-list-wrap" id="mp-list-wrap" style="display:none;">
           <div id="mp-list"></div>
+        </div>
+        <div style="margin-top:8px;text-align:right;">
+          <a href="https://docs.google.com/spreadsheets/d/1-QNrKJ_LL34xH5Vf8HTKkJAYr4pAGHa2y1tOFL4YQks/edit?usp=sharing" target="_blank" style="font-size:0.8rem;color:var(--link-accent);text-decoration:none;">
+            open EVP priorities sheet →
+          </a>
         </div>
       </div>
     </div>
@@ -4340,10 +4344,10 @@ async function loadGoalsTracker() {
 const MP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSbVQ9SVt61laZGWVRBLDrmyenq_6qxHs6Rz-yCN8QMsWAEyiMfHrG8kOnzZWRmZTXhadO5jDZt5evY/pub?gid=1920791932&single=true&output=csv";
 
 const MP_GOALS = [
-  { name: "Mission & Narrative", color: "var(--gt-c1)", bg: "var(--gt-c1-bg)" },
-  { name: "Scientific Progress", color: "var(--gt-c2)", bg: "var(--gt-c2-bg)" },
-  { name: "Culture & Organization", color: "var(--gt-c3)", bg: "var(--gt-c3-bg)" },
-  { name: "Community & Hub Building", color: "var(--gt-c4)", bg: "var(--gt-c4-bg)" },
+  { name: "Mission & Narrative", code: "G1", color: "var(--gt-c1)", bg: "var(--gt-c1-bg)" },
+  { name: "Scientific Progress", code: "G2", color: "var(--gt-c2)", bg: "var(--gt-c2-bg)" },
+  { name: "Culture & Organization", code: "G3", color: "var(--gt-c3)", bg: "var(--gt-c3-bg)" },
+  { name: "Community & Hub Building", code: "G4", color: "var(--gt-c4)", bg: "var(--gt-c4-bg)" },
   { name: "APR / BOD / SAC", color: "var(--gt-c5)", bg: "var(--gt-c5-bg)" },
   { name: "Other", color: "var(--gt-c5)", bg: "var(--gt-c5-bg)" }
 ];
@@ -4421,14 +4425,16 @@ function renderMonthPrioritiesInto(rows, targetMonthIdx, targetYear, ids, fadeCo
     const isComplete = statusKey === 'complete';
     const rowIdBase = ids.list + '-' + idx;
 
-    const goalTagsHtml = goalMetas.map(meta =>
-      `<span class="mp-goal-tag" style="color:${meta.color}">${escGt(meta.name)}</span>`
-    ).join('');
+    const goalCodesHtml = goalMetas.map(meta =>
+      `<span style="color:${meta.color};">${escGt(meta.code || meta.name)}</span>`
+    ).join('<span style="color:var(--text-secondary);"> | </span>');
+    const goalFullNames = goalMetas.map(meta => meta.name).join(' | ');
+    const goalBorderColor = goalMetas[0].color;
 
     const rowEl = document.createElement('div');
     rowEl.className = 'mp-row' + (hasComment ? '' : ' no-comment') + (fadeCompleted && isComplete ? ' mp-faded' : '');
     rowEl.innerHTML = `
-      <div class="mp-goal-tag-col">${goalTagsHtml}</div>
+      <span class="mp-goal-tag" style="border-color:${goalBorderColor};" title="${escGt(goalFullNames)}">${goalCodesHtml}</span>
       <span class="mp-item-text">${escGt(itemText)}</span>
       <span class="mp-due">${due ? formatDate(due) : ''}</span>
       <span class="gt-pill ${statusKey}" style="font-size:.68rem;">${STATUS_ICON[statusKey]} ${STATUS_LABEL[statusKey]}</span>
