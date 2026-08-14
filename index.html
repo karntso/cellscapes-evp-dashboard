@@ -3019,60 +3019,67 @@ window.onload = function() {
 .gt-select:focus{outline:none;border-color:var(--gt-c1);}
 
 /* ── Goals & Priorities tab ────────────────────────────────── */
-.mp-row {
-  display: grid;
-  grid-template-columns: 130px 1fr 90px 100px 14px;
-  gap: 10px;
-  align-items: center;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--surface-2);
-  font-size: 0.86rem;
-  cursor: pointer;
-  transition: background 0.12s;
+.mp-section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 12px 14px 6px;
 }
-.mp-row:last-child { border-bottom: none; }
-.mp-row:hover { background: var(--surface-2); }
-.mp-row.no-comment { cursor: default; }
-.mp-row.no-comment:hover { background: transparent; }
-.mp-row .gt-pill { justify-self: start; }
-.mp-goal-tag {
+.mp-bullet-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 14px 6px;
+}
+.mp-bullet-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 28px;
-  padding: 4px 10px;
-  border-radius: 14px;
-  background: transparent;
-  border: 1px solid var(--border);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  line-height: 1.25;
-  text-align: center;
-  white-space: nowrap;
-  cursor: default;
+  gap: 8px;
+  padding: 7px 4px;
+  border-bottom: 1px solid var(--surface-2);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.12s;
+  border-radius: var(--radius-sm);
 }
-.mp-item-text { color: var(--text-primary); line-height: 1.4; }
-.mp-due { font-size: 0.78rem; color: var(--text-secondary); white-space: nowrap; }
-.mp-chevron {
+.mp-bullet-row:last-child { border-bottom: none; }
+.mp-bullet-row:hover { background: var(--surface-2); }
+.mp-bullet-row.no-comment { cursor: default; }
+.mp-bullet-row.no-comment:hover { background: transparent; }
+.mp-bullet-dot { color: var(--text-secondary); flex-shrink: 0; }
+.mp-bullet-text { flex: 1; color: var(--text-primary); line-height: 1.4; }
+.mp-also-tag {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.mp-bullet-due { font-size: 0.78rem; color: var(--text-secondary); white-space: nowrap; flex-shrink: 0; }
+.mp-bullet-due.no-date { font-style: italic; }
+.mp-bullet-chevron {
   font-size: 0.7rem;
   color: var(--text-secondary);
   transition: transform 0.15s;
+  flex-shrink: 0;
 }
-.mp-chevron.open { transform: rotate(90deg); }
+.mp-bullet-chevron.open { transform: rotate(90deg); }
 .mp-comment {
   display: none;
-  padding: 10px 14px 12px 14px;
+  padding: 10px 14px 12px 26px;
   font-size: 0.82rem;
   color: var(--text-secondary);
   background: var(--surface-2);
   border-bottom: 1px solid var(--border);
   line-height: 1.5;
+  list-style: none;
+  border-radius: var(--radius-sm);
 }
 .mp-comment.open { display: block; }
 .mp-empty { padding: 14px 0; font-size: 0.82rem; color: var(--text-secondary); font-style: italic; }
 .mp-list-wrap { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+.mp-bullet-row.mp-faded { opacity: 0.45; }
+.mp-comment.mp-faded { opacity: 0.45; }
 
 /* ── EVP Presentations ────────────────────────────────────── */
 .evp-pres-scroll { overflow-x: auto; padding-bottom: 8px; }
@@ -3106,8 +3113,6 @@ window.onload = function() {
 }
 .evp-pres-btn:hover { background: var(--accent); color: #fff; }
 .evp-pres-hint { font-size: 0.75rem; color: var(--text-secondary); margin-top: 8px; }
-.mp-row.mp-faded { opacity: 0.45; }
-.mp-comment.mp-faded { opacity: 0.45; }
 </style>
 
 <!-- Goals & Priorities Tab -->
@@ -4634,17 +4639,6 @@ function renderMonthPrioritiesInto(rows, targetMonthIdx, targetYear, ids, fadeCo
     return m.monthIdx === targetMonthIdx;
   });
 
-  filtered.sort((a, b) => {
-    const aComplete = normStatus(gf(a, 'Status', 'status')) === 'complete' ? 1 : 0;
-    const bComplete = normStatus(gf(b, 'Status', 'status')) === 'complete' ? 1 : 0;
-    if (aComplete !== bComplete) return aComplete - bComplete;
-    const aDate = mpParseLocalDate(gf(a, 'Date Due', 'date due', 'Due Date', 'due date', 'Due', 'due'));
-    const bDate = mpParseLocalDate(gf(b, 'Date Due', 'date due', 'Due Date', 'due date', 'Due', 'due'));
-    const aTime = aDate ? aDate.getTime() : Infinity;
-    const bTime = bDate ? bDate.getTime() : Infinity;
-    return aTime - bTime;
-  });
-
   if (!filtered.length) {
     status.textContent = 'No priorities logged for this month yet.';
     status.style.display = '';
@@ -4656,49 +4650,90 @@ function renderMonthPrioritiesInto(rows, targetMonthIdx, targetYear, ids, fadeCo
   wrap.style.display = '';
   list.innerHTML = '';
 
-  filtered.forEach((row, idx) => {
+  // Group items under their FIRST listed goal; sections render in MP_GOALS order.
+  const sections = {}; // key -> { meta, items: [] }
+  filtered.forEach(row => {
     const goalName = gf(row, 'Goal', 'goal', 'Pillar', 'pillar');
     const goalMetas = mpGoalMetaList(goalName);
-    const itemText = gf(row, 'Item', 'item', 'Action Item', 'action item', 'Priority', 'priority');
-    const due = gf(row, 'Date Due', 'date due', 'Due Date', 'due date', 'Due', 'due');
-    const statusRaw = gf(row, 'Status', 'status');
-    const statusKey = normStatus(statusRaw);
-    const comments = gf(row, 'Comments / Notes', 'comments / notes', 'Comments', 'comments', 'Notes', 'notes');
-    const hasComment = !!comments;
-    const isComplete = statusKey === 'complete';
-    const rowIdBase = ids.list + '-' + idx;
+    const primary = goalMetas[0];
+    const extras = goalMetas.slice(1);
+    const sectionKey = primary.name;
+    if (!sections[sectionKey]) sections[sectionKey] = { meta: primary, items: [] };
+    sections[sectionKey].items.push({ row, extras });
+  });
 
-    const goalCodesHtml = goalMetas.map(meta =>
-      `<span style="color:${meta.color};font-size:0.82rem;">${escGt(meta.code || meta.name)}</span>`
-    ).join('<span style="color:var(--text-secondary);margin:0 5px;">&amp;</span>');
-    const goalFullNames = goalMetas.map(meta => meta.name).join(' & ');
+  const orderedKeys = MP_GOALS.map(g => g.name).filter(k => sections[k]);
+  Object.keys(sections).forEach(k => { if (!orderedKeys.includes(k)) orderedKeys.push(k); });
 
-    const rowEl = document.createElement('div');
-    rowEl.className = 'mp-row' + (hasComment ? '' : ' no-comment') + (fadeCompleted && isComplete ? ' mp-faded' : '');
-    rowEl.innerHTML = `
-      <span class="mp-goal-tag" title="${escGt(goalFullNames)}">${goalCodesHtml}</span>
-      <span class="mp-item-text">${escGt(itemText)}</span>
-      <span class="mp-due">${due ? mpFormatDate(due) : ''}</span>
-      <span class="gt-pill ${statusKey}" style="font-size:.68rem;">${STATUS_ICON[statusKey]} ${STATUS_LABEL[statusKey]}</span>
-      <span class="mp-chevron" id="chev-${rowIdBase}">${hasComment ? '\u25B8' : ''}</span>
-    `;
-    if (hasComment) {
-      rowEl.onclick = () => {
-        const c = document.getElementById('comment-' + rowIdBase);
-        const chev = document.getElementById('chev-' + rowIdBase);
-        if (c) c.classList.toggle('open');
-        if (chev) chev.classList.toggle('open');
-      };
-    }
-    list.appendChild(rowEl);
+  let rowIdCounter = 0;
 
-    if (hasComment) {
-      const commentEl = document.createElement('div');
-      commentEl.className = 'mp-comment' + (fadeCompleted && isComplete ? ' mp-faded' : '');
-      commentEl.id = 'comment-' + rowIdBase;
-      commentEl.textContent = comments;
-      list.appendChild(commentEl);
-    }
+  orderedKeys.forEach(key => {
+    const { meta, items } = sections[key];
+
+    items.sort((a, b) => {
+      const aComplete = normStatus(gf(a.row, 'Status', 'status')) === 'complete' ? 1 : 0;
+      const bComplete = normStatus(gf(b.row, 'Status', 'status')) === 'complete' ? 1 : 0;
+      if (aComplete !== bComplete) return aComplete - bComplete;
+      const aDate = mpParseLocalDate(gf(a.row, 'Date Due', 'date due', 'Due Date', 'due date', 'Due', 'due'));
+      const bDate = mpParseLocalDate(gf(b.row, 'Date Due', 'date due', 'Due Date', 'due date', 'Due', 'due'));
+      const aTime = aDate ? aDate.getTime() : Infinity;
+      const bTime = bDate ? bDate.getTime() : Infinity;
+      return aTime - bTime;
+    });
+
+    const sectionLabel = document.createElement('div');
+    sectionLabel.className = 'mp-section-label';
+    sectionLabel.style.color = meta.color;
+    sectionLabel.textContent = meta.name;
+    list.appendChild(sectionLabel);
+
+    const ul = document.createElement('ul');
+    ul.className = 'mp-bullet-list';
+
+    items.forEach(({ row, extras }) => {
+      const itemText = gf(row, 'Item', 'item', 'Action Item', 'action item', 'Priority', 'priority');
+      const due = gf(row, 'Date Due', 'date due', 'Due Date', 'due date', 'Due', 'due');
+      const statusRaw = gf(row, 'Status', 'status');
+      const statusKey = normStatus(statusRaw);
+      const comments = gf(row, 'Comments / Notes', 'comments / notes', 'Comments', 'comments', 'Notes', 'notes');
+      const hasComment = !!comments;
+      const isComplete = statusKey === 'complete';
+      const rowIdBase = ids.list + '-' + (rowIdCounter++);
+
+      const alsoHtml = extras.length
+        ? `<span class="mp-also-tag" title="${escGt('Also related to ' + extras.map(e => e.name).join(' & '))}">also ${extras.map(e => `<span style="color:${e.color};">${escGt(e.code || e.name)}</span>`).join(' &amp; ')}</span>`
+        : '';
+
+      const li = document.createElement('li');
+      li.className = 'mp-bullet-row' + (hasComment ? '' : ' no-comment') + (fadeCompleted && isComplete ? ' mp-faded' : '');
+      li.innerHTML = `
+        <span class="mp-bullet-dot">&#8226;</span>
+        <span class="mp-bullet-text">${escGt(itemText)}</span>
+        ${alsoHtml}
+        <span class="mp-bullet-due${due ? '' : ' no-date'}">${due ? mpFormatDate(due) : ''}</span>
+        <span class="gt-pill ${statusKey}" style="font-size:.66rem;">${STATUS_ICON[statusKey]} ${STATUS_LABEL[statusKey]}</span>
+        <span class="mp-bullet-chevron" id="chev-${rowIdBase}">${hasComment ? '\u25B8' : ''}</span>
+      `;
+      if (hasComment) {
+        li.onclick = () => {
+          const c = document.getElementById('comment-' + rowIdBase);
+          const chev = document.getElementById('chev-' + rowIdBase);
+          if (c) c.classList.toggle('open');
+          if (chev) chev.classList.toggle('open');
+        };
+      }
+      ul.appendChild(li);
+
+      if (hasComment) {
+        const commentLi = document.createElement('li');
+        commentLi.className = 'mp-comment' + (fadeCompleted && isComplete ? ' mp-faded' : '');
+        commentLi.id = 'comment-' + rowIdBase;
+        commentLi.textContent = comments;
+        ul.appendChild(commentLi);
+      }
+    });
+
+    list.appendChild(ul);
   });
 }
 
