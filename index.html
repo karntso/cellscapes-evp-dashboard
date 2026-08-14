@@ -3113,6 +3113,7 @@ window.onload = function() {
 }
 .evp-pres-btn:hover { background: var(--accent); color: #fff; }
 .evp-pres-hint { font-size: 0.75rem; color: var(--text-secondary); margin-top: 8px; }
+.evp-pres-card.evp-pres-past { opacity: 0.62; }
 </style>
 
 <!-- Goals & Priorities Tab -->
@@ -4535,13 +4536,20 @@ async function loadEvpPresentations() {
       const archivedRaw = gf(item, 'Archived Version Links', 'archived version links', 'Archived Version X Link(s)');
       const finalLink = gf(item, 'Final Link', 'final link');
 
-      const buttonsHtml =
-        (draftLink ? `<a class="evp-pres-btn" href="${escGt(draftLink)}" target="_blank">current draft</a>` : '') +
-        evpPresArchivedButtons(archivedRaw) +
-        (finalLink ? `<a class="evp-pres-btn" href="${escGt(finalLink)}" target="_blank">final</a>` : '');
+      // Once a final version is linked, earlier drafts/archived versions are no longer relevant.
+      const buttonsHtml = finalLink
+        ? `<a class="evp-pres-btn" href="${escGt(finalLink)}" target="_blank">final</a>`
+        : (draftLink ? `<a class="evp-pres-btn" href="${escGt(draftLink)}" target="_blank">current draft</a>` : '')
+          + evpPresArchivedButtons(archivedRaw);
+
+      // A presentation is "past" once its last relevant date (end date, or start date if no end) has gone by.
+      const lastDate = evpPresParseLocalDate(endDate) || evpPresParseLocalDate(startDate);
+      const todayMidnight = new Date();
+      todayMidnight.setHours(0, 0, 0, 0);
+      const isPast = !!lastDate && lastDate < todayMidnight;
 
       const card = document.createElement('div');
-      card.className = 'evp-pres-card';
+      card.className = 'evp-pres-card' + (isPast ? ' evp-pres-past' : '');
       card.innerHTML = `
         <div class="evp-pres-title">${escGt(name)}</div>
         ${startDate ? `<div class="evp-pres-meta">${evpPresFormatRange(startDate, endDate)}</div>` : ''}
