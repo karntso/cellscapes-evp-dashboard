@@ -1428,7 +1428,7 @@ function switchTab(tabName, evt) {
   document.getElementById('tab-' + tabName).classList.add('active');
   if (evt && evt.target) evt.target.classList.add('active');
   if (tabName === 'accomplishments') loadTopLevelAccomplishments();
-  if (tabName === 'goals-priorities') loadMonthPriorities();
+  if (tabName === 'goals-priorities') { loadMonthPriorities(); loadEvpPresentations(); }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -2823,6 +2823,7 @@ window.onload = function() {
   loadGoalsTracker();
   loadTalksTravel();
   loadMonthPriorities();
+  loadEvpPresentations();
 };
 </script>
 
@@ -3072,6 +3073,39 @@ window.onload = function() {
 .mp-comment.open { display: block; }
 .mp-empty { padding: 14px 0; font-size: 0.82rem; color: var(--text-secondary); font-style: italic; }
 .mp-list-wrap { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+
+/* ── EVP Presentations ────────────────────────────────────── */
+.evp-pres-scroll { overflow-x: auto; padding-bottom: 8px; }
+.evp-pres-row { display: flex; gap: 14px; width: max-content; }
+.evp-pres-card {
+  width: 260px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+}
+.evp-pres-title { font-size: 0.92rem; font-weight: 700; color: var(--text-primary); line-height: 1.35; margin-bottom: 10px; }
+.evp-pres-meta { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 2px; }
+.evp-pres-buttons { margin-top: auto; display: flex; flex-direction: column; gap: 6px; padding-top: 12px; }
+.evp-pres-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--accent-light);
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.evp-pres-btn:hover { background: var(--accent); color: #fff; }
+.evp-pres-hint { font-size: 0.75rem; color: var(--text-secondary); margin-top: 8px; }
 .mp-row.mp-faded { opacity: 0.45; }
 .mp-comment.mp-faded { opacity: 0.45; }
 </style>
@@ -3091,7 +3125,7 @@ window.onload = function() {
           <div class="evp-goal-pill" style="background:var(--gt-c1);" onclick="toggleEvpGoalDetail('evp-goal-1')">mission &amp; narrative</div>
           <div class="evp-goal-pill" style="background:var(--gt-c2);" onclick="toggleEvpGoalDetail('evp-goal-2')">scientific progress</div>
           <div class="evp-goal-pill" style="background:var(--gt-c3);" onclick="toggleEvpGoalDetail('evp-goal-3')">culture &amp; organization</div>
-          <div class="evp-goal-pill" style="background:var(--gt-c4);" onclick="toggleEvpGoalDetail('evp-goal-4')">community &amp; hub building</div>
+          <div class="evp-goal-pill" style="background:var(--gt-c4);" onclick="toggleEvpGoalDetail('evp-goal-4')">partnerships &amp; collaborations</div>
         </div>
 
         <!-- Goal 1: Mission & Narrative -->
@@ -3178,7 +3212,7 @@ window.onload = function() {
           </div>
         </div>
 
-        <!-- Goal 4: Community & Hub Building -->
+        <!-- Goal 4: Partnerships & Collaborations -->
         <div class="evp-goal-detail" id="evp-goal-4">
           <div class="evp-goal-detail-inner" style="border-left-color:var(--gt-c4);">
             <div class="evp-goal-detail-desc">
@@ -3203,6 +3237,29 @@ window.onload = function() {
               <li>Qualitative feedback from collaborators and advisors indicating CellScapes is perceived as a central, integrative scientific hub</li>
             </ul>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EVP Presentations -->
+  <div class="section-card">
+    <div class="section-header open" onclick="toggleCollapse('evppres')" id="evppres-header">
+      <h2 class="section-title">EVP presentations</h2>
+      <span class="collapsible-toggle open" id="evppres-toggle">+</span>
+    </div>
+    <div class="collapsible-content open" id="evppres-content">
+      <div class="section-body">
+        <div class="gt-status-msg" id="evp-pres-status">loading presentations…</div>
+        <div class="evp-pres-scroll" id="evp-pres-scroll" style="display:none;">
+          <div class="evp-pres-row" id="evp-pres-row"></div>
+        </div>
+        <div class="evp-pres-hint">← scroll to see all →</div>
+        <div style="margin-top:8px;text-align:right;">
+          <span class="gt-last-updated" id="evp-pres-last-updated" style="font-size:.75rem;margin-right:10px;"></span>
+          <a href="https://docs.google.com/spreadsheets/d/1-QNrKJ_LL34xH5Vf8HTKkJAYr4pAGHa2y1tOFL4YQks/edit?usp=sharing#gid=457555151" target="_blank" style="font-size:0.8rem;color:var(--link-accent);text-decoration:none;">
+            open EVP presentations sheet →
+          </a>
         </div>
       </div>
     </div>
@@ -3479,7 +3536,7 @@ const GT_PILLARS = [
   {key:"Mission",          label:"mission & narrative",             color:"var(--gt-c1)",bg:"var(--gt-c1-bg)"},
   {key:"Science",          label:"scientific progress",             color:"var(--gt-c2)",bg:"var(--gt-c2-bg)"},
   {key:"Org / Leadership", label:"org / leadership / culture",      color:"var(--gt-c3)",bg:"var(--gt-c3-bg)"},
-  {key:"Hub Building",     label:"hub building & partnerships",     color:"var(--gt-c4)",bg:"var(--gt-c4-bg)"},
+  {key:"Hub Building",     label:"partnerships & collaborations",   color:"var(--gt-c4)",bg:"var(--gt-c4-bg)"},
   {key:"Other",            label:"other",                           color:"var(--gt-c5)",bg:"var(--gt-c5-bg)"},
 ];
 
@@ -4391,13 +4448,121 @@ async function loadGoalsTracker() {
 // ══════════════════════════════════════════════════════════════
 // GOALS & PRIORITIES TAB — "priorities for [Month]" (current, next, and prior)
 // ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
+// EVP PRESENTATIONS
+// ══════════════════════════════════════════════════════════════
+const EVP_PRES_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSbVQ9SVt61laZGWVRBLDrmyenq_6qxHs6Rz-yCN8QMsWAEyiMfHrG8kOnzZWRmZTXhadO5jDZt5evY/pub?gid=457555151&single=true&output=csv";
+
+function evpPresParseLocalDate(str) {
+  if (!str) return null;
+  const s = String(str).trim();
+  const m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) return new Date(parseInt(m[1]), parseInt(m[2]) - 1, parseInt(m[3]));
+  const d = new Date(s);
+  return isNaN(d) ? null : d;
+}
+
+function evpPresFormatDate(str) {
+  const d = evpPresParseLocalDate(str);
+  if (!d) return '';
+  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return monthNames[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+}
+
+function evpPresFormatRange(startStr, endStr) {
+  const start = evpPresParseLocalDate(startStr);
+  if (!start) return '';
+  const end = evpPresParseLocalDate(endStr);
+  if (!end || end.getTime() === start.getTime()) return evpPresFormatDate(startStr);
+  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const sameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
+  const startLabel = monthNames[start.getMonth()] + ' ' + start.getDate();
+  const endLabel = sameMonth ? String(end.getDate()) : (monthNames[end.getMonth()] + ' ' + end.getDate());
+  return startLabel + ' – ' + endLabel + ', ' + end.getFullYear();
+}
+
+function evpPresArchivedButtons(raw) {
+  if (!raw) return '';
+  return raw.split('\n').map(line => {
+    const parts = line.split('|');
+    const label = (parts[0] || '').trim();
+    const url = (parts[1] || '').trim();
+    if (!url) return '';
+    return `<a class="evp-pres-btn" href="${escGt(url)}" target="_blank">${escGt(label || 'archived')}</a>`;
+  }).filter(b => b).join('');
+}
+
+let evpPresLoaded = false;
+async function loadEvpPresentations() {
+  if (evpPresLoaded) return;
+  evpPresLoaded = true;
+  const status = document.getElementById('evp-pres-status');
+  const scroll = document.getElementById('evp-pres-scroll');
+  const row = document.getElementById('evp-pres-row');
+  try {
+    const res = await fetch(EVP_PRES_CSV_URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const rows = parseCSV(text, 0);
+
+    const items = rows
+      .filter(r => gf(r, 'Meeting Name', 'meeting name'))
+      .map(r => ({ ...r, _start: evpPresParseLocalDate(gf(r, 'Meeting Start Date', 'meeting start date')) }))
+      .sort((a, b) => (b._start ? b._start.getTime() : 0) - (a._start ? a._start.getTime() : 0));
+
+    if (!items.length) {
+      status.textContent = 'No presentations logged yet.';
+      status.style.display = '';
+      scroll.style.display = 'none';
+      return;
+    }
+
+    status.style.display = 'none';
+    scroll.style.display = '';
+    row.innerHTML = '';
+
+    items.forEach(item => {
+      const name = gf(item, 'Meeting Name', 'meeting name');
+      const startDate = gf(item, 'Meeting Start Date', 'meeting start date');
+      const endDate = gf(item, 'Meeting End Date', 'meeting end date');
+      const location = gf(item, 'Location', 'location');
+      const draftLink = gf(item, 'Current Draft Link', 'current draft link');
+      const archivedRaw = gf(item, 'Archived Version Links', 'archived version links', 'Archived Version X Link(s)');
+      const finalLink = gf(item, 'Final Link', 'final link');
+
+      const buttonsHtml =
+        (draftLink ? `<a class="evp-pres-btn" href="${escGt(draftLink)}" target="_blank">current draft</a>` : '') +
+        evpPresArchivedButtons(archivedRaw) +
+        (finalLink ? `<a class="evp-pres-btn" href="${escGt(finalLink)}" target="_blank">final</a>` : '');
+
+      const card = document.createElement('div');
+      card.className = 'evp-pres-card';
+      card.innerHTML = `
+        <div class="evp-pres-title">${escGt(name)}</div>
+        ${startDate ? `<div class="evp-pres-meta">${evpPresFormatRange(startDate, endDate)}</div>` : ''}
+        ${location ? `<div class="evp-pres-meta">${escGt(location)}</div>` : ''}
+        ${buttonsHtml ? `<div class="evp-pres-buttons">${buttonsHtml}</div>` : ''}
+      `;
+      row.appendChild(card);
+    });
+
+    const lastUpdatedEl = document.getElementById('evp-pres-last-updated');
+    if (lastUpdatedEl) {
+      lastUpdatedEl.textContent = 'last loaded ' + new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    }
+  } catch (err) {
+    status.textContent = 'Could not load presentations — check the sheet is published as CSV and the link is correct.';
+    console.error('EVP presentations load error:', err);
+  }
+}
+
 const MP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSbVQ9SVt61laZGWVRBLDrmyenq_6qxHs6Rz-yCN8QMsWAEyiMfHrG8kOnzZWRmZTXhadO5jDZt5evY/pub?gid=1920791932&single=true&output=csv";
 
 const MP_GOALS = [
   { name: "Mission & Narrative", code: "G1", color: "var(--gt-c1)", bg: "var(--gt-c1-bg)" },
   { name: "Scientific Progress", code: "G2", color: "var(--gt-c2)", bg: "var(--gt-c2-bg)" },
   { name: "Culture & Organization", code: "G3", color: "var(--gt-c3)", bg: "var(--gt-c3-bg)" },
-  { name: "Community & Hub Building", code: "G4", color: "var(--gt-c4)", bg: "var(--gt-c4-bg)" },
+  { name: "Partnerships & Collaborations", code: "G4", color: "var(--gt-c4)", bg: "var(--gt-c4-bg)" },
   { name: "APR / BOD / SAC", color: "var(--gt-c5)", bg: "var(--gt-c5-bg)" },
   { name: "other", color: "var(--gt-c5)", bg: "var(--gt-c5-bg)" }
 ];
