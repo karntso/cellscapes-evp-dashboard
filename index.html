@@ -3004,6 +3004,18 @@ window.onload = function() {
 .gt-select:focus{outline:none;border-color:var(--gt-c1);}
 
 /* ── Goals & Priorities tab ────────────────────────────────── */
+.mp-month-header {
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  margin: 16px 0 4px;
+}
+.mp-month-header:first-child {
+  margin-top: 0;
+}
 .mp-section-label {
   font-size: 0.72rem;
   font-weight: 700;
@@ -3014,6 +3026,10 @@ window.onload = function() {
   margin-top: 4px;
 }
 .mp-section-label:first-child {
+  border-top: none;
+  margin-top: 0;
+}
+.mp-month-header + .mp-section-label {
   border-top: none;
   margin-top: 0;
 }
@@ -4745,31 +4761,12 @@ function mpItemResolvedDate(row) {
 
 // Renders a priorities section for a given date range (inclusive), grouped by goal.
 // fadeCompleted fades out items already marked complete (used for the earlier-priorities section).
-function renderMonthPrioritiesInto(rows, rangeStart, rangeEnd, ids, fadeCompleted) {
-  const list = document.getElementById(ids.list);
-  const wrap = document.getElementById(ids.wrap);
-  const status = document.getElementById(ids.status);
-
-  const filtered = rows.filter(r => {
-    const d = mpItemResolvedDate(r);
-    if (!d) return false;
-    return d.getTime() >= rangeStart.getTime() && d.getTime() <= rangeEnd.getTime();
-  });
-
-  if (!filtered.length) {
-    status.textContent = 'No priorities logged for this range yet.';
-    status.style.display = '';
-    wrap.style.display = 'none';
-    return;
-  }
-
-  status.style.display = 'none';
-  wrap.style.display = '';
-  list.innerHTML = '';
-
-  // Group items under their FIRST listed goal; sections render in MP_GOALS order.
+// Appends goal-grouped sections (label + bulleted list) for a set of items into a container.
+// idPrefix keeps generated element ids unique when this is called multiple times (once per month).
+let mpRowIdCounter = 0;
+function appendGoalGroupedSections(container, items, fadeCompleted, idPrefix) {
   const sections = {}; // key -> { meta, items: [] }
-  filtered.forEach(row => {
+  items.forEach(row => {
     const goalName = gf(row, 'Goal', 'goal', 'Pillar', 'pillar');
     const goalMetas = mpGoalMetaList(goalName);
     const primary = goalMetas[0];
@@ -4782,12 +4779,10 @@ function renderMonthPrioritiesInto(rows, rangeStart, rangeEnd, ids, fadeComplete
   const orderedKeys = MP_GOALS.map(g => g.name).filter(k => sections[k]);
   Object.keys(sections).forEach(k => { if (!orderedKeys.includes(k)) orderedKeys.push(k); });
 
-  let rowIdCounter = 0;
-
   orderedKeys.forEach(key => {
-    const { meta, items } = sections[key];
+    const { meta, items: groupItems } = sections[key];
 
-    items.sort((a, b) => {
+    groupItems.sort((a, b) => {
       const aComplete = normStatus(gf(a.row, 'Status', 'status')) === 'complete' ? 1 : 0;
       const bComplete = normStatus(gf(b.row, 'Status', 'status')) === 'complete' ? 1 : 0;
       if (aComplete !== bComplete) return aComplete - bComplete;
@@ -4802,12 +4797,12 @@ function renderMonthPrioritiesInto(rows, rangeStart, rangeEnd, ids, fadeComplete
     sectionLabel.className = 'mp-section-label';
     sectionLabel.style.color = meta.color;
     sectionLabel.textContent = meta.name;
-    list.appendChild(sectionLabel);
+    container.appendChild(sectionLabel);
 
     const ul = document.createElement('ul');
     ul.className = 'mp-bullet-list';
 
-    items.forEach(({ row, extras }) => {
+    groupItems.forEach(({ row, extras }) => {
       const itemText = gf(row, 'Item', 'item', 'Action Item', 'action item', 'Priority', 'priority');
       const due = gf(row, 'Date Due', 'date due', 'Due Date', 'due date', 'Due', 'due');
       const statusRaw = gf(row, 'Status', 'status');
@@ -4815,7 +4810,7 @@ function renderMonthPrioritiesInto(rows, rangeStart, rangeEnd, ids, fadeComplete
       const comments = gf(row, 'Comments / Notes', 'comments / notes', 'Comments', 'comments', 'Notes', 'notes');
       const hasComment = !!comments;
       const isComplete = statusKey === 'complete';
-      const rowIdBase = ids.list + '-' + (rowIdCounter++);
+      const rowIdBase = idPrefix + '-' + (mpRowIdCounter++);
 
       const alsoHtml = extras.length
         ? `<span class="mp-also-tag" title="${escGt('Also related to ' + extras.map(e => e.name).join(' & '))}">also ${extras.map(e => `<span style="color:${e.color};">${escGt(e.code || e.name)}</span>`).join(' &amp; ')}</span>`
@@ -4849,7 +4844,79 @@ function renderMonthPrioritiesInto(rows, rangeStart, rangeEnd, ids, fadeComplete
       }
     });
 
-    list.appendChild(ul);
+    container.appendChild(ul);
+  });
+}
+
+function renderMonthPrioritiesInto(rows, rangeStart, rangeEnd, ids, fadeCompleted) {
+  const list = document.getElementById(ids.list);
+  const wrap = document.getElementById(ids.wrap);
+  const status = document.getElementById(ids.status);
+
+  const filtered = rows.filter(r => {
+    const d = mpItemResolvedDate(r);
+    if (!d) return false;
+    return d.getTime() >= rangeStart.getTime() && d.getTime() <= rangeEnd.getTime();
+  });
+
+  if (!filtered.length) {
+    status.textContent = 'No priorities logged for this range yet.';
+    status.style.display = '';
+    wrap.style.display = 'none';
+    return;
+  }
+
+  status.style.display = 'none';
+  wrap.style.display = '';
+  list.innerHTML = '';
+
+  appendGoalGroupedSections(list, filtered, fadeCompleted, ids.list);
+}
+
+// Renders the upcoming-priorities section grouped by MONTH first, then by goal within each month.
+function renderUpcomingPrioritiesByMonth(rows, rangeStart, rangeEnd, ids) {
+  const list = document.getElementById(ids.list);
+  const wrap = document.getElementById(ids.wrap);
+  const status = document.getElementById(ids.status);
+
+  const filtered = rows.filter(r => {
+    const d = mpItemResolvedDate(r);
+    if (!d) return false;
+    return d.getTime() >= rangeStart.getTime() && d.getTime() <= rangeEnd.getTime();
+  });
+
+  if (!filtered.length) {
+    status.textContent = 'No priorities logged for this range yet.';
+    status.style.display = '';
+    wrap.style.display = 'none';
+    return;
+  }
+
+  status.style.display = 'none';
+  wrap.style.display = '';
+  list.innerHTML = '';
+
+  const months = {}; // "YYYY-MM" -> { label, sortKey, items: [] }
+  filtered.forEach(row => {
+    const d = mpItemResolvedDate(row);
+    const key = d.getFullYear() + '-' + String(d.getMonth()).padStart(2, '0');
+    if (!months[key]) {
+      months[key] = { label: mpMonthLabel(d.getMonth()) + ' ' + d.getFullYear(), sortKey: d.getFullYear() * 12 + d.getMonth(), items: [] };
+    }
+    months[key].items.push(row);
+  });
+
+  const orderedMonthKeys = Object.keys(months).sort((a, b) => months[a].sortKey - months[b].sortKey);
+
+  orderedMonthKeys.forEach(monthKey => {
+    const { label, items } = months[monthKey];
+
+    const monthHeader = document.createElement('div');
+    monthHeader.className = 'mp-month-header';
+    monthHeader.textContent = label;
+    list.appendChild(monthHeader);
+
+    appendGoalGroupedSections(list, items, false, ids.list + '-' + monthKey);
   });
 }
 
@@ -4893,8 +4960,8 @@ async function loadMonthPriorities() {
     renderMonthPrioritiesInto(rows, curStart, curEnd,
       { list: 'mp-list', wrap: 'mp-list-wrap', status: 'mp-status' }, false);
 
-    renderMonthPrioritiesInto(rows, upcomingStart, upcomingEnd,
-      { list: 'mp-next-list', wrap: 'mp-next-list-wrap', status: 'mp-next-status' }, false);
+    renderUpcomingPrioritiesByMonth(rows, upcomingStart, upcomingEnd,
+      { list: 'mp-next-list', wrap: 'mp-next-list-wrap', status: 'mp-next-status' });
 
     // Only render the earlier-priorities section if January isn't the current month
     // (there's nothing "earlier this year" to show in January).
