@@ -1412,7 +1412,7 @@ function switchTab(tabName, evt) {
   if (evt && evt.target) evt.target.classList.add('active');
   if (tabName === 'accomplishments') loadTopLevelAccomplishments();
   if (tabName === 'goals-priorities') loadMonthPriorities();
-  if (tabName === 'key-presentations') loadEvpPresentations();
+  if (tabName === 'key-presentations') { loadEvpPresentations(); loadRobPresentations(); }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -2808,6 +2808,7 @@ window.onload = function() {
   loadTalksTravel();
   loadMonthPriorities();
   loadEvpPresentations();
+  loadRobPresentations();
 };
 </script>
 
@@ -3444,24 +3445,6 @@ window.onload = function() {
 <!-- Key Presentations Tab -->
 <div id="tab-key-presentations" class="tab-content">
 
-  <!-- Leadership Talks -->
-  <div class="section-card">
-    <div class="section-header open" onclick="toggleCollapse('leadershiptalks')" id="leadershiptalks-header">
-      <h2 class="section-title">leadership talks</h2>
-      <span class="collapsible-toggle open" id="leadershiptalks-toggle">+</span>
-    </div>
-    <div class="collapsible-content open" id="leadershiptalks-content">
-      <div class="section-body">
-        <div id="tt-status" class="tt-empty">Loading leadership talks…</div>
-        <div class="tt-strip-scroll" id="tt-strip"></div>
-        <div class="tt-hint" id="tt-hint" style="display:none;font-size:0.72rem;color:#AAA39F;font-weight:400;">showing presentations only · travel-only entries not displayed · scroll to see all →</div>
-        <div class="embed-footer">
-          <a href="https://docs.google.com/spreadsheets/d/1H1cN97CCsAe9WrHzNTbNwQbGc3FIcndd/edit#gid=1228322803" target="_blank" style="font-size:0.82rem;font-weight:400;">open talks &amp; travel sheet →</a>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- EVP Presentations -->
   <div class="section-card">
     <div class="section-header open" onclick="toggleCollapse('evppres')" id="evppres-header">
@@ -3480,6 +3463,47 @@ window.onload = function() {
           <a href="https://docs.google.com/spreadsheets/d/1-QNrKJ_LL34xH5Vf8HTKkJAYr4pAGHa2y1tOFL4YQks/edit?usp=sharing#gid=457555151" target="_blank" style="font-size:0.8rem;color:var(--link-accent);text-decoration:none;">
             open EVP presentations sheet →
           </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APR, BOD, SAC Presentations -->
+  <div class="section-card">
+    <div class="section-header open" onclick="toggleCollapse('robpres')" id="robpres-header">
+      <h2 class="section-title">APR, BOD, SAC presentations</h2>
+      <span class="collapsible-toggle open" id="robpres-toggle">+</span>
+    </div>
+    <div class="collapsible-content open" id="robpres-content">
+      <div class="section-body">
+        <div class="gt-status-msg" id="rob-pres-status">loading presentations…</div>
+        <div class="evp-pres-scroll" id="rob-pres-scroll" style="display:none;">
+          <div class="evp-pres-row" id="rob-pres-row"></div>
+        </div>
+        <div class="evp-pres-hint">← scroll to see all →</div>
+        <div style="margin-top:8px;text-align:right;">
+          <span class="gt-last-updated" id="rob-pres-last-updated" style="font-size:.75rem;margin-right:10px;"></span>
+          <a href="https://docs.google.com/spreadsheets/d/1-QNrKJ_LL34xH5Vf8HTKkJAYr4pAGHa2y1tOFL4YQks/edit?usp=sharing#gid=924149391" target="_blank" style="font-size:0.8rem;color:var(--link-accent);text-decoration:none;">
+            open ROB presentations sheet →
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leadership Talks -->
+  <div class="section-card">
+    <div class="section-header open" onclick="toggleCollapse('leadershiptalks')" id="leadershiptalks-header">
+      <h2 class="section-title">leadership talks</h2>
+      <span class="collapsible-toggle open" id="leadershiptalks-toggle">+</span>
+    </div>
+    <div class="collapsible-content open" id="leadershiptalks-content">
+      <div class="section-body">
+        <div id="tt-status" class="tt-empty">Loading leadership talks…</div>
+        <div class="tt-strip-scroll" id="tt-strip"></div>
+        <div class="tt-hint" id="tt-hint" style="display:none;font-size:0.72rem;color:#AAA39F;font-weight:400;">showing presentations only · travel-only entries not displayed · scroll to see all →</div>
+        <div class="embed-footer">
+          <a href="https://docs.google.com/spreadsheets/d/1H1cN97CCsAe9WrHzNTbNwQbGc3FIcndd/edit#gid=1228322803" target="_blank" style="font-size:0.82rem;font-weight:400;">open talks &amp; travel sheet →</a>
         </div>
       </div>
     </div>
@@ -4573,6 +4597,75 @@ async function loadEvpPresentations() {
   } catch (err) {
     status.textContent = 'Could not load presentations — check the sheet is published as CSV and the link is correct.';
     console.error('EVP presentations load error:', err);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// APR, BOD, SAC PRESENTATIONS (ROB Presentations)
+// ══════════════════════════════════════════════════════════════
+const ROB_PRES_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSbVQ9SVt61laZGWVRBLDrmyenq_6qxHs6Rz-yCN8QMsWAEyiMfHrG8kOnzZWRmZTXhadO5jDZt5evY/pub?gid=924149391&single=true&output=csv";
+
+let robPresLoaded = false;
+async function loadRobPresentations() {
+  if (robPresLoaded) return;
+  robPresLoaded = true;
+  const status = document.getElementById('rob-pres-status');
+  const scroll = document.getElementById('rob-pres-scroll');
+  const row = document.getElementById('rob-pres-row');
+  try {
+    const res = await fetch(ROB_PRES_CSV_URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const rows = parseCSV(text, 0);
+
+    const items = rows
+      .filter(r => gf(r, 'Meeting Name', 'meeting name'))
+      .map(r => ({ ...r, _start: evpPresParseLocalDate(gf(r, 'Meeting Start Date', 'meeting start date')) }))
+      .sort((a, b) => (b._start ? b._start.getTime() : 0) - (a._start ? a._start.getTime() : 0));
+
+    if (!items.length) {
+      status.textContent = 'No presentations logged yet.';
+      status.style.display = '';
+      scroll.style.display = 'none';
+      return;
+    }
+
+    status.style.display = 'none';
+    scroll.style.display = '';
+    row.innerHTML = '';
+
+    items.forEach(item => {
+      const name = gf(item, 'Meeting Name', 'meeting name');
+      const startDate = gf(item, 'Meeting Start Date', 'meeting start date');
+      const endDate = gf(item, 'Meeting End Date', 'meeting end date');
+      const finalLink = gf(item, 'Final Link', 'final link');
+
+      const buttonsHtml = finalLink
+        ? `<a class="evp-pres-btn" href="${escGt(finalLink)}" target="_blank">final</a>`
+        : '';
+
+      const lastDate = evpPresParseLocalDate(endDate) || evpPresParseLocalDate(startDate);
+      const todayMidnight = new Date();
+      todayMidnight.setHours(0, 0, 0, 0);
+      const isPast = !!lastDate && lastDate < todayMidnight;
+
+      const card = document.createElement('div');
+      card.className = 'evp-pres-card' + (isPast ? ' evp-pres-past' : '');
+      card.innerHTML = `
+        <div class="evp-pres-title">${escGt(name)}</div>
+        ${startDate ? `<div class="evp-pres-meta">${evpPresFormatRange(startDate, endDate)}</div>` : ''}
+        ${buttonsHtml ? `<div class="evp-pres-buttons">${buttonsHtml}</div>` : ''}
+      `;
+      row.appendChild(card);
+    });
+
+    const lastUpdatedEl = document.getElementById('rob-pres-last-updated');
+    if (lastUpdatedEl) {
+      lastUpdatedEl.textContent = 'last loaded ' + new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    }
+  } catch (err) {
+    status.textContent = 'Could not load presentations — check the sheet is published as CSV and the link is correct.';
+    console.error('ROB presentations load error:', err);
   }
 }
 
