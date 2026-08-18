@@ -3009,7 +3009,13 @@ window.onload = function() {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 12px 14px 6px;
+  padding: 14px 14px 6px;
+  border-top: 2px solid var(--border);
+  margin-top: 4px;
+}
+.mp-section-label:first-child {
+  border-top: none;
+  margin-top: 0;
 }
 .mp-bullet-list {
   list-style: none;
@@ -3017,11 +3023,12 @@ window.onload = function() {
   padding: 0 14px 6px;
 }
 .mp-bullet-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 14px 1fr 92px 112px 14px;
   align-items: center;
-  gap: 8px;
-  padding: 7px 4px;
-  border-bottom: 1px solid var(--surface-2);
+  gap: 10px;
+  padding: 9px 4px;
+  border-bottom: 1px solid var(--border);
   font-size: 0.85rem;
   cursor: pointer;
   transition: background 0.12s;
@@ -3032,16 +3039,17 @@ window.onload = function() {
 .mp-bullet-row.no-comment { cursor: default; }
 .mp-bullet-row.no-comment:hover { background: transparent; }
 .mp-bullet-dot { color: var(--text-secondary); flex-shrink: 0; }
-.mp-bullet-text { flex: 1; color: var(--text-primary); line-height: 1.4; }
+.mp-bullet-textwrap { color: var(--text-primary); line-height: 1.4; overflow: hidden; }
 .mp-also-tag {
   font-size: 0.66rem;
   font-weight: 700;
   color: var(--text-secondary);
   white-space: nowrap;
-  flex-shrink: 0;
+  margin-left: 6px;
 }
-.mp-bullet-due { font-size: 0.78rem; color: var(--text-secondary); white-space: nowrap; flex-shrink: 0; }
+.mp-bullet-due { font-size: 0.78rem; color: var(--text-secondary); white-space: nowrap; text-align: right; }
 .mp-bullet-due.no-date { font-style: italic; }
+.mp-bullet-row .gt-pill { justify-self: start; }
 .mp-bullet-chevron {
   font-size: 0.7rem;
   color: var(--text-secondary);
@@ -4816,8 +4824,7 @@ function renderMonthPrioritiesInto(rows, targetMonthIdx, targetYear, ids, fadeCo
       li.className = 'mp-bullet-row' + (hasComment ? '' : ' no-comment') + (isComplete ? ' mp-faded' : '');
       li.innerHTML = `
         <span class="mp-bullet-dot">&#8226;</span>
-        <span class="mp-bullet-text">${escGt(itemText)}</span>
-        ${alsoHtml}
+        <span class="mp-bullet-textwrap">${escGt(itemText)}${alsoHtml}</span>
         <span class="mp-bullet-due${due ? '' : ' no-date'}">${due ? mpFormatDate(due) : ''}</span>
         <span class="gt-pill ${statusKey}" style="font-size:.66rem;">${STATUS_ICON[statusKey]} ${STATUS_LABEL[statusKey]}</span>
         <span class="mp-bullet-chevron" id="chev-${rowIdBase}">${hasComment ? '\u25B8' : ''}</span>
