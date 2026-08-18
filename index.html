@@ -3263,10 +3263,10 @@ window.onload = function() {
     </div>
   </div>
 
-  <!-- Priorities for [Next Month] -->
+  <!-- Priorities: Upcoming (next month through December) -->
   <div class="section-card">
     <div class="section-header open" onclick="toggleCollapse('monthprioritiesnext')" id="monthprioritiesnext-header">
-      <h2 class="section-title" id="monthprioritiesnext-title">priorities for …</h2>
+      <h2 class="section-title" id="monthprioritiesnext-title">upcoming priorities</h2>
       <span class="collapsible-toggle open" id="monthprioritiesnext-toggle">+</span>
     </div>
     <div class="collapsible-content open" id="monthprioritiesnext-content">
@@ -3279,13 +3279,13 @@ window.onload = function() {
     </div>
   </div>
 
-  <!-- Priorities for [Prior Month] -->
+  <!-- Priorities: Earlier this year (collapsed by default) -->
   <div class="section-card">
-    <div class="section-header open" onclick="toggleCollapse('monthprioritiesprev')" id="monthprioritiesprev-header">
-      <h2 class="section-title" id="monthprioritiesprev-title">priorities for …</h2>
-      <span class="collapsible-toggle open" id="monthprioritiesprev-toggle">+</span>
+    <div class="section-header" onclick="toggleCollapse('monthprioritiesprev')" id="monthprioritiesprev-header">
+      <h2 class="section-title" id="monthprioritiesprev-title">earlier 2026 priorities</h2>
+      <span class="collapsible-toggle" id="monthprioritiesprev-toggle">+</span>
     </div>
-    <div class="collapsible-content open" id="monthprioritiesprev-content">
+    <div class="collapsible-content" id="monthprioritiesprev-content">
       <div class="section-body">
         <div class="gt-status-msg" id="mp-prev-status">loading priorities…</div>
         <div class="mp-list-wrap" id="mp-prev-list-wrap" style="display:none;">
@@ -4726,37 +4726,38 @@ function mpFormatDate(str) {
   return monthNames[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
 }
 
-function mpItemMonthIndex(row) {
+// Resolves the best-guess date for a row — prefers Date Due, falls back to the
+// explicit Month text column (anchored to the current year, since that column
+// has no year of its own).
+function mpItemResolvedDate(row) {
   const due = gf(row, 'Date Due', 'date due', 'Due Date', 'due date', 'Due', 'due');
   if (due) {
     const d = mpParseLocalDate(due);
-    if (d) return { monthIdx: d.getMonth(), year: d.getFullYear() };
+    if (d) return d;
   }
   const explicit = gf(row, 'Month', 'month');
   if (explicit) {
     const idx = MONTHS_LONG.findIndex(m => explicit.toLowerCase().startsWith(m.slice(0, 3)));
-    if (idx !== -1) return { monthIdx: idx, year: null };
+    if (idx !== -1) return new Date(new Date().getFullYear(), idx, 1);
   }
   return null;
 }
 
-// Renders one of the three priority sections (current / next / prior month).
-// targetMonthIdx/targetYear identify which month to filter to; fadeCompleted
-// fades out items already marked complete (used for the prior-month section only).
-function renderMonthPrioritiesInto(rows, targetMonthIdx, targetYear, ids, fadeCompleted) {
+// Renders a priorities section for a given date range (inclusive), grouped by goal.
+// fadeCompleted fades out items already marked complete (used for the earlier-priorities section).
+function renderMonthPrioritiesInto(rows, rangeStart, rangeEnd, ids, fadeCompleted) {
   const list = document.getElementById(ids.list);
   const wrap = document.getElementById(ids.wrap);
   const status = document.getElementById(ids.status);
 
   const filtered = rows.filter(r => {
-    const m = mpItemMonthIndex(r);
-    if (!m) return false;
-    if (m.year !== null && m.year !== targetYear) return false;
-    return m.monthIdx === targetMonthIdx;
+    const d = mpItemResolvedDate(r);
+    if (!d) return false;
+    return d.getTime() >= rangeStart.getTime() && d.getTime() <= rangeEnd.getTime();
   });
 
   if (!filtered.length) {
-    status.textContent = 'No priorities logged for this month yet.';
+    status.textContent = 'No priorities logged for this range yet.';
     status.style.display = '';
     wrap.style.display = 'none';
     return;
@@ -4857,15 +4858,22 @@ async function loadMonthPriorities() {
   const now = new Date();
   const curMonth = now.getMonth();
   const curYear = now.getFullYear();
-  const nextDate = new Date(curYear, curMonth + 1, 1);
-  const prevDate = new Date(curYear, curMonth - 1, 1);
+
+  const curStart = new Date(curYear, curMonth, 1);
+  const curEnd = new Date(curYear, curMonth + 1, 0); // last day of current month
+
+  const upcomingStart = new Date(curYear, curMonth + 1, 1);
+  const upcomingEnd = new Date(curYear, 11, 31); // December 31 of current year
+
+  const earlierStart = new Date(curYear, 0, 1); // January 1 of current year
+  const earlierEnd = new Date(curYear, curMonth, 0); // last day of the month before current
 
   const curTitle = document.getElementById('monthpriorities-title');
   const nextTitle = document.getElementById('monthprioritiesnext-title');
   const prevTitle = document.getElementById('monthprioritiesprev-title');
   if (curTitle) curTitle.textContent = 'priorities for ' + mpMonthLabel(curMonth);
-  if (nextTitle) nextTitle.textContent = 'priorities for ' + mpMonthLabel(nextDate.getMonth());
-  if (prevTitle) prevTitle.textContent = 'priorities for ' + mpMonthLabel(prevDate.getMonth());
+  if (nextTitle) nextTitle.textContent = 'upcoming priorities (through December ' + curYear + ')';
+  if (prevTitle) prevTitle.textContent = 'earlier ' + curYear + ' priorities';
 
   if (mpLoaded) return;
   mpLoaded = true;
@@ -4882,14 +4890,24 @@ async function loadMonthPriorities() {
     const text = await res.text();
     const rows = parseCSV(text, 0);
 
-    renderMonthPrioritiesInto(rows, curMonth, curYear,
+    renderMonthPrioritiesInto(rows, curStart, curEnd,
       { list: 'mp-list', wrap: 'mp-list-wrap', status: 'mp-status' }, false);
 
-    renderMonthPrioritiesInto(rows, nextDate.getMonth(), nextDate.getFullYear(),
+    renderMonthPrioritiesInto(rows, upcomingStart, upcomingEnd,
       { list: 'mp-next-list', wrap: 'mp-next-list-wrap', status: 'mp-next-status' }, false);
 
-    renderMonthPrioritiesInto(rows, prevDate.getMonth(), prevDate.getFullYear(),
-      { list: 'mp-prev-list', wrap: 'mp-prev-list-wrap', status: 'mp-prev-status' }, true);
+    // Only render the earlier-priorities section if January isn't the current month
+    // (there's nothing "earlier this year" to show in January).
+    if (earlierStart.getTime() <= earlierEnd.getTime()) {
+      renderMonthPrioritiesInto(rows, earlierStart, earlierEnd,
+        { list: 'mp-prev-list', wrap: 'mp-prev-list-wrap', status: 'mp-prev-status' }, true);
+    } else {
+      const prevStatus = document.getElementById('mp-prev-status');
+      if (prevStatus) {
+        prevStatus.textContent = 'Nothing earlier this year yet.';
+        prevStatus.style.display = '';
+      }
+    }
 
     const mpLastUpdatedEl = document.getElementById('mp-last-updated');
     if (mpLastUpdatedEl) {
