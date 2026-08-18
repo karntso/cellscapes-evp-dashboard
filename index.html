@@ -1328,6 +1328,7 @@
 <div class="tabs">
   <button class="tab-btn active" onclick="switchTab('goals-priorities', event)">goals &amp; priorities</button>
   <button class="tab-btn" onclick="switchTab('priorities', event)">calendar</button>
+  <button class="tab-btn" onclick="switchTab('key-presentations', event)">key presentations</button>
   <button class="tab-btn" onclick="switchTab('direct-reports', event)">direct reports &amp; key contacts</button>
   <button class="tab-btn" onclick="switchTab('travel-outreach', event)">travel &amp; outreach</button>
   <button class="tab-btn" onclick="switchTab('accomplishments', event)">accomplishments</button>
@@ -1366,24 +1367,6 @@
     <div class="collapsible-content open" id="rucalendar-content">
       <div class="section-body" id="rucalendar-body">
         <div class="calendar-error">Loading calendar…</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Leadership Talks -->
-  <div class="section-card">
-    <div class="section-header open" onclick="toggleCollapse('leadershiptalks')" id="leadershiptalks-header">
-      <h2 class="section-title">leadership talks</h2>
-      <span class="collapsible-toggle open" id="leadershiptalks-toggle">+</span>
-    </div>
-    <div class="collapsible-content open" id="leadershiptalks-content">
-      <div class="section-body">
-        <div id="tt-status" class="tt-empty">Loading leadership talks…</div>
-        <div class="tt-strip-scroll" id="tt-strip"></div>
-        <div class="tt-hint" id="tt-hint" style="display:none;font-size:0.72rem;color:#AAA39F;font-weight:400;">showing presentations only · travel-only entries not displayed · scroll to see all →</div>
-        <div class="embed-footer">
-          <a href="https://docs.google.com/spreadsheets/d/1H1cN97CCsAe9WrHzNTbNwQbGc3FIcndd/edit#gid=1228322803" target="_blank" style="font-size:0.82rem;font-weight:400;">open talks &amp; travel sheet →</a>
-        </div>
       </div>
     </div>
   </div>
@@ -1428,7 +1411,8 @@ function switchTab(tabName, evt) {
   document.getElementById('tab-' + tabName).classList.add('active');
   if (evt && evt.target) evt.target.classList.add('active');
   if (tabName === 'accomplishments') loadTopLevelAccomplishments();
-  if (tabName === 'goals-priorities') { loadMonthPriorities(); loadEvpPresentations(); }
+  if (tabName === 'goals-priorities') loadMonthPriorities();
+  if (tabName === 'key-presentations') loadEvpPresentations();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -3248,29 +3232,6 @@ window.onload = function() {
     </div>
   </div>
 
-  <!-- EVP Presentations -->
-  <div class="section-card">
-    <div class="section-header open" onclick="toggleCollapse('evppres')" id="evppres-header">
-      <h2 class="section-title">EVP presentations</h2>
-      <span class="collapsible-toggle open" id="evppres-toggle">+</span>
-    </div>
-    <div class="collapsible-content open" id="evppres-content">
-      <div class="section-body">
-        <div class="gt-status-msg" id="evp-pres-status">loading presentations…</div>
-        <div class="evp-pres-scroll" id="evp-pres-scroll" style="display:none;">
-          <div class="evp-pres-row" id="evp-pres-row"></div>
-        </div>
-        <div class="evp-pres-hint">← scroll to see all →</div>
-        <div style="margin-top:8px;text-align:right;">
-          <span class="gt-last-updated" id="evp-pres-last-updated" style="font-size:.75rem;margin-right:10px;"></span>
-          <a href="https://docs.google.com/spreadsheets/d/1-QNrKJ_LL34xH5Vf8HTKkJAYr4pAGHa2y1tOFL4YQks/edit?usp=sharing#gid=457555151" target="_blank" style="font-size:0.8rem;color:var(--link-accent);text-decoration:none;">
-            open EVP presentations sheet →
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Priorities for [Current Month] -->
   <div class="section-card">
     <div class="section-header open" onclick="toggleCollapse('monthpriorities')" id="monthpriorities-header">
@@ -3474,6 +3435,52 @@ window.onload = function() {
         <div class="gt-pdrill" id="gt-pdrill-qtr" style="display:none;"></div>
         </div><!-- end quarterly people section box -->
 
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Key Presentations Tab -->
+<div id="tab-key-presentations" class="tab-content">
+
+  <!-- Leadership Talks -->
+  <div class="section-card">
+    <div class="section-header open" onclick="toggleCollapse('leadershiptalks')" id="leadershiptalks-header">
+      <h2 class="section-title">leadership talks</h2>
+      <span class="collapsible-toggle open" id="leadershiptalks-toggle">+</span>
+    </div>
+    <div class="collapsible-content open" id="leadershiptalks-content">
+      <div class="section-body">
+        <div id="tt-status" class="tt-empty">Loading leadership talks…</div>
+        <div class="tt-strip-scroll" id="tt-strip"></div>
+        <div class="tt-hint" id="tt-hint" style="display:none;font-size:0.72rem;color:#AAA39F;font-weight:400;">showing presentations only · travel-only entries not displayed · scroll to see all →</div>
+        <div class="embed-footer">
+          <a href="https://docs.google.com/spreadsheets/d/1H1cN97CCsAe9WrHzNTbNwQbGc3FIcndd/edit#gid=1228322803" target="_blank" style="font-size:0.82rem;font-weight:400;">open talks &amp; travel sheet →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EVP Presentations -->
+  <div class="section-card">
+    <div class="section-header open" onclick="toggleCollapse('evppres')" id="evppres-header">
+      <h2 class="section-title">EVP presentations</h2>
+      <span class="collapsible-toggle open" id="evppres-toggle">+</span>
+    </div>
+    <div class="collapsible-content open" id="evppres-content">
+      <div class="section-body">
+        <div class="gt-status-msg" id="evp-pres-status">loading presentations…</div>
+        <div class="evp-pres-scroll" id="evp-pres-scroll" style="display:none;">
+          <div class="evp-pres-row" id="evp-pres-row"></div>
+        </div>
+        <div class="evp-pres-hint">← scroll to see all →</div>
+        <div style="margin-top:8px;text-align:right;">
+          <span class="gt-last-updated" id="evp-pres-last-updated" style="font-size:.75rem;margin-right:10px;"></span>
+          <a href="https://docs.google.com/spreadsheets/d/1-QNrKJ_LL34xH5Vf8HTKkJAYr4pAGHa2y1tOFL4YQks/edit?usp=sharing#gid=457555151" target="_blank" style="font-size:0.8rem;color:var(--link-accent);text-decoration:none;">
+            open EVP presentations sheet →
+          </a>
+        </div>
       </div>
     </div>
   </div>
