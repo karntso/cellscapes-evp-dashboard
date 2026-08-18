@@ -1327,7 +1327,7 @@
 <!-- Tab bar -->
 <div class="tabs">
   <button class="tab-btn active" onclick="switchTab('goals-priorities', event)">goals &amp; priorities</button>
-  <button class="tab-btn" onclick="switchTab('priorities', event)">calendar</button>
+  <button class="tab-btn" onclick="switchTab('priorities', event)">team calendar</button>
   <button class="tab-btn" onclick="switchTab('key-presentations', event)">key presentations</button>
   <button class="tab-btn" onclick="switchTab('direct-reports', event)">direct reports &amp; key contacts</button>
   <button class="tab-btn" onclick="switchTab('travel-outreach', event)">travel &amp; outreach</button>
@@ -1361,33 +1361,12 @@
   <!-- Ru's Calendar (2-month view) -->
   <div class="section-card">
     <div class="section-header open" onclick="toggleCollapse('rucalendar')" id="rucalendar-header">
-      <h2 class="section-title">EVP calendar</h2>
+      <h2 class="section-title">leadership calendar</h2>
       <span class="collapsible-toggle open" id="rucalendar-toggle">+</span>
     </div>
     <div class="collapsible-content open" id="rucalendar-content">
       <div class="section-body" id="rucalendar-body">
         <div class="calendar-error">Loading calendar…</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- EVP Roadmapping -->
-  <div class="section-card">
-    <div class="section-header" onclick="toggleCollapse('roadmapping')" id="roadmapping-header">
-      <h2 class="section-title">EVP roadmapping</h2>
-      <span class="collapsible-toggle" id="roadmapping-toggle">+</span>
-    </div>
-    <div class="collapsible-content" id="roadmapping-content">
-      <div class="section-body">
-        <div class="rm-status-note" id="rm-status">Loading roadmap…</div>
-        <div class="rm-scroll" id="rm-scroll">
-          <div class="rm-list" id="rm-list"></div>
-        </div>
-        <div style="margin-top:8px;text-align:right;">
-          <a href="https://docs.google.com/spreadsheets/d/1-aHqGhwAgzkD34qugZEINJbhYfqwQ32g/edit?usp=sharing&ouid=111752552908735098726&rtpof=true&sd=true#gid=1561638989" target="_blank" style="font-size:0.82rem;color:var(--link-accent);text-decoration:none;">
-            open sheet to edit →
-          </a>
-        </div>
       </div>
     </div>
   </div>
@@ -2800,7 +2779,6 @@ window.onload = function() {
   }
   loadRuCalendar();
   loadEvpTravel();
-  loadRoadmap();
   loadExternalEngagement();
   loadGoalUpdates();
   loadMeasuresStatus();
@@ -4761,6 +4739,16 @@ function mpItemResolvedDate(row) {
 
 // Renders a priorities section for a given date range (inclusive), grouped by goal.
 // fadeCompleted fades out items already marked complete (used for the earlier-priorities section).
+// Bolds any text before the first colon in an item (e.g. "resourcing:" in
+// "resourcing: evaluate plans"). If there's no colon, the text renders as-is.
+function mpBoldPrefix(text) {
+  const idx = text.indexOf(':');
+  if (idx === -1) return escGt(text);
+  const prefix = text.slice(0, idx + 1);
+  const rest = text.slice(idx + 1);
+  return `<strong>${escGt(prefix)}</strong>${escGt(rest)}`;
+}
+
 // Appends goal-grouped sections (label + bulleted list) for a set of items into a container.
 // idPrefix keeps generated element ids unique when this is called multiple times (once per month).
 let mpRowIdCounter = 0;
@@ -4820,7 +4808,7 @@ function appendGoalGroupedSections(container, items, fadeCompleted, idPrefix) {
       li.className = 'mp-bullet-row' + (hasComment ? '' : ' no-comment') + (isComplete ? ' mp-faded' : '');
       li.innerHTML = `
         <span class="mp-bullet-dot">&#8226;</span>
-        <span class="mp-bullet-textwrap">${escGt(itemText)}${alsoHtml}</span>
+        <span class="mp-bullet-textwrap">${mpBoldPrefix(itemText)}${alsoHtml}</span>
         <span class="mp-bullet-due${due ? '' : ' no-date'}">${due ? mpFormatDate(due) : ''}</span>
         <span class="gt-pill ${statusKey}" style="font-size:.66rem;">${STATUS_ICON[statusKey]} ${STATUS_LABEL[statusKey]}</span>
         <span class="mp-bullet-chevron" id="chev-${rowIdBase}">${hasComment ? '\u25B8' : ''}</span>
