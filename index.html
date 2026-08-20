@@ -3018,7 +3018,7 @@ window.onload = function() {
 }
 .mp-bullet-row {
   display: grid;
-  grid-template-columns: 14px 1fr 92px 112px 14px;
+  grid-template-columns: 14px 16px 1fr 92px 112px 14px;
   align-items: center;
   gap: 10px;
   padding: 9px 4px;
@@ -3032,6 +3032,9 @@ window.onload = function() {
 .mp-bullet-row:hover { background: var(--surface-2); }
 .mp-bullet-row.no-comment { cursor: default; }
 .mp-bullet-row.no-comment:hover { background: transparent; }
+.mp-bullet-row.mp-high-importance { background: var(--mp-importance-bg); }
+.mp-bullet-row.mp-high-importance:hover { background: var(--surface-2); }
+.mp-important-icon { color: #D32F2F; font-size: 0.8rem; flex-shrink: 0; }
 .mp-bullet-dot { color: var(--text-secondary); flex-shrink: 0; }
 .mp-bullet-textwrap { color: var(--text-primary); line-height: 1.4; overflow: hidden; }
 .mp-also-tag {
@@ -3230,6 +3233,24 @@ window.onload = function() {
               <li>Qualitative feedback from collaborators and advisors indicating CellScapes is perceived as a central, integrative scientific hub</li>
             </ul>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paper Repository -->
+  <div class="section-card">
+    <div class="section-header open" onclick="toggleCollapse('paperrepo')" id="paperrepo-header">
+      <h2 class="section-title">paper repository</h2>
+      <span class="collapsible-toggle open" id="paperrepo-toggle">+</span>
+    </div>
+    <div class="collapsible-content open" id="paperrepo-content">
+      <div class="section-body">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <div style="font-size:0.85rem;color:var(--text-secondary);">Ru's reading list and literature tracker.</div>
+          <a href="https://ismi-ops.github.io/literature-rg/" target="_blank" style="display:inline-flex;align-items:center;justify-content:center;padding:8px 18px;border-radius:999px;background:var(--accent-light);color:var(--accent);font-size:0.82rem;font-weight:700;text-decoration:none;">
+            open paper repository →
+          </a>
         </div>
       </div>
     </div>
@@ -4798,16 +4819,24 @@ function appendGoalGroupedSections(container, items, fadeCompleted, idPrefix) {
       const comments = gf(row, 'Comments / Notes', 'comments / notes', 'Comments', 'comments', 'Notes', 'notes');
       const hasComment = !!comments;
       const isComplete = statusKey === 'complete';
+      const importanceRaw = gf(row, 'Importance', 'importance', 'Priority Level', 'priority level');
+      const isHighImportance = importanceRaw.trim().toLowerCase() === 'high' && !isComplete;
       const rowIdBase = idPrefix + '-' + (mpRowIdCounter++);
 
       const alsoHtml = extras.length
         ? `<span class="mp-also-tag" title="${escGt('Also related to ' + extras.map(e => e.name).join(' & '))}">also ${extras.map(e => `<span style="color:${e.color};">${escGt(e.code || e.name)}</span>`).join(' &amp; ')}</span>`
         : '';
 
+      const importanceIcon = isHighImportance
+        ? `<span class="mp-important-icon" title="High importance">&#10071;</span>`
+        : `<span class="mp-important-icon"></span>`;
+
       const li = document.createElement('li');
-      li.className = 'mp-bullet-row' + (hasComment ? '' : ' no-comment') + (isComplete ? ' mp-faded' : '');
+      li.className = 'mp-bullet-row' + (hasComment ? '' : ' no-comment') + (isComplete ? ' mp-faded' : '') + (isHighImportance ? ' mp-high-importance' : '');
+      if (isHighImportance) li.style.setProperty('--mp-importance-bg', meta.bg);
       li.innerHTML = `
         <span class="mp-bullet-dot">&#8226;</span>
+        ${importanceIcon}
         <span class="mp-bullet-textwrap">${mpBoldPrefix(itemText)}${alsoHtml}</span>
         <span class="mp-bullet-due${due ? '' : ' no-date'}">${due ? mpFormatDate(due) : ''}</span>
         <span class="gt-pill ${statusKey}" style="font-size:.66rem;">${STATUS_ICON[statusKey]} ${STATUS_LABEL[statusKey]}</span>
