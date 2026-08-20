@@ -1319,9 +1319,14 @@
 
 <div class="header">
   <h1 class="title-main">EVP Dashboard - Ru Gunawardane</h1>
-  <a href="https://karntso.github.io/cellscapes-leadership-dashboard/" target="_blank" class="btn-external">
-    &#8599; Leadership Team Dashboard
-  </a>
+  <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+    <a href="https://ismi-ops.github.io/literature-rg/" target="_blank" class="btn-external">
+      &#8599; Paper Repository
+    </a>
+    <a href="https://karntso.github.io/cellscapes-leadership-dashboard/" target="_blank" class="btn-external">
+      &#8599; Leadership Team Dashboard
+    </a>
+  </div>
 </div>
 
 <!-- Tab bar -->
@@ -3056,7 +3061,9 @@ window.onload = function() {
 .mp-bullet-chevron.open { transform: rotate(90deg); }
 .mp-comment {
   display: none;
-  padding: 10px 14px 12px 26px;
+  grid-template-columns: 14px 16px 1fr 92px 112px 14px;
+  gap: 10px;
+  padding: 8px 4px 10px;
   font-size: 0.82rem;
   color: var(--text-secondary);
   background: var(--surface-2);
@@ -3065,7 +3072,10 @@ window.onload = function() {
   list-style: none;
   border-radius: var(--radius-sm);
 }
-.mp-comment.open { display: block; }
+.mp-comment.open { display: grid; }
+.mp-comment-inner { grid-column: 3 / -1; }
+.mp-comment-line { margin-bottom: 3px; }
+.mp-comment-line:last-child { margin-bottom: 0; }
 .mp-empty { padding: 14px 0; font-size: 0.82rem; color: var(--text-secondary); font-style: italic; }
 .mp-list-wrap { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
 .mp-bullet-row.mp-faded { opacity: 0.45; }
@@ -3233,24 +3243,6 @@ window.onload = function() {
               <li>Qualitative feedback from collaborators and advisors indicating CellScapes is perceived as a central, integrative scientific hub</li>
             </ul>
           </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Paper Repository -->
-  <div class="section-card">
-    <div class="section-header open" onclick="toggleCollapse('paperrepo')" id="paperrepo-header">
-      <h2 class="section-title">paper repository</h2>
-      <span class="collapsible-toggle open" id="paperrepo-toggle">+</span>
-    </div>
-    <div class="collapsible-content open" id="paperrepo-content">
-      <div class="section-body">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-          <div style="font-size:0.85rem;color:var(--text-secondary);">Ru's reading list and literature tracker.</div>
-          <a href="https://ismi-ops.github.io/literature-rg/" target="_blank" style="display:inline-flex;align-items:center;justify-content:center;padding:8px 18px;border-radius:999px;background:var(--accent-light);color:var(--accent);font-size:0.82rem;font-weight:700;text-decoration:none;">
-            open paper repository →
-          </a>
         </div>
       </div>
     </div>
@@ -4856,7 +4848,8 @@ function appendGoalGroupedSections(container, items, fadeCompleted, idPrefix) {
         const commentLi = document.createElement('li');
         commentLi.className = 'mp-comment' + (isComplete ? ' mp-faded' : '');
         commentLi.id = 'comment-' + rowIdBase;
-        commentLi.textContent = comments;
+        const commentLines = comments.split('\n').map(l => l.trim()).filter(l => l).map(l => l.replace(/^[•\-\u2022]\s*/, ''));
+        commentLi.innerHTML = `<div class="mp-comment-inner">${commentLines.map(l => `<div class="mp-comment-line">&#8226; ${escGt(l)}</div>`).join('')}</div>`;
         ul.appendChild(commentLi);
       }
     });
