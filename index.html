@@ -2986,100 +2986,82 @@ window.onload = function() {
 .gt-select{font-family:Arial,sans-serif;font-size:.78rem;color:var(--text-primary);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;cursor:pointer;}
 .gt-select:focus{outline:none;border-color:var(--gt-c1);}
 
-/* ── Goals & Priorities tab ────────────────────────────────── */
-.mp-month-header {
-  background: var(--accent);
-  color: #fff;
-  font-size: 0.85rem;
-  font-weight: 700;
-  padding: 8px 14px;
-  border-radius: var(--radius-sm);
-  margin: 16px 0 4px;
+/* ── Goals & Priorities tab: Overview / This Week / This Month / Coming Up ── */
+.mp2-panel {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
 }
-.mp-month-header:first-child {
-  margin-top: 0;
+.mp2-panel-quiet {
+  background: var(--surface-2);
 }
-.mp-section-label {
-  font-size: 0.72rem;
+.mp2-panel-overview {
+  border-color: #F0C4C4;
+  background: #FCEBEB;
+}
+.mp2-panel-label {
+  font-size: 0.82rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 14px 14px 6px;
-  border-top: 2px solid var(--border);
-  margin-top: 4px;
+  letter-spacing: 0.04em;
+  margin-bottom: 10px;
 }
-.mp-section-label:first-child {
-  border-top: none;
-  margin-top: 0;
+.mp2-label-overview { color: #A32D2D; }
+.mp2-item {
+  cursor: pointer;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
 }
-.mp-month-header + .mp-section-label {
-  border-top: none;
-  margin-top: 0;
-}
-.mp-bullet-list {
-  list-style: none;
-  margin: 0;
-  padding: 0 14px 6px;
-}
-.mp-bullet-row {
-  display: grid;
-  grid-template-columns: 14px 16px 1fr 92px 112px 14px;
+.mp2-panel-overview .mp2-item { border-bottom-color: #F5D5D5; }
+.mp2-panel-quiet .mp2-item { padding: 7px 0; }
+.mp2-item:last-child { border-bottom: none; }
+.mp2-item.no-notes { cursor: default; }
+.mp2-item-top {
+  display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px 4px;
-  border-bottom: 1px solid var(--border);
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: background 0.12s;
-  border-radius: var(--radius-sm);
 }
-.mp-bullet-row:last-child { border-bottom: none; }
-.mp-bullet-row:hover { background: var(--surface-2); }
-.mp-bullet-row.no-comment { cursor: default; }
-.mp-bullet-row.no-comment:hover { background: transparent; }
-.mp-bullet-row.mp-high-importance { background: var(--mp-importance-bg); }
-.mp-bullet-row.mp-high-importance:hover { background: var(--surface-2); }
-.mp-important-icon { color: #D32F2F; font-size: 0.8rem; flex-shrink: 0; }
-.mp-bullet-dot { color: var(--text-secondary); flex-shrink: 0; }
-.mp-bullet-textwrap { color: var(--text-primary); line-height: 1.4; overflow: hidden; }
-.mp-also-tag {
-  font-size: 0.66rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  margin-left: 6px;
-}
-.mp-bullet-due { font-size: 0.78rem; color: var(--text-secondary); white-space: nowrap; text-align: right; }
-.mp-bullet-due.no-date { font-style: italic; }
-.mp-bullet-row .gt-pill { justify-self: start; }
-.mp-bullet-chevron {
-  font-size: 0.7rem;
-  color: var(--text-secondary);
-  transition: transform 0.15s;
-  flex-shrink: 0;
-}
-.mp-bullet-chevron.open { transform: rotate(90deg); }
-.mp-comment {
+.mp2-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.mp2-important-icon { color: #D32F2F; font-size: 0.8rem; flex-shrink: 0; }
+.mp2-text { flex: 1; font-size: 0.86rem; color: var(--text-primary); line-height: 1.4; }
+.mp2-panel-quiet .mp2-text { font-size: 0.84rem; color: var(--text-secondary); }
+.mp2-also-tag { font-size: 0.66rem; font-weight: 700; color: var(--text-secondary); white-space: nowrap; margin-left: 6px; }
+.mp2-date { font-size: 0.75rem; color: var(--text-secondary); white-space: nowrap; flex-shrink: 0; }
+.mp2-date-overdue { color: #A32D2D; font-weight: 600; }
+.mp2-date-soon { color: var(--rose, #CD0F55); font-weight: 600; }
+.mp2-chev { font-size: 0.7rem; color: var(--text-secondary); transition: transform 0.15s; flex-shrink: 0; }
+.mp2-chev.open { transform: rotate(90deg); }
+.mp2-notes {
   display: none;
-  grid-template-columns: 14px 16px 1fr 92px 112px 14px;
-  gap: 10px;
-  padding: 8px 4px 10px;
-  font-size: 0.82rem;
+  margin: 8px 0 0 18px;
+  font-size: 0.8rem;
   color: var(--text-secondary);
-  background: var(--surface-2);
-  border-bottom: 1px solid var(--border);
   line-height: 1.5;
-  list-style: none;
-  border-radius: var(--radius-sm);
 }
-.mp-comment.open { display: grid; }
-.mp-comment-inner { grid-column: 3 / -1; }
-.mp-comment-line { margin-bottom: 3px; }
-.mp-comment-line:last-child { margin-bottom: 0; }
-.mp-empty { padding: 14px 0; font-size: 0.82rem; color: var(--text-secondary); font-style: italic; }
-.mp-list-wrap { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
-.mp-bullet-row.mp-faded { opacity: 0.45; }
-.mp-comment.mp-faded { opacity: 0.45; }
+.mp2-notes.open { display: block; }
+.mp2-notes-line { margin-bottom: 3px; }
+.mp2-notes-line:last-child { margin-bottom: 0; }
+.mp2-item.mp2-high-importance { background: var(--mp-importance-bg); margin: 0 -18px; padding: 9px 18px; }
+.mp2-item.mp2-faded { opacity: 0.45; }
+.mp2-empty { padding: 4px 0; font-size: 0.82rem; color: var(--text-secondary); font-style: italic; }
+.mp2-month-group { margin-bottom: 14px; }
+.mp2-month-group:last-child { margin-bottom: 0; }
+.mp2-month-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #AAA39F;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.mp2-bullet-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  cursor: pointer;
+}
+.mp2-bullet-row.no-notes { cursor: default; }
 
 /* ── EVP Presentations ────────────────────────────────────── */
 .evp-pres-scroll { overflow-x: auto; padding-bottom: 8px; }
@@ -3248,55 +3230,72 @@ window.onload = function() {
     </div>
   </div>
 
-  <!-- Priorities for [Current Month] -->
+  <!-- Overview: needs attention (overdue, not complete) -->
   <div class="section-card">
-    <div class="section-header open" onclick="toggleCollapse('monthpriorities')" id="monthpriorities-header">
-      <h2 class="section-title" id="monthpriorities-title">priorities for …</h2>
-      <span class="collapsible-toggle open" id="monthpriorities-toggle">+</span>
+    <div class="section-header open" onclick="toggleCollapse('mpoverview')" id="mpoverview-header">
+      <h2 class="section-title">overview</h2>
+      <span class="collapsible-toggle open" id="mpoverview-toggle">+</span>
     </div>
-    <div class="collapsible-content open" id="monthpriorities-content">
+    <div class="collapsible-content open" id="mpoverview-content">
       <div class="section-body">
-        <div class="gt-status-msg" id="mp-status">loading priorities…</div>
-        <div class="mp-list-wrap" id="mp-list-wrap" style="display:none;">
-          <div id="mp-list"></div>
+        <div class="gt-status-msg" id="mp2-overview-status">loading priorities…</div>
+        <div class="mp2-panel mp2-panel-overview" id="mp2-overview-wrap" style="display:none;">
+          <div class="mp2-panel-label mp2-label-overview">needs attention</div>
+          <div id="mp2-overview-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- This Week -->
+  <div class="section-card">
+    <div class="section-header open" onclick="toggleCollapse('mpweek')" id="mpweek-header">
+      <h2 class="section-title">this week</h2>
+      <span class="collapsible-toggle open" id="mpweek-toggle">+</span>
+    </div>
+    <div class="collapsible-content open" id="mpweek-content">
+      <div class="section-body">
+        <div class="gt-status-msg" id="mp2-week-status">loading priorities…</div>
+        <div class="mp2-panel" id="mp2-week-wrap" style="display:none;">
+          <div id="mp2-week-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- This Month -->
+  <div class="section-card">
+    <div class="section-header open" onclick="toggleCollapse('mpmonth')" id="mpmonth-header">
+      <h2 class="section-title">this month</h2>
+      <span class="collapsible-toggle open" id="mpmonth-toggle">+</span>
+    </div>
+    <div class="collapsible-content open" id="mpmonth-content">
+      <div class="section-body">
+        <div class="gt-status-msg" id="mp2-month-status">loading priorities…</div>
+        <div class="mp2-panel mp2-panel-quiet" id="mp2-month-wrap" style="display:none;">
+          <div id="mp2-month-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Coming Up: next 3 months -->
+  <div class="section-card">
+    <div class="section-header open" onclick="toggleCollapse('mpcomingup')" id="mpcomingup-header">
+      <h2 class="section-title" id="mpcomingup-title">coming up · next 3 months</h2>
+      <span class="collapsible-toggle open" id="mpcomingup-toggle">+</span>
+    </div>
+    <div class="collapsible-content open" id="mpcomingup-content">
+      <div class="section-body">
+        <div class="gt-status-msg" id="mp2-comingup-status">loading priorities…</div>
+        <div class="mp2-panel" id="mp2-comingup-wrap" style="display:none;">
+          <div id="mp2-comingup-list"></div>
         </div>
         <div style="margin-top:8px;text-align:right;">
           <span class="gt-last-updated" id="mp-last-updated" style="font-size:.75rem;margin-right:10px;"></span>
           <a href="https://docs.google.com/spreadsheets/d/1-QNrKJ_LL34xH5Vf8HTKkJAYr4pAGHa2y1tOFL4YQks/edit?usp=sharing" target="_blank" style="font-size:0.8rem;color:var(--link-accent);text-decoration:none;">
             open EVP priorities sheet →
           </a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Priorities: Upcoming (next month through December) -->
-  <div class="section-card">
-    <div class="section-header open" onclick="toggleCollapse('monthprioritiesnext')" id="monthprioritiesnext-header">
-      <h2 class="section-title" id="monthprioritiesnext-title">upcoming priorities</h2>
-      <span class="collapsible-toggle open" id="monthprioritiesnext-toggle">+</span>
-    </div>
-    <div class="collapsible-content open" id="monthprioritiesnext-content">
-      <div class="section-body">
-        <div class="gt-status-msg" id="mp-next-status">loading priorities…</div>
-        <div class="mp-list-wrap" id="mp-next-list-wrap" style="display:none;">
-          <div id="mp-next-list"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Priorities: Earlier this year (collapsed by default) -->
-  <div class="section-card">
-    <div class="section-header" onclick="toggleCollapse('monthprioritiesprev')" id="monthprioritiesprev-header">
-      <h2 class="section-title" id="monthprioritiesprev-title">earlier 2026 priorities</h2>
-      <span class="collapsible-toggle" id="monthprioritiesprev-toggle">+</span>
-    </div>
-    <div class="collapsible-content" id="monthprioritiesprev-content">
-      <div class="section-body">
-        <div class="gt-status-msg" id="mp-prev-status">loading priorities…</div>
-        <div class="mp-list-wrap" id="mp-prev-list-wrap" style="display:none;">
-          <div id="mp-prev-list"></div>
         </div>
       </div>
     </div>
@@ -4754,6 +4753,8 @@ function mpItemResolvedDate(row) {
 // fadeCompleted fades out items already marked complete (used for the earlier-priorities section).
 // Bolds any text before the first colon in an item (e.g. "resourcing:" in
 // "resourcing: evaluate plans"). If there's no colon, the text renders as-is.
+// Bolds any text before the first colon in an item (e.g. "resourcing:" in
+// "resourcing: evaluate plans"). If there's no colon, the text renders as-is.
 function mpBoldPrefix(text) {
   const idx = text.indexOf(':');
   if (idx === -1) return escGt(text);
@@ -4762,115 +4763,221 @@ function mpBoldPrefix(text) {
   return `<strong>${escGt(prefix)}</strong>${escGt(rest)}`;
 }
 
-// Appends goal-grouped sections (label + bulleted list) for a set of items into a container.
-// idPrefix keeps generated element ids unique when this is called multiple times (once per month).
-let mpRowIdCounter = 0;
-function appendGoalGroupedSections(container, items, fadeCompleted, idPrefix) {
-  const sections = {}; // key -> { meta, items: [] }
+// Resolves the best-guess date for a row — prefers Date Due, falls back to the
+// explicit Month text column (anchored to the current year, since that column
+// has no year of its own).
+function mpItemResolvedDate(row) {
+  const due = gf(row, 'Date Due', 'date due', 'Due Date', 'due date', 'Due', 'due');
+  if (due) {
+    const d = mpParseLocalDate(due);
+    if (d) return d;
+  }
+  const explicit = gf(row, 'Month', 'month');
+  if (explicit) {
+    const idx = MONTHS_LONG.findIndex(m => explicit.toLowerCase().startsWith(m.slice(0, 3)));
+    if (idx !== -1) return new Date(new Date().getFullYear(), idx, 1);
+  }
+  return null;
+}
+
+function mpGetMonday(d) {
+  const dow = d.getDay();
+  const diff = dow === 0 ? -6 : 1 - dow;
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + diff);
+}
+
+let mp2RowIdCounter = 0;
+function mp2Toggle(rowIdBase) {
+  const notes = document.getElementById('mp2-notes-' + rowIdBase);
+  const chev = document.getElementById('mp2-chev-' + rowIdBase);
+  if (notes) notes.classList.toggle('open');
+  if (chev) chev.classList.toggle('open');
+}
+
+// Builds one flat item row (dot, text, date/label, chevron) with click-to-expand notes.
+function mp2BuildItem(row, opts) {
+  opts = opts || {};
+  const goalName = gf(row, 'Goal', 'goal', 'Pillar', 'pillar');
+  const goalMetas = mpGoalMetaList(goalName);
+  const primary = goalMetas[0];
+  const extras = goalMetas.slice(1);
+  const itemText = gf(row, 'Item', 'item', 'Action Item', 'action item', 'Priority', 'priority');
+  const comments = gf(row, 'Comments / Notes', 'comments / notes', 'Comments', 'comments', 'Notes', 'notes');
+  const hasNotes = !!comments;
+  const statusKey = normStatus(gf(row, 'Status', 'status'));
+  const isComplete = statusKey === 'complete';
+  const importanceRaw = gf(row, 'Importance', 'importance', 'Priority Level', 'priority level');
+  const isHighImportance = importanceRaw.trim().toLowerCase() === 'high' && !isComplete;
+  const rowIdBase = 'r' + (mp2RowIdCounter++);
+
+  const alsoHtml = extras.length
+    ? `<span class="mp2-also-tag" title="${escGt('Also related to ' + extras.map(e => e.name).join(' & '))}">also ${extras.map(e => `<span style="color:${e.color};">${escGt(e.code || e.name)}</span>`).join(' &amp; ')}</span>`
+    : '';
+  const importanceIcon = isHighImportance ? `<span class="mp2-important-icon" title="High importance">&#10071;</span>` : '';
+
+  const dateLabel = opts.dateLabel || '';
+  const dateClass = opts.dateClass || '';
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'mp2-item' + (hasNotes ? '' : ' no-notes') + (isComplete ? ' mp2-faded' : '') + (isHighImportance ? ' mp2-high-importance' : '');
+  wrapper.innerHTML = `
+    <div class="mp2-item-top">
+      <span class="mp2-dot" style="background:${primary.color}"></span>
+      ${importanceIcon}
+      <span class="mp2-text">${mpBoldPrefix(itemText)}${alsoHtml}</span>
+      <span class="mp2-date ${dateClass}">${escGt(dateLabel)}</span>
+      <span class="mp2-chev" id="mp2-chev-${rowIdBase}">${hasNotes ? '\u25B8' : ''}</span>
+    </div>
+  `;
+  if (hasNotes) {
+    const lines = comments.split('\n').map(l => l.trim()).filter(l => l).map(l => l.replace(/^[•\-\u2022]\s*/, ''));
+    const notesEl = document.createElement('div');
+    notesEl.className = 'mp2-notes';
+    notesEl.id = 'mp2-notes-' + rowIdBase;
+    notesEl.innerHTML = lines.map(l => `<div class="mp2-notes-line">&#8226; ${escGt(l)}</div>`).join('');
+    wrapper.appendChild(notesEl);
+    wrapper.querySelector('.mp2-item-top').onclick = () => mp2Toggle(rowIdBase);
+  }
+  return wrapper;
+}
+
+// Builds one compact bullet row for the "coming up" month groups (dot + text, click for notes).
+function mp2BuildBulletRow(row) {
+  const goalName = gf(row, 'Goal', 'goal', 'Pillar', 'pillar');
+  const goalMetas = mpGoalMetaList(goalName);
+  const primary = goalMetas[0];
+  const itemText = gf(row, 'Item', 'item', 'Action Item', 'action item', 'Priority', 'priority');
+  const comments = gf(row, 'Comments / Notes', 'comments / notes', 'Comments', 'comments', 'Notes', 'notes');
+  const hasNotes = !!comments;
+  const statusKey = normStatus(gf(row, 'Status', 'status'));
+  const isComplete = statusKey === 'complete';
+  const rowIdBase = 'r' + (mp2RowIdCounter++);
+
+  const wrap = document.createElement('div');
+  const li = document.createElement('div');
+  li.className = 'mp2-bullet-row' + (hasNotes ? '' : ' no-notes') + (isComplete ? ' mp2-faded' : '');
+  li.innerHTML = `
+    <span class="mp2-dot" style="background:${primary.color}"></span>
+    <span class="mp2-text">${mpBoldPrefix(itemText)}</span>
+    <span class="mp2-chev" id="mp2-chev-${rowIdBase}">${hasNotes ? '\u25B8' : ''}</span>
+  `;
+  wrap.appendChild(li);
+  if (hasNotes) {
+    const lines = comments.split('\n').map(l => l.trim()).filter(l => l).map(l => l.replace(/^[•\-\u2022]\s*/, ''));
+    const notesEl = document.createElement('div');
+    notesEl.className = 'mp2-notes';
+    notesEl.id = 'mp2-notes-' + rowIdBase;
+    notesEl.innerHTML = lines.map(l => `<div class="mp2-notes-line">&#8226; ${escGt(l)}</div>`).join('');
+    wrap.appendChild(notesEl);
+    li.onclick = () => mp2Toggle(rowIdBase);
+  }
+  return wrap;
+}
+
+const MP2_DOW_SHORT = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+function renderMp2Overview(rows, today, ids) {
+  const status = document.getElementById(ids.status);
+  const wrap = document.getElementById(ids.wrap);
+  const list = document.getElementById(ids.list);
+
+  const items = rows.filter(r => {
+    const d = mpItemResolvedDate(r);
+    if (!d) return false;
+    return d.getTime() < today.getTime() && normStatus(gf(r, 'Status', 'status')) !== 'complete';
+  }).sort((a, b) => mpItemResolvedDate(a).getTime() - mpItemResolvedDate(b).getTime());
+
+  if (!items.length) {
+    status.textContent = 'Nothing overdue right now.';
+    status.style.display = '';
+    wrap.style.display = 'none';
+    return;
+  }
+
+  status.style.display = 'none';
+  wrap.style.display = '';
+  list.innerHTML = '';
   items.forEach(row => {
-    const goalName = gf(row, 'Goal', 'goal', 'Pillar', 'pillar');
-    const goalMetas = mpGoalMetaList(goalName);
-    const primary = goalMetas[0];
-    const extras = goalMetas.slice(1);
-    const sectionKey = primary.name;
-    if (!sections[sectionKey]) sections[sectionKey] = { meta: primary, items: [] };
-    sections[sectionKey].items.push({ row, extras });
-  });
-
-  const orderedKeys = MP_GOALS.map(g => g.name).filter(k => sections[k]);
-  Object.keys(sections).forEach(k => { if (!orderedKeys.includes(k)) orderedKeys.push(k); });
-
-  orderedKeys.forEach(key => {
-    const { meta, items: groupItems } = sections[key];
-
-    groupItems.sort((a, b) => {
-      const aComplete = normStatus(gf(a.row, 'Status', 'status')) === 'complete' ? 1 : 0;
-      const bComplete = normStatus(gf(b.row, 'Status', 'status')) === 'complete' ? 1 : 0;
-      if (aComplete !== bComplete) return aComplete - bComplete;
-      const aDate = mpParseLocalDate(gf(a.row, 'Date Due', 'date due', 'Due Date', 'due date', 'Due', 'due'));
-      const bDate = mpParseLocalDate(gf(b.row, 'Date Due', 'date due', 'Due Date', 'due date', 'Due', 'due'));
-      const aTime = aDate ? aDate.getTime() : Infinity;
-      const bTime = bDate ? bDate.getTime() : Infinity;
-      return aTime - bTime;
-    });
-
-    const sectionLabel = document.createElement('div');
-    sectionLabel.className = 'mp-section-label';
-    sectionLabel.style.color = meta.color;
-    sectionLabel.textContent = meta.name;
-    container.appendChild(sectionLabel);
-
-    const ul = document.createElement('ul');
-    ul.className = 'mp-bullet-list';
-
-    groupItems.forEach(({ row, extras }) => {
-      const itemText = gf(row, 'Item', 'item', 'Action Item', 'action item', 'Priority', 'priority');
-      const due = gf(row, 'Date Due', 'date due', 'Due Date', 'due date', 'Due', 'due');
-      const statusRaw = gf(row, 'Status', 'status');
-      const statusKey = normStatus(statusRaw);
-      const comments = gf(row, 'Comments / Notes', 'comments / notes', 'Comments', 'comments', 'Notes', 'notes');
-      const hasComment = !!comments;
-      const isComplete = statusKey === 'complete';
-      const importanceRaw = gf(row, 'Importance', 'importance', 'Priority Level', 'priority level');
-      const isHighImportance = importanceRaw.trim().toLowerCase() === 'high' && !isComplete;
-      const rowIdBase = idPrefix + '-' + (mpRowIdCounter++);
-
-      const alsoHtml = extras.length
-        ? `<span class="mp-also-tag" title="${escGt('Also related to ' + extras.map(e => e.name).join(' & '))}">also ${extras.map(e => `<span style="color:${e.color};">${escGt(e.code || e.name)}</span>`).join(' &amp; ')}</span>`
-        : '';
-
-      const importanceIcon = isHighImportance
-        ? `<span class="mp-important-icon" title="High importance">&#10071;</span>`
-        : `<span class="mp-important-icon"></span>`;
-
-      const li = document.createElement('li');
-      li.className = 'mp-bullet-row' + (hasComment ? '' : ' no-comment') + (isComplete ? ' mp-faded' : '') + (isHighImportance ? ' mp-high-importance' : '');
-      if (isHighImportance) li.style.setProperty('--mp-importance-bg', meta.bg);
-      li.innerHTML = `
-        <span class="mp-bullet-dot">&#8226;</span>
-        ${importanceIcon}
-        <span class="mp-bullet-textwrap">${mpBoldPrefix(itemText)}${alsoHtml}</span>
-        <span class="mp-bullet-due${due ? '' : ' no-date'}">${due ? mpFormatDate(due) : ''}</span>
-        <span class="gt-pill ${statusKey}" style="font-size:.66rem;">${STATUS_ICON[statusKey]} ${STATUS_LABEL[statusKey]}</span>
-        <span class="mp-bullet-chevron" id="chev-${rowIdBase}">${hasComment ? '\u25B8' : ''}</span>
-      `;
-      if (hasComment) {
-        li.onclick = () => {
-          const c = document.getElementById('comment-' + rowIdBase);
-          const chev = document.getElementById('chev-' + rowIdBase);
-          if (c) c.classList.toggle('open');
-          if (chev) chev.classList.toggle('open');
-        };
-      }
-      ul.appendChild(li);
-
-      if (hasComment) {
-        const commentLi = document.createElement('li');
-        commentLi.className = 'mp-comment' + (isComplete ? ' mp-faded' : '');
-        commentLi.id = 'comment-' + rowIdBase;
-        const commentLines = comments.split('\n').map(l => l.trim()).filter(l => l).map(l => l.replace(/^[•\-\u2022]\s*/, ''));
-        commentLi.innerHTML = `<div class="mp-comment-inner">${commentLines.map(l => `<div class="mp-comment-line">&#8226; ${escGt(l)}</div>`).join('')}</div>`;
-        ul.appendChild(commentLi);
-      }
-    });
-
-    container.appendChild(ul);
+    const d = mpItemResolvedDate(row);
+    const el = mp2BuildItem(row, { dateLabel: 'was due ' + mpFormatDate(gf(row, 'Date Due', 'date due', 'Due Date', 'due date', 'Due', 'due') || d.toISOString().slice(0,10)), dateClass: 'mp2-date-overdue' });
+    list.appendChild(el);
   });
 }
 
-function renderMonthPrioritiesInto(rows, rangeStart, rangeEnd, ids, fadeCompleted) {
-  const list = document.getElementById(ids.list);
-  const wrap = document.getElementById(ids.wrap);
+function renderMp2Week(rows, today, weekStart, weekEnd, ids) {
   const status = document.getElementById(ids.status);
+  const wrap = document.getElementById(ids.wrap);
+  const list = document.getElementById(ids.list);
 
-  const filtered = rows.filter(r => {
+  const items = rows.filter(r => {
+    const d = mpItemResolvedDate(r);
+    if (!d) return false;
+    const isOverdueElsewhere = d.getTime() < today.getTime() && normStatus(gf(r, 'Status', 'status')) !== 'complete';
+    if (isOverdueElsewhere) return false;
+    return d.getTime() >= weekStart.getTime() && d.getTime() <= weekEnd.getTime();
+  }).sort((a, b) => mpItemResolvedDate(a).getTime() - mpItemResolvedDate(b).getTime());
+
+  if (!items.length) {
+    status.textContent = 'No priorities logged for this week yet.';
+    status.style.display = '';
+    wrap.style.display = 'none';
+    return;
+  }
+
+  status.style.display = 'none';
+  wrap.style.display = '';
+  list.innerHTML = '';
+  items.forEach(row => {
+    const dueRaw = gf(row, 'Date Due', 'date due', 'Due Date', 'due date', 'Due', 'due');
+    const dateLabel = dueRaw ? MP2_DOW_SHORT[mpItemResolvedDate(row).getDay()] : 'no fixed date';
+    const el = mp2BuildItem(row, { dateLabel });
+    list.appendChild(el);
+  });
+}
+
+function renderMp2Month(rows, weekStart, weekEnd, monthStart, monthEnd, ids) {
+  const status = document.getElementById(ids.status);
+  const wrap = document.getElementById(ids.wrap);
+  const list = document.getElementById(ids.list);
+
+  const items = rows.filter(r => {
+    const d = mpItemResolvedDate(r);
+    if (!d) return false;
+    if (d.getTime() >= weekStart.getTime() && d.getTime() <= weekEnd.getTime()) return false;
+    return d.getTime() >= monthStart.getTime() && d.getTime() <= monthEnd.getTime();
+  }).sort((a, b) => mpItemResolvedDate(a).getTime() - mpItemResolvedDate(b).getTime());
+
+  if (!items.length) {
+    status.textContent = 'Nothing else logged for this month yet.';
+    status.style.display = '';
+    wrap.style.display = 'none';
+    return;
+  }
+
+  status.style.display = 'none';
+  wrap.style.display = '';
+  list.innerHTML = '';
+  items.forEach(row => {
+    const dueRaw = gf(row, 'Date Due', 'date due', 'Due Date', 'due date', 'Due', 'due');
+    const dateLabel = dueRaw ? mpFormatDate(dueRaw) : '';
+    const el = mp2BuildItem(row, { dateLabel });
+    list.appendChild(el);
+  });
+}
+
+function renderMp2ComingUp(rows, rangeStart, rangeEnd, ids) {
+  const status = document.getElementById(ids.status);
+  const wrap = document.getElementById(ids.wrap);
+  const list = document.getElementById(ids.list);
+
+  const items = rows.filter(r => {
     const d = mpItemResolvedDate(r);
     if (!d) return false;
     return d.getTime() >= rangeStart.getTime() && d.getTime() <= rangeEnd.getTime();
   });
 
-  if (!filtered.length) {
-    status.textContent = 'No priorities logged for this range yet.';
+  if (!items.length) {
+    status.textContent = 'Nothing logged for the next few months yet.';
     status.style.display = '';
     wrap.style.display = 'none';
     return;
@@ -4880,86 +4987,44 @@ function renderMonthPrioritiesInto(rows, rangeStart, rangeEnd, ids, fadeComplete
   wrap.style.display = '';
   list.innerHTML = '';
 
-  appendGoalGroupedSections(list, filtered, fadeCompleted, ids.list);
-}
-
-// Renders the upcoming-priorities section grouped by MONTH first, then by goal within each month.
-function renderUpcomingPrioritiesByMonth(rows, rangeStart, rangeEnd, ids) {
-  const list = document.getElementById(ids.list);
-  const wrap = document.getElementById(ids.wrap);
-  const status = document.getElementById(ids.status);
-
-  const filtered = rows.filter(r => {
-    const d = mpItemResolvedDate(r);
-    if (!d) return false;
-    return d.getTime() >= rangeStart.getTime() && d.getTime() <= rangeEnd.getTime();
-  });
-
-  if (!filtered.length) {
-    status.textContent = 'No priorities logged for this range yet.';
-    status.style.display = '';
-    wrap.style.display = 'none';
-    return;
-  }
-
-  status.style.display = 'none';
-  wrap.style.display = '';
-  list.innerHTML = '';
-
-  const months = {}; // "YYYY-MM" -> { label, sortKey, items: [] }
-  filtered.forEach(row => {
+  const months = {};
+  items.forEach(row => {
     const d = mpItemResolvedDate(row);
     const key = d.getFullYear() + '-' + String(d.getMonth()).padStart(2, '0');
-    if (!months[key]) {
-      months[key] = { label: mpMonthLabel(d.getMonth()) + ' ' + d.getFullYear(), sortKey: d.getFullYear() * 12 + d.getMonth(), items: [] };
-    }
+    if (!months[key]) months[key] = { label: mpMonthLabel(d.getMonth()), sortKey: d.getFullYear() * 12 + d.getMonth(), items: [] };
     months[key].items.push(row);
   });
+  const orderedKeys = Object.keys(months).sort((a, b) => months[a].sortKey - months[b].sortKey);
 
-  const orderedMonthKeys = Object.keys(months).sort((a, b) => months[a].sortKey - months[b].sortKey);
-
-  orderedMonthKeys.forEach(monthKey => {
-    const { label, items } = months[monthKey];
-
-    const monthHeader = document.createElement('div');
-    monthHeader.className = 'mp-month-header';
-    monthHeader.textContent = label;
-    list.appendChild(monthHeader);
-
-    appendGoalGroupedSections(list, items, false, ids.list + '-' + monthKey);
+  orderedKeys.forEach(key => {
+    const { label, items: monthItems } = months[key];
+    monthItems.sort((a, b) => mpItemResolvedDate(a).getTime() - mpItemResolvedDate(b).getTime());
+    const group = document.createElement('div');
+    group.className = 'mp2-month-group';
+    const labelEl = document.createElement('div');
+    labelEl.className = 'mp2-month-label';
+    labelEl.textContent = label.toLowerCase();
+    group.appendChild(labelEl);
+    monthItems.forEach(row => group.appendChild(mp2BuildBulletRow(row)));
+    list.appendChild(group);
   });
 }
 
 let mpLoaded = false;
 async function loadMonthPriorities() {
   const now = new Date();
-  const curMonth = now.getMonth();
-  const curYear = now.getFullYear();
-
-  const curStart = new Date(curYear, curMonth, 1);
-  const curEnd = new Date(curYear, curMonth + 1, 0); // last day of current month
-
-  const upcomingStart = new Date(curYear, curMonth + 1, 1);
-  const upcomingEnd = new Date(curYear, 11, 31); // December 31 of current year
-
-  const earlierStart = new Date(curYear, 0, 1); // January 1 of current year
-  const earlierEnd = new Date(curYear, curMonth, 0); // last day of the month before current
-
-  const curTitle = document.getElementById('monthpriorities-title');
-  const nextTitle = document.getElementById('monthprioritiesnext-title');
-  const prevTitle = document.getElementById('monthprioritiesprev-title');
-  if (curTitle) curTitle.textContent = 'priorities for ' + mpMonthLabel(curMonth);
-  if (nextTitle) nextTitle.textContent = 'upcoming priorities (through December ' + curYear + ')';
-  if (prevTitle) prevTitle.textContent = 'earlier ' + curYear + ' priorities';
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const weekStart = mpGetMonday(today);
+  const weekEnd = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 6);
+  const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+  const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  const comingUpStart = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+  const comingUpEnd = new Date(today.getFullYear(), today.getMonth() + 4, 0);
 
   if (mpLoaded) return;
   mpLoaded = true;
 
-  const statuses = [
-    document.getElementById('mp-status'),
-    document.getElementById('mp-next-status'),
-    document.getElementById('mp-prev-status')
-  ];
+  const statusIds = ['mp2-overview-status', 'mp2-week-status', 'mp2-month-status', 'mp2-comingup-status'];
 
   try {
     const res = await fetch(MP_CSV_URL);
@@ -4967,34 +5032,21 @@ async function loadMonthPriorities() {
     const text = await res.text();
     const rows = parseCSV(text, 0);
 
-    renderMonthPrioritiesInto(rows, curStart, curEnd,
-      { list: 'mp-list', wrap: 'mp-list-wrap', status: 'mp-status' }, false);
-
-    renderUpcomingPrioritiesByMonth(rows, upcomingStart, upcomingEnd,
-      { list: 'mp-next-list', wrap: 'mp-next-list-wrap', status: 'mp-next-status' });
-
-    // Only render the earlier-priorities section if January isn't the current month
-    // (there's nothing "earlier this year" to show in January).
-    if (earlierStart.getTime() <= earlierEnd.getTime()) {
-      renderMonthPrioritiesInto(rows, earlierStart, earlierEnd,
-        { list: 'mp-prev-list', wrap: 'mp-prev-list-wrap', status: 'mp-prev-status' }, true);
-    } else {
-      const prevStatus = document.getElementById('mp-prev-status');
-      if (prevStatus) {
-        prevStatus.textContent = 'Nothing earlier this year yet.';
-        prevStatus.style.display = '';
-      }
-    }
+    renderMp2Overview(rows, today, { status: 'mp2-overview-status', wrap: 'mp2-overview-wrap', list: 'mp2-overview-list' });
+    renderMp2Week(rows, today, weekStart, weekEnd, { status: 'mp2-week-status', wrap: 'mp2-week-wrap', list: 'mp2-week-list' });
+    renderMp2Month(rows, weekStart, weekEnd, monthStart, monthEnd, { status: 'mp2-month-status', wrap: 'mp2-month-wrap', list: 'mp2-month-list' });
+    renderMp2ComingUp(rows, comingUpStart, comingUpEnd, { status: 'mp2-comingup-status', wrap: 'mp2-comingup-wrap', list: 'mp2-comingup-list' });
 
     const mpLastUpdatedEl = document.getElementById('mp-last-updated');
     if (mpLastUpdatedEl) {
       mpLastUpdatedEl.textContent = 'last loaded ' + new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
     }
   } catch (err) {
-    statuses.forEach(s => {
+    statusIds.forEach(id => {
+      const s = document.getElementById(id);
       if (s) s.textContent = 'Could not load priorities — check the sheet is published as CSV and the link is correct.';
     });
-    console.error('Month priorities load error:', err);
+    console.error('Priorities load error:', err);
   }
 }
 </script>
