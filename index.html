@@ -3233,14 +3233,14 @@ window.onload = function() {
   <!-- Overview: needs attention (overdue, not complete) -->
   <div class="section-card">
     <div class="section-header open" onclick="toggleCollapse('mpoverview')" id="mpoverview-header">
-      <h2 class="section-title">overview</h2>
+      <h2 class="section-title">needs attention</h2>
       <span class="collapsible-toggle open" id="mpoverview-toggle">+</span>
     </div>
     <div class="collapsible-content open" id="mpoverview-content">
       <div class="section-body">
         <div class="gt-status-msg" id="mp2-overview-status">loading priorities…</div>
         <div class="mp2-panel mp2-panel-overview" id="mp2-overview-wrap" style="display:none;">
-          <div class="mp2-panel-label mp2-label-overview">needs attention</div>
+          <div class="mp2-panel-label mp2-label-overview">overdue</div>
           <div id="mp2-overview-list"></div>
         </div>
       </div>
@@ -3250,7 +3250,7 @@ window.onload = function() {
   <!-- This Week -->
   <div class="section-card">
     <div class="section-header open" onclick="toggleCollapse('mpweek')" id="mpweek-header">
-      <h2 class="section-title">this week</h2>
+      <h2 class="section-title" id="mpweek-title">this week</h2>
       <span class="collapsible-toggle open" id="mpweek-toggle">+</span>
     </div>
     <div class="collapsible-content open" id="mpweek-content">
@@ -3266,13 +3266,13 @@ window.onload = function() {
   <!-- This Month -->
   <div class="section-card">
     <div class="section-header open" onclick="toggleCollapse('mpmonth')" id="mpmonth-header">
-      <h2 class="section-title">this month</h2>
+      <h2 class="section-title">coming up this month</h2>
       <span class="collapsible-toggle open" id="mpmonth-toggle">+</span>
     </div>
     <div class="collapsible-content open" id="mpmonth-content">
       <div class="section-body">
         <div class="gt-status-msg" id="mp2-month-status">loading priorities…</div>
-        <div class="mp2-panel mp2-panel-quiet" id="mp2-month-wrap" style="display:none;">
+        <div class="mp2-panel" id="mp2-month-wrap" style="display:none;">
           <div id="mp2-month-list"></div>
         </div>
       </div>
@@ -4780,10 +4780,20 @@ function mpItemResolvedDate(row) {
   return null;
 }
 
-function mpGetMonday(d) {
-  const dow = d.getDay();
-  const diff = dow === 0 ? -6 : 1 - dow;
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + diff);
+function mpAddBusinessDays(date, days) {
+  const result = new Date(date);
+  let added = 0;
+  while (added < days) {
+    result.setDate(result.getDate() + 1);
+    const dow = result.getDay();
+    if (dow !== 0 && dow !== 6) added++;
+  }
+  return result;
+}
+
+function mpCompactDate(d) {
+  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return monthNames[d.getMonth()] + ' ' + d.getDate();
 }
 
 let mp2RowIdCounter = 0;
@@ -4929,7 +4939,7 @@ function renderMp2Week(rows, today, weekStart, weekEnd, ids) {
   list.innerHTML = '';
   items.forEach(row => {
     const dueRaw = gf(row, 'Date Due', 'date due', 'Due Date', 'due date', 'Due', 'due');
-    const dateLabel = dueRaw ? MP2_DOW_SHORT[mpItemResolvedDate(row).getDay()] : 'no fixed date';
+    const dateLabel = dueRaw ? mpFormatDate(dueRaw) : 'no fixed date';
     const el = mp2BuildItem(row, { dateLabel });
     list.appendChild(el);
   });
@@ -5014,12 +5024,15 @@ let mpLoaded = false;
 async function loadMonthPriorities() {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const weekStart = mpGetMonday(today);
-  const weekEnd = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 6);
+  const weekStart = today;
+  const weekEnd = mpAddBusinessDays(today, 7);
   const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
   const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
   const comingUpStart = new Date(today.getFullYear(), today.getMonth() + 1, 1);
   const comingUpEnd = new Date(today.getFullYear(), today.getMonth() + 4, 0);
+
+  const weekTitleEl = document.getElementById('mpweek-title');
+  if (weekTitleEl) weekTitleEl.textContent = 'this week (' + mpCompactDate(weekStart) + ' – ' + mpCompactDate(weekEnd) + ')';
 
   if (mpLoaded) return;
   mpLoaded = true;
