@@ -621,8 +621,7 @@ async function loadCalendar() {
     renderVerticalScroll(today);
   } catch (err) {
     console.error('Calendar load error:', err);
-    document.getElementById('year-status').textContent = 'Unable to load the calendar right now. Check that the sheet is published and the link is correct.';
-    document.getElementById('scroll-status').textContent = 'Unable to load the calendar right now.';
+    document.getElementById('scroll-status').textContent = 'Unable to load the calendar right now. Check that the sheet is published and the link is correct.';
   }
 }
 
